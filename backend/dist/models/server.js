@@ -31,7 +31,7 @@ const sequelize_1 = require("sequelize");
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
-        this.port = process.env.PORT || '3016';
+        this.port = process.env.PORT || '3017';
         // 1. Conectar a la base de datos
         this.connetionBaseDatos();
         // 2. Configurar middlewares
