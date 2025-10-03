@@ -17,8 +17,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 // backend/src/database/connection.ts
-import { Sequelize, QueryTypes } from "sequelize";
-import dotenv from 'dotenv';
+
 
 // Cargar variables de entorno
 dotenv.config();
