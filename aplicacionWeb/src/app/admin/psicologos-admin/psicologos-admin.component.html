@@ -327,66 +327,65 @@
       </div>
 
       <!-- Footer del modal con acciones -->
-      <!-- Sección del modal - Footer corregido -->
-  <div class="modal-footer">
-    <div class="d-flex flex-wrap gap-2 w-100">
-      
-      <!-- ✅ BOTÓN CORREGIDO: Validar cédula con API -->
-      <button 
-        class="btn btn-warning"
-        (click)="validarCedulaConAPI(psicologoSeleccionado)"
-        [disabled]="validandoCedula || psicologoSeleccionado.cedula_validada"
-        title="Validar cédula profesional automáticamente"
-      >
-        <span *ngIf="validandoCedula" class="spinner-border spinner-border-sm me-2"></span>
-        <i *ngIf="!validandoCedula" class="bi bi-patch-check me-2"></i>
-        {{ psicologoSeleccionado.cedula_validada ? 'Cédula Validada' : 'Validar con API' }}
-      </button>
+      <div class="modal-footer">
+        <div class="d-flex flex-wrap gap-2 w-100">
+          
+          <!-- ✅ NUEVO: Botón para validar manualmente -->
+          <button 
+            class="btn btn-success"
+            (click)="validarCedulaManualmente(psicologoSeleccionado)"
+            [disabled]="psicologoSeleccionado.cedula_validada"
+            title="Marcar cédula como validada manualmente"
+          >
+            <i class="bi bi-hand-thumbs-up me-2"></i>
+            {{ psicologoSeleccionado.cedula_validada ? 'Cédula Validada' : 'Validar Manualmente' }}
+          </button>
 
-      <!-- Botón para abrir consulta oficial -->
-      <button 
-        class="btn btn-info"
-        (click)="abrirConsultaOficial()" 
-        title="Consultar cédulas en sitio oficial SEP"
-      >
-        <i class="bi bi-search me-2"></i>Ver en SEP
-      </button>
+          <!-- Botón para abrir consulta oficial -->
+          <button 
+            class="btn btn-info"
+            (click)="abrirConsultaOficial()" 
+            title="Consultar cédulas en sitio oficial SEP"
+          >
+            <i class="bi bi-search me-2"></i>Ver en SEP
+          </button>
 
-      <!-- Cambiar estado de cuenta -->
-      <button 
-        *ngIf="psicologoSeleccionado.status === 'activo'"
-        class="btn btn-outline-danger"
-        (click)="cambiarEstadoCuenta(psicologoSeleccionado, 'inactivo')"
-        title="Inhabilitar cuenta"
-      >
-        <i class="bi bi-x-circle me-2"></i>Inhabilitar
-      </button>
+          <!-- Cambiar estado de cuenta -->
+          <button 
+            *ngIf="psicologoSeleccionado.status === 'activo'"
+            class="btn btn-outline-danger"
+            (click)="cambiarEstadoCuenta(psicologoSeleccionado, 'inactivo')"
+            title="Inhabilitar cuenta"
+          >
+            <i class="bi bi-x-circle me-2"></i>Inhabilitar
+          </button>
 
-      <button 
-        *ngIf="psicologoSeleccionado.status === 'inactivo'"
-        class="btn btn-outline-success"
-        (click)="cambiarEstadoCuenta(psicologoSeleccionado, 'activo')"
-        title="Habilitar cuenta"
-      >
-        <i class="bi bi-check-circle me-2"></i>Habilitar
-      </button>
+          <button 
+            *ngIf="psicologoSeleccionado.status === 'inactivo'"
+            class="btn btn-outline-success"
+            (click)="cambiarEstadoCuenta(psicologoSeleccionado, 'activo')"
+            title="Habilitar cuenta"
+          >
+            <i class="bi bi-check-circle me-2"></i>Habilitar
+          </button>
 
-      <!-- Eliminar cuenta -->
-      <button 
-        class="btn btn-outline-danger"
-        (click)="eliminarCuenta(psicologoSeleccionado)"
-        title="Eliminar cuenta permanentemente"
-      >
-        <i class="bi bi-trash me-2"></i>Eliminar
-      </button>
+          <!-- Eliminar cuenta -->
+          <button 
+            class="btn btn-outline-danger"
+            (click)="eliminarCuenta(psicologoSeleccionado)"
+            title="Eliminar cuenta permanentemente"
+          >
+            <i class="bi bi-trash me-2"></i>Eliminar
+          </button>
 
-      <!-- Cerrar modal -->
-      <button class="btn btn-secondary ms-auto" (click)="cerrarModal()">
-        Cerrar
-      </button>
-      
-    </div>
-  </div>
+          <!-- Cerrar modal -->
+          <button class="btn btn-secondary ms-auto" (click)="cerrarModal()">
+            Cerrar
+          </button>
+          
+        </div>
+      </div>
+  
 
     </div>
   </div>

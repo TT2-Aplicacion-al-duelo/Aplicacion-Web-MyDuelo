@@ -74,20 +74,21 @@ validarCedulaProfesional(idPsicologo: number, cedula: string): Observable<any> {
 /**
  *  MÉTODO NUEVO: Validar cédula manualmente
  */
-validarCedulaManual(idPsicologo: number): Observable<any> {
-  return this.http.post(`${this.AppUrl}${this.APIUrl}/psicologos/${idPsicologo}/validar-cedula-api`, {
-    forzarValidacion: true
-  });
-}
+    validarCedulaManual(idPsicologo: number): Observable<any> {
+      return this.http.put(
+        `${this.AppUrl}${this.APIUrl}/psicologos/${idPsicologo}/validar-cedula-manual`, 
+        {}
+      );
+    } 
 
   /**
    * Cambiar status de un psicólogo (activo/inactivo)
    */
   cambiarEstadoPsicologo(idPsicologo: number, nuevoEstado: 'activo' | 'inactivo'): Observable<any> {
-    return this.http.put(`${this.AppUrl}${this.APIUrl}/psicologos/${idPsicologo}/estado`, {
-      status: nuevoEstado
-    });
-  }
+  return this.http.put(`${this.AppUrl}${this.APIUrl}/psicologos/${idPsicologo}/status`, {  // ✅ Cambiar "estado" por "status"
+    status: nuevoEstado
+  });
+}
 
   /**
    * Eliminar un psicólogo

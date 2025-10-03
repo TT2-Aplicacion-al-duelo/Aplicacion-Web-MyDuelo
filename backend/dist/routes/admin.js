@@ -23,4 +23,6 @@ router.delete("/api/admin/psicologos/:id_psicologo", validarAdmin_1.default, adm
 router.post("/api/admin/psicologos/:id_psicologo/validar-cedula-api", validarAdmin_1.default, admin_1.validarCedulaConAPI);
 // Gestión de pacientes
 router.get("/api/admin/pacientes", validarAdmin_1.default, admin_1.getAllPacientes);
+//  Validación manual de cédula
+router.put("/api/admin/psicologos/:id_psicologo/validar-cedula-manual", validarAdmin_1.default, admin_1.validarCedulaManual);
 exports.default = router;

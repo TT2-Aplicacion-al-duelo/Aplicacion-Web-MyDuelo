@@ -110,57 +110,62 @@ export class PsicologosAdminComponent implements OnInit {
 
   ///----------------------
   // Método para validar cédula con API
-validarCedulaConAPI(psicologo: any) {
-  const url = `${this.apiUrl}/api/admin/psicologos/${psicologo.id_psicologo}/validar-cedula-api`;
+// validarCedulaConAPI(psicologo: any) {
+//   const url = `${this.apiUrl}/api/admin/psicologos/${psicologo.id_psicologo}/validar-cedula-api`;
   
-  this.http.post(url, {}).subscribe({
-    next: (response: any) => {
-      if (response.validacion.valida) {
-        alert(`✅ Cédula validada: ${response.msg}`);
-        this.cargarPsicologos(); // Recargar lista
-      } else {
-        const confirmar = confirm(
-          `❌ No se pudo validar automáticamente.\n\n` +
-          `¿Desea validar manualmente después de revisar en el sitio oficial?\n\n` +
-          `Se abrirá la página de consulta de la SEP.`
-        );
+//   this.http.post(url, {}).subscribe({
+//     next: (response: any) => {
+//       if (response.validacion.valida) {
+//         alert(`✅ Cédula validada: ${response.msg}`);
+//         this.cargarPsicologos(); // Recargar lista
+//       } else {
+//         const confirmar = confirm(
+//           `❌ No se pudo validar automáticamente.\n\n` +
+//           `¿Desea validar manualmente después de revisar en el sitio oficial?\n\n` +
+//           `Se abrirá la página de consulta de la SEP.`
+//         );
         
-        if (confirmar) {
-          // Abrir página oficial
-          window.open(response.urlConsultaManual, '_blank');
+//         if (confirmar) {
+//           // Abrir página oficial
+//           window.open(response.urlConsultaManual, '_blank');
           
-          // Preguntar si validar manualmente
-          setTimeout(() => {
-            const validarManual = confirm('¿Confirma que la cédula es válida según la consulta oficial?');
-            if (validarManual) {
-              this.validarCedulaManual(psicologo);
-            }
-          }, 2000);
-        }
-      }
-    },
-    error: (error) => {
-      console.error('Error:', error);
-      alert('Error al validar cédula: ' + error.error?.msg);
-    }
-  });
-}
+//           // Preguntar si validar manualmente
+//           setTimeout(() => {
+//             const validarManual = confirm('¿Confirma que la cédula es válida según la consulta oficial?');
+//             if (validarManual) {
+//               this.validarCedulaManual(psicologo);
+//             }
+//           }, 2000);
+//         }
+//       }
+//     },
+//     error: (error) => {
+//       console.error('Error:', error);
+//       alert('Error al validar cédula: ' + error.error?.msg);
+//     }
+//   });
+// }
 
-// Método para validación manual (forzada)
-  validarCedulaManual(psicologo: PsicologoAdmin) {
-      const url = `${this.apiUrl}api/admin/psicologos/${psicologo.id_psicologo}/validar-cedula-api`;
+// // Método para validación manual (forzada)
+//   validarCedulaManual(psicologo: PsicologoAdmin) {
+//       const url = `${this.apiUrl}api/admin/psicologos/${psicologo.id_psicologo}/validar-cedula-api`;
       
-      this.http.post(url, { forzarValidacion: true }).subscribe({
-        next: (response: any) => {
-          this.toastr.success(`✅ ${response.msg}`);
-          this.cargarPsicologos();
-        },
-        error: (error: any) => { // ✅ TIPADO EXPLÍCITO
-          console.error('Error:', error);
-          this.toastr.error('Error: ' + error.error?.msg);
-        }
-      });
-    }
+//       this.http.post(url, { forzarValidacion: true }).subscribe({
+//         next: (response: any) => {
+//           this.toastr.success(`✅ ${response.msg}`);
+//           this.cargarPsicologos();
+//         },
+//         error: (error: any) => { // ✅ TIPADO EXPLÍCITO
+//           console.error('Error:', error);
+//           this.toastr.error('Error: ' + error.error?.msg);
+//         }
+//       });
+//     }
+
+  /**
+ * ✅ MÉTODO CORREGIDO: Validar cédula manualmente (solo admin)
+ */
+
 
   // Método para abrir consulta oficial
   abrirConsultaOficial() {
@@ -207,6 +212,48 @@ validarCedulaConAPI(psicologo: any) {
         });
       }
     }
+  }
+
+  /**
+   * Validar cédula manualmente (sin API, solo confirmación del admin)
+   */
+  validarCedulaManualmente(psicologo: PsicologoAdmin) {
+    // Primera confirmación
+    const confirmar = confirm(
+      `⚠️ VALIDACIÓN MANUAL DE CÉDULA\n\n` +
+      `¿Ha verificado manualmente la cédula profesional ${psicologo.cedula} de:\n` +
+      `${psicologo.nombre} ${psicologo.apellidoPaterno} ${psicologo.apellidoMaterno}?\n\n` +
+      `Esta acción marcará la cédula como validada en el sistema.\n\n` +
+      `¿Confirmar validación manual?`
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
+    // Segunda confirmación para evitar errores
+    const confirmarFinal = confirm(
+      `Última confirmación:\n\n` +
+      `¿Está completamente seguro de que la cédula ${psicologo.cedula} es válida?\n\n` +
+      `Presione OK para confirmar la validación.`
+    );
+
+    if (!confirmarFinal) {
+      return;
+    }
+
+    // Proceder con la validación
+    this.adminService.validarCedulaManual(psicologo.id_psicologo).subscribe({
+      next: (response) => {
+        this.toastr.success(`✅ ${response.msg}`);
+        psicologo.cedula_validada = true;
+        this.cargarPsicologos(); // Recargar lista
+      },
+      error: (error) => {
+        console.error('Error al validar cédula:', error);
+        this.toastr.error('Error al validar la cédula: ' + (error.error?.msg || 'Error desconocido'));
+      }
+    });
   }
 
   getEstadoCedulaTexto(validada: boolean): string {

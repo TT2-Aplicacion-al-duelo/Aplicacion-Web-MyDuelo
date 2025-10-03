@@ -316,6 +316,69 @@ export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
 };
 
 /**
+ *  NUEVO: Validar cédula manualmente (solo por decisión del administrador)
+ */
+export const validarCedulaManual = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id_psicologo } = req.params;
+    const admin_id = req.user?.id_psicologo;
+    const admin_nombre = req.user?.nombre;
+
+    const psicologo = await Psicologo.findByPk(id_psicologo);
+
+    if (!psicologo) {
+      return res.status(404).json({
+        msg: 'Psicólogo no encontrado'
+      });
+    }
+
+    const psicologoData = psicologo as any;
+
+    // Verificar si ya está validada
+    if (psicologoData.cedula_validada) {
+      return res.status(400).json({
+        msg: 'La cédula ya está validada',
+        psicologo: {
+          id: psicologoData.id_psicologo,
+          nombre: `${psicologoData.nombre} ${psicologoData.apellidoPaterno}`,
+          cedula: psicologoData.cedula,
+          cedula_validada: true
+        }
+      });
+    }
+
+    // Actualizar estado de validación
+    await psicologo.update({ 
+      cedula_validada: true 
+    });
+
+    console.log(`✅ Cédula ${psicologoData.cedula} validada manualmente por admin ${admin_nombre} (ID: ${admin_id})`);
+
+    res.json({
+      msg: `Cédula profesional ${psicologoData.cedula} validada manualmente por el administrador`,
+      psicologo: {
+        id: psicologoData.id_psicologo,
+        nombre: `${psicologoData.nombre} ${psicologoData.apellidoPaterno} ${psicologoData.apellidoMaterno || ''}`,
+        cedula: psicologoData.cedula,
+        cedula_validada: true
+      },
+      validacion: {
+        metodo: 'manual',
+        validado_por: admin_nombre,
+        fecha: new Date().toISOString()
+      }
+    });
+
+  } catch (error) {
+    console.error('Error en validación manual de cédula:', error);
+    res.status(500).json({
+      msg: 'Error interno del servidor',
+      error: error instanceof Error ? error.message : 'Error desconocido'
+    });
+  }
+};
+
+/**
  * Validar cédula profesional usando servicio externo
  */
 export const validarCedulaConAPI = async (req: AuthRequest, res: Response) => {
@@ -389,4 +452,5 @@ export const validarCedulaConAPI = async (req: AuthRequest, res: Response) => {
       error: error.message || 'Error desconocido' // ✅ CORREGIDO: Manejo seguro del error
     });
   }
+  
 };

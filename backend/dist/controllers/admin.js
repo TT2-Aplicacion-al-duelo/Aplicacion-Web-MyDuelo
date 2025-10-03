@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validarCedulaConAPI = exports.eliminarPsicologo = exports.cambiarStatusPsicologo = exports.getAllPacientes = exports.getAllPsicologos = exports.verificarAdmin = exports.registroAdmin = void 0;
+exports.validarCedulaConAPI = exports.validarCedulaManual = exports.eliminarPsicologo = exports.cambiarStatusPsicologo = exports.getAllPacientes = exports.getAllPsicologos = exports.verificarAdmin = exports.registroAdmin = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const psicologo_1 = require("../models/psicologo");
 const paciente_1 = require("../models/paciente");
@@ -287,6 +287,63 @@ const eliminarPsicologo = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.eliminarPsicologo = eliminarPsicologo;
+/**
+ *  NUEVO: Validar cédula manualmente (solo por decisión del administrador)
+ */
+const validarCedulaManual = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const { id_psicologo } = req.params;
+        const admin_id = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        const admin_nombre = (_b = req.user) === null || _b === void 0 ? void 0 : _b.nombre;
+        const psicologo = yield psicologo_1.Psicologo.findByPk(id_psicologo);
+        if (!psicologo) {
+            return res.status(404).json({
+                msg: 'Psicólogo no encontrado'
+            });
+        }
+        const psicologoData = psicologo;
+        // Verificar si ya está validada
+        if (psicologoData.cedula_validada) {
+            return res.status(400).json({
+                msg: 'La cédula ya está validada',
+                psicologo: {
+                    id: psicologoData.id_psicologo,
+                    nombre: `${psicologoData.nombre} ${psicologoData.apellidoPaterno}`,
+                    cedula: psicologoData.cedula,
+                    cedula_validada: true
+                }
+            });
+        }
+        // Actualizar estado de validación
+        yield psicologo.update({
+            cedula_validada: true
+        });
+        console.log(`✅ Cédula ${psicologoData.cedula} validada manualmente por admin ${admin_nombre} (ID: ${admin_id})`);
+        res.json({
+            msg: `Cédula profesional ${psicologoData.cedula} validada manualmente por el administrador`,
+            psicologo: {
+                id: psicologoData.id_psicologo,
+                nombre: `${psicologoData.nombre} ${psicologoData.apellidoPaterno} ${psicologoData.apellidoMaterno || ''}`,
+                cedula: psicologoData.cedula,
+                cedula_validada: true
+            },
+            validacion: {
+                metodo: 'manual',
+                validado_por: admin_nombre,
+                fecha: new Date().toISOString()
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error en validación manual de cédula:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor',
+            error: error instanceof Error ? error.message : 'Error desconocido'
+        });
+    }
+});
+exports.validarCedulaManual = validarCedulaManual;
 /**
  * Validar cédula profesional usando servicio externo
  */
