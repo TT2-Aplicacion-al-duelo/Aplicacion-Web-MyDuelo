@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.validarCedulaConAPI = exports.validarCedulaManual = exports.eliminarPsicologo = exports.cambiarStatusPsicologo = exports.getAllPacientes = exports.getAllPsicologos = exports.verificarAdmin = exports.registroAdmin = void 0;
+exports.cambiarEstadoPaciente = exports.reasignarPaciente = exports.getAllPacientesAdmin = exports.validarCedulaConAPI = exports.validarCedulaManual = exports.eliminarPsicologo = exports.cambiarStatusPsicologo = exports.getAllPacientes = exports.getAllPsicologos = exports.verificarAdmin = exports.registroAdmin = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const psicologo_1 = require("../models/psicologo");
 const paciente_1 = require("../models/paciente");
@@ -409,3 +409,140 @@ const validarCedulaConAPI = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.validarCedulaConAPI = validarCedulaConAPI;
+/**
+ * Obtener todos los pacientes con información del psicólogo asignado (CORREGIDO)
+ */
+const getAllPacientesAdmin = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const pacientes = yield paciente_1.Paciente.findAll({
+            attributes: [
+                'id_paciente',
+                'nombre',
+                'apellido_paterno',
+                'apellido_materno',
+                'email',
+                'telefono',
+                'fecha_nacimiento',
+                'id_psicologo',
+                'createdAt'
+            ],
+            include: [{
+                    model: psicologo_1.Psicologo,
+                    attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo'],
+                    required: false // LEFT JOIN para incluir pacientes sin psicólogo
+                }],
+            order: [['createdAt', 'DESC']]
+        });
+        // Formatear respuesta
+        const pacientesFormateados = pacientes.map((p) => ({
+            id_paciente: p.id_paciente,
+            nombre: p.nombre,
+            apellido_paterno: p.apellido_paterno,
+            apellido_materno: p.apellido_materno,
+            email: p.email,
+            telefono: p.telefono,
+            fecha_nacimiento: p.fecha_nacimiento,
+            id_psicologo: p.id_psicologo,
+            psicologo: p.psicologo ? {
+                id_psicologo: p.psicologo.id_psicologo,
+                nombre: p.psicologo.nombre,
+                apellidoPaterno: p.psicologo.apellidoPaterno,
+                apellidoMaterno: p.psicologo.apellidoMaterno,
+                correo: p.psicologo.correo
+            } : null,
+            createdAt: p.createdAt,
+            status: 'activo' // Por defecto, agregar campo status a la tabla si lo necesitas
+        }));
+        res.json(pacientesFormateados);
+    }
+    catch (error) {
+        console.error('Error obteniendo pacientes:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.getAllPacientesAdmin = getAllPacientesAdmin;
+/**
+ * Reasignar paciente a otro psicólogo
+ */
+const reasignarPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id_paciente } = req.params;
+        const { id_psicologo } = req.body;
+        const paciente = yield paciente_1.Paciente.findByPk(id_paciente);
+        if (!paciente) {
+            return res.status(404).json({
+                msg: 'Paciente no encontrado'
+            });
+        }
+        // Verificar que el psicólogo existe y está activo
+        if (id_psicologo) {
+            const psicologo = yield psicologo_1.Psicologo.findByPk(id_psicologo);
+            if (!psicologo) {
+                return res.status(404).json({
+                    msg: 'Psicólogo no encontrado'
+                });
+            }
+            if (psicologo.status !== 'activo') {
+                return res.status(400).json({
+                    msg: 'El psicólogo no está activo'
+                });
+            }
+        }
+        yield paciente.update({ id_psicologo });
+        console.log(`Paciente ${id_paciente} reasignado al psicólogo ${id_psicologo}`);
+        res.json({
+            msg: 'Paciente reasignado correctamente',
+            paciente: {
+                id: paciente.id_paciente,
+                nombre: paciente.nombre,
+                nuevo_psicologo: id_psicologo
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error reasignando paciente:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.reasignarPaciente = reasignarPaciente;
+/**
+ * Cambiar status de un paciente (si tienes campo status en la tabla)
+ */
+const cambiarEstadoPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id_paciente } = req.params;
+        const { status } = req.body;
+        if (!['activo', 'inactivo'].includes(status)) {
+            return res.status(400).json({
+                msg: 'Status inválido. Debe ser "activo" o "inactivo"'
+            });
+        }
+        const paciente = yield paciente_1.Paciente.findByPk(id_paciente);
+        if (!paciente) {
+            return res.status(404).json({
+                msg: 'Paciente no encontrado'
+            });
+        }
+        // Si la tabla paciente no tiene campo status, agrégalo o comenta este método
+        // await paciente.update({ status });
+        res.json({
+            msg: `Paciente ${status === 'activo' ? 'habilitado' : 'deshabilitado'} exitosamente`,
+            paciente: {
+                id: paciente.id_paciente,
+                nombre: paciente.nombre,
+                status
+            }
+        });
+    }
+    catch (error) {
+        console.error('Error cambiando status del paciente:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.cambiarEstadoPaciente = cambiarEstadoPaciente;

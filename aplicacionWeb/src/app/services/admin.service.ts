@@ -5,6 +5,7 @@ import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment.development';
 import { PsicologoAdmin } from '../interfaces/psicologoAdmin';
 import { ValidacionCedulaResponse  } from '../interfaces/validacionCedulaResponse';
+import { PacienteAdmin } from '../interfaces/pacientesAdmin';
 
 
 
@@ -84,11 +85,11 @@ validarCedulaProfesional(idPsicologo: number, cedula: string): Observable<any> {
   /**
    * Cambiar status de un psicólogo (activo/inactivo)
    */
-  cambiarEstadoPsicologo(idPsicologo: number, nuevoEstado: 'activo' | 'inactivo'): Observable<any> {
-  return this.http.put(`${this.AppUrl}${this.APIUrl}/psicologos/${idPsicologo}/status`, {  // ✅ Cambiar "estado" por "status"
-    status: nuevoEstado
-  });
-}
+    cambiarEstadoPsicologo(idPsicologo: number, nuevoEstado: 'activo' | 'inactivo'): Observable<any> {
+    return this.http.put(`${this.AppUrl}${this.APIUrl}/psicologos/${idPsicologo}/status`, {  // ✅ Cambiar "estado" por "status"
+      status: nuevoEstado
+    });
+  }
 
   /**
    * Eliminar un psicólogo
@@ -155,6 +156,27 @@ validarCedulaProfesional(idPsicologo: number, cedula: string): Observable<any> {
   confirmarCambioCorreo(token: string): Observable<any> {
     return this.http.post(`${this.AppUrl}${this.APIUrl}/confirmar-cambio-correo`, {
       token: token
+    });
+  }
+  getAllPacientesAdmin(): Observable<PacienteAdmin[]> {
+    return this.http.get<PacienteAdmin[]>(`${this.AppUrl}${this.APIUrl}/pacientes`);
+  }
+
+  /**
+   * Reasignar paciente a otro psicólogo
+   */
+  reasignarPaciente(idPaciente: number, idPsicologo: number): Observable<any> {
+    return this.http.put(`${this.AppUrl}${this.APIUrl}/pacientes/${idPaciente}/reasignar`, {
+      id_psicologo: idPsicologo
+    });
+  }
+
+  /**
+   * Cambiar status de un paciente (activo/inactivo)
+   */
+  cambiarEstadoPaciente(idPaciente: number, nuevoEstado: 'activo' | 'inactivo'): Observable<any> {
+    return this.http.put(`${this.AppUrl}${this.APIUrl}/pacientes/${idPaciente}/status`, {
+      status: nuevoEstado
     });
   }
 }

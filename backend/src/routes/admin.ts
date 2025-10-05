@@ -3,7 +3,10 @@ import { Router } from "express";
 import { registroAdmin, verificarAdmin, getAllPsicologos,
         getAllPacientes,      cambiarStatusPsicologo,    eliminarPsicologo,
         validarCedulaConAPI,
-        validarCedulaManual
+        validarCedulaManual,
+        getAllPacientesAdmin,
+        reasignarPaciente,
+        cambiarEstadoPaciente
 } from "../controllers/admin";
 import validarToken from "./validarToken";
 import validarAdmin from "./validarAdmin";
@@ -29,4 +32,8 @@ router.post("/api/admin/psicologos/:id_psicologo/validar-cedula-api", validarAdm
 router.get("/api/admin/pacientes", validarAdmin, getAllPacientes);
 //  Validación manual de cédula
 router.put("/api/admin/psicologos/:id_psicologo/validar-cedula-manual", validarAdmin, validarCedulaManual);
+// Gestión de pacientes
+router.get("/api/admin/pacientes", validarAdmin, getAllPacientesAdmin);
+router.put("/api/admin/pacientes/:id_paciente/reasignar", validarAdmin, reasignarPaciente);
+router.put("/api/admin/pacientes/:id_paciente/status", validarAdmin, cambiarEstadoPaciente);
 export default router;

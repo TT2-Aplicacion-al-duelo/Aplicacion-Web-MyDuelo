@@ -1,0 +1,414 @@
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      
+      <!-- Header -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="text-primary">
+          <i class="bi bi-people-fill me-2"></i>
+          Gestión de Pacientes
+        </h2>
+        <div class="badge bg-info">
+          Total: {{ pacientes.length }} | Filtrados: {{ pacientesFiltrados.length }}
+        </div>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card mb-4">
+        <div class="card-header bg-light">
+          <h5 class="mb-0">
+            <i class="bi bi-funnel me-2"></i>Filtros
+          </h5>
+        </div>
+        <div class="card-body">
+          <div class="row g-3">
+            
+            <!-- Filtro por texto -->
+            <div class="col-md-6">
+              <label class="form-label">Buscar por nombre, correo o ID:</label>
+              <input 
+                type="text" 
+                class="form-control" 
+                placeholder="Buscar paciente..."
+                [(ngModel)]="filtroTexto"
+                (input)="aplicarFiltros()"
+              >
+            </div>
+
+            <!-- Filtro por psicólogo -->
+            <div class="col-md-6">
+              <label class="form-label">Filtrar por psicólogo:</label>
+              <select 
+                class="form-select" 
+                [(ngModel)]="filtroPsicologo"
+                (change)="aplicarFiltros()"
+              >
+                <option value="todos">Todos los pacientes</option>
+                <option value="sin_asignar">Sin psicólogo asignado</option>
+                <option value="asignados">Con psicólogo asignado</option>
+                <optgroup label="Por psicólogo específico:">
+                  <option 
+                    *ngFor="let psicologo of psicologos" 
+                    [value]="psicologo.id_psicologo"
+                  >
+                    {{ psicologo.nombre }} {{ psicologo.apellidoPaterno }}
+                  </option>
+                </optgroup>
+              </select>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="cargando" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2">Cargando pacientes...</p>
+      </div>
+
+      <!-- Tabla de pacientes -->
+      <div *ngIf="!cargando" class="card">
+        <div class="card-header bg-primary text-white">
+          <h5 class="mb-0">Lista de Pacientes Registrados</h5>
+        </div>
+        <div class="card-body p-0">
+          
+          <!-- Tabla responsive -->
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>Nombre Completo</th>
+                  <th>Correo</th>
+                  <th>Psicólogo Asignado</th>
+                  <th>Estado</th>
+                  <th>Fecha Registro</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr 
+                  *ngFor="let paciente of pacientesFiltrados"
+                  [ngClass]="getClaseFilaPaciente(paciente)"
+                  style="cursor: pointer;"
+                  (click)="seleccionarPaciente(paciente)"
+                >
+                  <td class="fw-bold">{{ paciente.id_paciente }}</td>
+                  
+                  <td>
+                    <div class="d-flex align-items-center">
+                      <div class="avatar-circle me-2">
+                        {{ paciente.nombre.charAt(0) }}{{ paciente.apellido_paterno.charAt(0) }}
+                      </div>
+                      <div>
+                        <div class="fw-semibold">
+                          {{ paciente.nombre }} {{ paciente.apellido_paterno }} {{ paciente.apellido_materno }}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+
+                  <td>
+                    <div>{{ paciente.email }}</div>
+                    <small class="text-muted">{{ paciente.telefono }}</small>
+                  </td>
+
+                  <td>
+                    <span 
+                      class="badge"
+                      [ngClass]="{
+                        'bg-success': paciente.id_psicologo,
+                        'bg-warning text-dark': !paciente.id_psicologo
+                      }"
+                    >
+                      {{ getNombrePsicologo(paciente) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <span 
+                      class="badge"
+                      [ngClass]="{
+                        'bg-success': paciente.status === 'activo' || !paciente.status,
+                        'bg-danger': paciente.status === 'inactivo'
+                      }"
+                    >
+                      <i 
+                        class="bi me-1"
+                        [ngClass]="{
+                          'bi-check-circle': paciente.status === 'activo' || !paciente.status,
+                          'bi-x-circle': paciente.status === 'inactivo'
+                        }"
+                      ></i>
+                      {{ paciente.status || 'activo' | titlecase }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <small>{{ formatearFecha(paciente.createdAt || '') }}</small>
+                  </td>
+
+                  <td>
+                    <button 
+                      class="btn btn-outline-primary btn-sm"
+                      (click)="$event.stopPropagation(); seleccionarPaciente(paciente)"
+                      title="Ver detalles"
+                    >
+                      <i class="bi bi-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+
+                <!-- Empty state -->
+                <tr *ngIf="pacientesFiltrados.length === 0">
+                  <td colspan="7" class="text-center py-5">
+                    <div class="text-muted">
+                      <i class="bi bi-search fs-1"></i>
+                      <p class="mt-2">No se encontraron pacientes con los filtros aplicados</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal de detalles del paciente -->
+<div 
+  class="modal fade" 
+  [class.show]="mostrarModal" 
+  [style.display]="mostrarModal ? 'block' : 'none'" 
+  tabindex="-1" 
+  *ngIf="mostrarModal && pacienteSeleccionado"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      
+      <!-- Header del modal -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-person-circle me-2"></i>
+          Detalles del Paciente
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModal()"></button>
+      </div>
+
+      <!-- Body del modal -->
+      <div class="modal-body">
+        
+        <!-- Información básica -->
+        <div class="row mb-4">
+          <div class="col-md-6">
+            <h6 class="text-primary mb-3">
+              <i class="bi bi-person-vcard me-2"></i>Información Personal
+            </h6>
+            <div class="info-item">
+              <strong>Nombre completo:</strong>
+              <span>{{ pacienteSeleccionado.nombre }} {{ pacienteSeleccionado.apellido_paterno }} {{ pacienteSeleccionado.apellido_materno }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Fecha de nacimiento:</strong>
+              <span>{{ formatearFecha(pacienteSeleccionado.fecha_nacimiento) }}</span>
+            </div>
+            <div class="info-item">
+              <strong>ID de Paciente:</strong>
+              <span class="badge bg-secondary">{{ pacienteSeleccionado.id_paciente }}</span>
+            </div>
+          </div>
+
+          <div class="col-md-6">
+            <h6 class="text-primary mb-3">
+              <i class="bi bi-envelope me-2"></i>Información de Contacto
+            </h6>
+            <div class="info-item">
+              <strong>Correo electrónico:</strong>
+              <span>{{ pacienteSeleccionado.email }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Teléfono:</strong>
+              <span>{{ pacienteSeleccionado.telefono || 'No registrado' }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Información del psicólogo -->
+        <div class="row mb-4">
+          <div class="col-12">
+            <h6 class="text-primary mb-3">
+              <i class="bi bi-person-badge me-2"></i>Psicólogo Asignado
+            </h6>
+            <div class="alert" [ngClass]="pacienteSeleccionado.id_psicologo ? 'alert-success' : 'alert-warning'">
+              <div *ngIf="pacienteSeleccionado.psicologo">
+                <strong>Psicólogo:</strong> 
+                {{ pacienteSeleccionado.psicologo.nombre }} 
+                {{ pacienteSeleccionado.psicologo.apellidoPaterno }} 
+                {{ pacienteSeleccionado.psicologo.apellidoMaterno }}
+                <br>
+                <strong>Correo:</strong> {{ pacienteSeleccionado.psicologo.correo }}
+                <br>
+                <strong>ID:</strong> {{ pacienteSeleccionado.psicologo.id_psicologo }}
+              </div>
+              <div *ngIf="!pacienteSeleccionado.psicologo">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Sin psicólogo asignado</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fecha de registro -->
+        <div class="row">
+          <div class="col-12">
+            <h6 class="text-primary mb-3">
+              <i class="bi bi-calendar-event me-2"></i>Información del Sistema
+            </h6>
+            <div class="info-item">
+              <strong>Fecha de registro:</strong>
+              <span>{{ formatearFecha(pacienteSeleccionado.createdAt || '') }}</span>
+            </div>
+            <div class="info-item">
+              <strong>Estado de cuenta:</strong>
+              <span 
+                class="badge"
+                [ngClass]="{
+                  'bg-success': pacienteSeleccionado.status === 'activo' || !pacienteSeleccionado.status,
+                  'bg-danger': pacienteSeleccionado.status === 'inactivo'
+                }"
+              >
+                {{ pacienteSeleccionado.status || 'activo' | titlecase }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Footer del modal con acciones -->
+      <div class="modal-footer">
+        <div class="d-flex flex-wrap gap-2 w-100">
+          
+          <!-- Reasignar psicólogo -->
+          <button 
+            class="btn btn-warning"
+            (click)="abrirModalReasignar(pacienteSeleccionado)"
+            title="Reasignar a otro psicólogo"
+          >
+            <i class="bi bi-arrow-left-right me-2"></i>
+            {{ pacienteSeleccionado.id_psicologo ? 'Reasignar Psicólogo' : 'Asignar Psicólogo' }}
+          </button>
+
+          <!-- Deshabilitar cuenta -->
+          <button 
+            *ngIf="pacienteSeleccionado.status === 'activo' || !pacienteSeleccionado.status"
+            class="btn btn-outline-danger"
+            (click)="deshabilitarCuenta(pacienteSeleccionado)"
+            title="Deshabilitar cuenta"
+          >
+            <i class="bi bi-x-circle me-2"></i>Deshabilitar
+          </button>
+
+          <button 
+            *ngIf="pacienteSeleccionado.status === 'inactivo'"
+            class="btn btn-outline-success"
+            (click)="deshabilitarCuenta(pacienteSeleccionado)"
+            title="Habilitar cuenta"
+          >
+            <i class="bi bi-check-circle me-2"></i>Habilitar
+          </button>
+
+          <!-- Cerrar modal -->
+          <button class="btn btn-secondary ms-auto" (click)="cerrarModal()">
+            Cerrar
+          </button>
+          
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Modal Reasignar Psicólogo -->
+<div 
+  class="modal fade" 
+  [class.show]="mostrarModalReasignar" 
+  [style.display]="mostrarModalReasignar ? 'block' : 'none'" 
+  tabindex="-1" 
+  *ngIf="mostrarModalReasignar && pacienteSeleccionado"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">
+          <i class="bi bi-arrow-left-right me-2"></i>
+          Reasignar Psicólogo
+        </h5>
+        <button type="button" class="btn-close" (click)="cerrarModalReasignar()"></button>
+      </div>
+
+      <div class="modal-body">
+        <div class="alert alert-info">
+          <strong>Paciente:</strong> {{ pacienteSeleccionado.nombre }} {{ pacienteSeleccionado.apellido_paterno }}
+          <br>
+          <strong>Psicólogo actual:</strong> {{ getNombrePsicologo(pacienteSeleccionado) }}
+        </div>
+
+        <label class="form-label">Seleccione el nuevo psicólogo:</label>
+        <select class="form-select" [(ngModel)]="nuevoPsicologoId">
+          <option [value]="null">-- Seleccione un psicólogo --</option>
+          <option 
+            *ngFor="let psicologo of psicologos" 
+            [value]="psicologo.id_psicologo"
+            [disabled]="psicologo.id_psicologo === pacienteSeleccionado.id_psicologo"
+          >
+            {{ psicologo.nombre }} {{ psicologo.apellidoPaterno }} {{ psicologo.apellidoMaterno }}
+            <span *ngIf="psicologo.id_psicologo === pacienteSeleccionado.id_psicologo">(Actual)</span>
+          </option>
+        </select>
+
+        <div class="alert alert-warning mt-3" *ngIf="cargandoPsicologos">
+          <div class="spinner-border spinner-border-sm me-2"></div>
+          Cargando psicólogos disponibles...
+        </div>
+
+        <div class="alert alert-warning mt-3" *ngIf="!cargandoPsicologos && psicologos.length === 0">
+          <i class="bi bi-exclamation-triangle me-2"></i>
+          No hay psicólogos activos disponibles
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cerrarModalReasignar()">
+          Cancelar
+        </button>
+        <button 
+          class="btn btn-warning" 
+          (click)="reasignarPsicologo()"
+          [disabled]="!nuevoPsicologoId || nuevoPsicologoId === pacienteSeleccionado.id_psicologo"
+        >
+          <i class="bi bi-check-circle me-2"></i>
+          Confirmar Reasignación
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop de los modales -->
+<div 
+  class="modal-backdrop fade show" 
+  *ngIf="mostrarModal || mostrarModalReasignar"
+  (click)="mostrarModal ? cerrarModal() : cerrarModalReasignar()"
+></div>
