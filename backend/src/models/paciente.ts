@@ -1,5 +1,6 @@
 import { DataType, DataTypes } from "sequelize";
 import sequelize from "../database/connection";
+import { Psicologo } from "./psicologo";
 
 export const Paciente = sequelize.define(
     'paciente', {
@@ -18,4 +19,9 @@ export const Paciente = sequelize.define(
         timestamps: false, 
         freezeTableName: true,
     }
-)
+);
+// Relación con Psicologo
+Paciente.belongsTo(Psicologo, { 
+  foreignKey: 'id_psicologo', 
+  targetKey: 'id_psicologo' 
+});

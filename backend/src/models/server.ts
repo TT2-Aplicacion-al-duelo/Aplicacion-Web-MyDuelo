@@ -63,6 +63,7 @@ class Server {
     // Método para conectar a la base de datos
     private async connetionBaseDatos() {
         try {
+           
             await Psicologo.sync({ alter: false })
                 .then(() => console.log("Tablas actualizadas"))
                 .catch(err => console.error("Error al sincronizar", err));
@@ -123,6 +124,8 @@ class Server {
             console.error('Error al sincronizar DB:', error);
         }
     }
+    
 }
+
 
 export default Server;

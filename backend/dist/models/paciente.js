@@ -6,6 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Paciente = void 0;
 const sequelize_1 = require("sequelize");
 const connection_1 = __importDefault(require("../database/connection"));
+const psicologo_1 = require("./psicologo");
 exports.Paciente = connection_1.default.define('paciente', {
     id_paciente: { type: sequelize_1.DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
     nombre: { type: sequelize_1.DataTypes.STRING, allowNull: false },
@@ -20,4 +21,9 @@ exports.Paciente = connection_1.default.define('paciente', {
     tableName: 'paciente',
     timestamps: false,
     freezeTableName: true,
+});
+// Relación con Psicologo
+exports.Paciente.belongsTo(psicologo_1.Psicologo, {
+    foreignKey: 'id_psicologo',
+    targetKey: 'id_psicologo'
 });
