@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cambiarEstadoPaciente = exports.reasignarPaciente = exports.getAllPacientesAdmin = exports.validarCedulaConAPI = exports.validarCedulaManual = exports.eliminarPsicologo = exports.cambiarStatusPsicologo = exports.getAllPacientes = exports.getAllPsicologos = exports.verificarAdmin = exports.registroAdmin = void 0;
+exports.cambiarEstadoPaciente = exports.reasignarPaciente = exports.getAllPacientesAdmin = exports.validarCedulaConAPI = exports.validarCedulaManual = exports.eliminarPsicologo = exports.cambiarStatusPsicologo = exports.getAllPsicologos = exports.verificarAdmin = exports.registroAdmin = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const psicologo_1 = require("../models/psicologo");
 const paciente_1 = require("../models/paciente");
@@ -141,75 +141,6 @@ const getAllPsicologos = (req, res) => __awaiter(void 0, void 0, void 0, functio
     }
 });
 exports.getAllPsicologos = getAllPsicologos;
-/**
- * Obtener todos los pacientes (para administración)
- */
-const getAllPacientes = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    try {
-        const pacientes = yield paciente_1.Paciente.findAll({
-            attributes: [
-                'id_paciente',
-                'nombre',
-                'apellido_paterno',
-                'apellido_materno',
-                'email',
-                'telefono',
-                'fecha_nacimiento',
-                'id_psicologo'
-            ],
-            include: [{
-                    model: psicologo_1.Psicologo,
-                    attributes: ['nombre', 'apellidoPaterno', 'apellidoMaterno'],
-                    required: false
-                }],
-            order: [['nombre', 'ASC']]
-        });
-        res.json({
-            total: pacientes.length,
-            pacientes
-        });
-    }
-    catch (error) {
-        console.error('Error obteniendo pacientes:', error);
-        res.status(500).json({
-            msg: 'Error interno del servidor'
-        });
-    }
-});
-exports.getAllPacientes = getAllPacientes;
-/**
- * Validar cédula profesional de un psicólogo
- */
-// export const validarCedula = async (req: AuthRequest, res: Response) => {
-//     try {
-//         const { id_psicologo } = req.params;
-//         const { cedula_validada } = req.body;
-//         const psicologo = await Psicologo.findByPk(id_psicologo);
-//         if (!psicologo) {
-//             return res.status(404).json({
-//                 msg: 'Psicólogo no encontrado'
-//             });
-//         }
-//         await psicologo.update({ cedula_validada: !!cedula_validada });
-//         res.json({
-//             msg: `Cédula ${cedula_validada ? 'validada' : 'invalidada'} exitosamente`,
-//             psicologo: {
-//                 id: (psicologo as any).id_psicologo,
-//                 nombre: (psicologo as any).nombre,
-//                 cedula: (psicologo as any).cedula,
-//                 cedula_validada: !!cedula_validada
-//             }
-//         });
-//     } catch (error) {
-//         console.error('Error validando cédula:', error);
-//         res.status(500).json({
-//             msg: 'Error interno del servidor'
-//         });
-//     }
-// };
-/**
- * Cambiar status de un psicólogo (activo/inactivo)
- */
 const cambiarStatusPsicologo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -423,15 +354,15 @@ const getAllPacientesAdmin = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 'email',
                 'telefono',
                 'fecha_nacimiento',
-                'id_psicologo',
-                'createdAt'
+                'id_psicologo'
+                // ❌ ELIMINADO: 'createdAt' - la tabla no tiene esta columna
             ],
             include: [{
                     model: psicologo_1.Psicologo,
                     attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo'],
                     required: false // LEFT JOIN para incluir pacientes sin psicólogo
                 }],
-            order: [['createdAt', 'DESC']]
+            order: [['id_paciente', 'DESC']] // ✅ CAMBIADO: ordenar por ID en lugar de createdAt
         });
         // Formatear respuesta
         const pacientesFormateados = pacientes.map((p) => ({
@@ -450,8 +381,7 @@ const getAllPacientesAdmin = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 apellidoMaterno: p.psicologo.apellidoMaterno,
                 correo: p.psicologo.correo
             } : null,
-            createdAt: p.createdAt,
-            status: 'activo' // Por defecto, agregar campo status a la tabla si lo necesitas
+            status: 'activo' // ✅ CAMPO POR DEFECTO (agregar a tabla si quieres gestionarlo)
         }));
         res.json(pacientesFormateados);
     }
