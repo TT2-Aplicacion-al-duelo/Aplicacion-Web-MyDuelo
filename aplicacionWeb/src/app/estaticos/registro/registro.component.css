@@ -1,9 +1,0 @@
-.seccion-fondo {
-  background-image: url('/imagenes/branding/Fondo.png'); /* ruta de tu imagen */
-  background-size: cover;               /* que cubra todo */
-  background-position: center center;   /* centrada */
-  background-repeat: no-repeat;         /* no repetir */
-  background-attachment: fixed;         /* imagen fija al hacer scroll */
-  min-height: 100vh;                    /* al menos el alto de la ventana */
-  padding: 50px 0;
-}
