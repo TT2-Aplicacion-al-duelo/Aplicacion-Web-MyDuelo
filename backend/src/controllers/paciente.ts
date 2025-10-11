@@ -1,15 +1,7 @@
-
-
-
-// export const getPacientes = async (req: Request, res: Response) =>{
-//     const listaPacientes = await Paciente.findAll();
-//     res.json({listaPacientes});
-// }
-
 import {Request, Response} from 'express';
 import { Paciente } from '../models/paciente';
 import sequelize from '../database/connection';
-import QueryTypes from 'sequelize/types/query-types';
+import { QueryTypes } from 'sequelize';
 
 // ✅ INTERFACE PARA REQUEST CON USER INFO
 interface AuthRequest extends Request {

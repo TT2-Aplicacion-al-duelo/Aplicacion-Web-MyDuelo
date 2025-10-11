@@ -1,8 +1,4 @@
 "use strict";
-// export const getPacientes = async (req: Request, res: Response) =>{
-//     const listaPacientes = await Paciente.findAll();
-//     res.json({listaPacientes});
-// }
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -19,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.getProximaCitaPaciente = exports.getPacientePorId = exports.getPacientes = exports.registroPaciente = void 0;
 const paciente_1 = require("../models/paciente");
 const connection_1 = __importDefault(require("../database/connection"));
-const query_types_1 = __importDefault(require("sequelize/types/query-types"));
+const sequelize_1 = require("sequelize");
 const registroPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { nombre, apellidoPaterno, apellidoMaterno } = req.body;
     try {
@@ -119,7 +115,7 @@ const getProximaCitaPaciente = (req, res) => __awaiter(void 0, void 0, void 0, f
             LIMIT 1
         `, {
             replacements: [id, id_psicologo],
-            type: query_types_1.default.SELECT
+            type: sequelize_1.QueryTypes.SELECT
         });
         res.json(proximaCita[0] || null);
     }
