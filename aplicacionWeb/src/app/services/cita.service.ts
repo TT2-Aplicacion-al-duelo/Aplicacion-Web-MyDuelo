@@ -31,4 +31,8 @@ export class CitaService {
   getCitas(id_agenda: number) {
     return this.http.get(`${this.AppUrl}${this.APIUrl}/citas/${id_agenda}`);
   }
+  // Agregar este método en el servicio existente
+  getProximaCitaPaciente(idPaciente: number): Observable<any> {
+    return this.http.get(`${this.AppUrl}${this.APIUrl}/paciente/${idPaciente}/proxima-cita`);
+  }
 }

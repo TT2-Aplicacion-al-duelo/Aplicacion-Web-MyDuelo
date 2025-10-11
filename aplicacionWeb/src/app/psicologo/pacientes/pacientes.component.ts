@@ -1,17 +1,22 @@
 import { Component, OnInit } from '@angular/core';
 import { Paciente } from '../../interfaces/paciente';
 import { PacientesService } from '../../services/pacientes.service';
+import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-pacientes',
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './pacientes.component.html',
   styleUrl: './pacientes.component.css'
 })
 export class PacientesComponent implements OnInit {
   listPacientes: Paciente[] = [];
 
-  constructor(private _pacienteServices: PacientesService) {}
+  constructor(
+    private _pacienteServices: PacientesService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
     this.getPacientesPorPsicologo();
@@ -35,9 +40,15 @@ export class PacientesComponent implements OnInit {
     });
   }
 
-  //eliminar(id: number){
-    //this._pacienteServices.eliminarProducto(id).subscribe(() => {
-      //this.getListaProductos();
-    //})
-  //}
+  // eliminar(id: number){
+  //   this._pacienteServices.eliminarProducto(id).subscribe(() => {
+  //     this.getListaProductos();
+  //   })
+  // }
+
+  verDetallePaciente(paciente: Paciente): void {
+    if (paciente.id_paciente) {
+      this.router.navigate(['/paciente', paciente.id_paciente]);
+    }
+  }
 }

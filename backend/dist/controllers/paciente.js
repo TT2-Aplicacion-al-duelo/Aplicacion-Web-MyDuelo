@@ -12,9 +12,14 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getPacientes = exports.registroPaciente = void 0;
+exports.getProximaCitaPaciente = exports.getPacientePorId = exports.getPacientes = exports.registroPaciente = void 0;
 const paciente_1 = require("../models/paciente");
+const connection_1 = __importDefault(require("../database/connection"));
+const query_types_1 = __importDefault(require("sequelize/types/query-types"));
 const registroPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { nombre, apellidoPaterno, apellidoMaterno } = req.body;
     try {
@@ -63,3 +68,66 @@ const getPacientes = (req, res) => __awaiter(void 0, void 0, void 0, function* (
     }
 });
 exports.getPacientes = getPacientes;
+// Obtener un paciente específico
+const getPacientePorId = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        if (!id_psicologo) {
+            return res.status(400).json({
+                msg: 'No se pudo identificar al psicólogo'
+            });
+        }
+        const paciente = yield paciente_1.Paciente.findOne({
+            where: {
+                id_paciente: id,
+                id_psicologo: id_psicologo
+            }
+        });
+        if (!paciente) {
+            return res.status(404).json({
+                msg: 'Paciente no encontrado'
+            });
+        }
+        res.json(paciente);
+    }
+    catch (error) {
+        console.error('Error al obtener paciente:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.getPacientePorId = getPacientePorId;
+// Obtener próxima cita del paciente
+const getProximaCitaPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { id } = req.params;
+        const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        // Query para obtener la próxima cita
+        const proximaCita = yield connection_1.default.query(`
+            SELECT c.* 
+            FROM cita c
+            JOIN agenda a ON a.id_agenda = c.id_agenda
+            WHERE c.id_paciente = ? 
+            AND a.id_psicologo = ?
+            AND c.fecha >= CURDATE()
+            AND c.estado IN ('pendiente', 'confirmada')
+            ORDER BY c.fecha ASC, c.hora_inicio ASC
+            LIMIT 1
+        `, {
+            replacements: [id, id_psicologo],
+            type: query_types_1.default.SELECT
+        });
+        res.json(proximaCita[0] || null);
+    }
+    catch (error) {
+        console.error('Error al obtener próxima cita:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.getProximaCitaPaciente = getProximaCitaPaciente;

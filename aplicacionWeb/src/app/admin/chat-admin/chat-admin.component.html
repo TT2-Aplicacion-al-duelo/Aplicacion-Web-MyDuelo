@@ -1,0 +1,317 @@
+<!-- aplicacionWeb/src/app/admin/chat-admin/chat-admin.component.html -->
+<div class="chat-container">
+  <!-- Panel Izquierdo: Lista de Chats -->
+  <div class="chat-sidebar">
+    <!-- Header con búsqueda -->
+    <div class="chat-header">
+      <h4 class="mb-3">
+        <i class="bi bi-chat-dots-fill me-2"></i>
+        Mensajes
+      </h4>
+      <div class="search-container mb-3">
+        <div class="input-group">
+          <input 
+            type="text" 
+            class="form-control" 
+            placeholder="Buscar conversación..."
+            [(ngModel)]="terminoBusqueda"
+            (input)="buscarChats()"
+          >
+          <button class="btn btn-outline-secondary" type="button">
+            <i class="bi bi-search"></i>
+          </button>
+        </div>
+      </div>
+      <button 
+        class="btn btn-primary w-100 mb-3" 
+        (click)="abrirModalNuevoChat()"
+      >
+        <i class="bi bi-plus-circle me-2"></i> Nueva Conversación
+      </button>
+    </div>
+
+    <!-- Lista de Chats -->
+    <div class="chat-list">
+      <!-- Loading -->
+      <div *ngIf="cargandoChats" class="text-center p-3">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+      </div>
+
+      <!-- Lista -->
+      <div 
+        *ngFor="let chat of chats" 
+        class="chat-item"
+        [class.active]="chatActual?.id_chat_admin === chat.id_chat_admin"
+        (click)="seleccionarChat(chat)"
+      >
+        <!-- Avatar -->
+        <div class="chat-avatar">
+          <div class="avatar-circle" [ngClass]="getTipoBadge(chat.destinatario_tipo)">
+            {{ getNombreCompleto(chat).charAt(0).toUpperCase() }}
+          </div>
+        </div>
+
+        <!-- Info del Chat -->
+        <div class="chat-info">
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="chat-name">
+              {{ getNombreCompleto(chat) }}
+            </div>
+            <span 
+              class="badge badge-sm"
+              [ngClass]="getTipoBadge(chat.destinatario_tipo)"
+            >
+              {{ getTipoTexto(chat.destinatario_tipo) }}
+            </span>
+          </div>
+          <div class="chat-last-message" *ngIf="chat.ultimo_mensaje">
+            <span class="message-sender" *ngIf="chat.ultimo_mensaje.remitente === 'admin'">
+              Tú: 
+            </span>
+            {{ chat.ultimo_mensaje.contenido }}
+          </div>
+          <div class="chat-placeholder" *ngIf="!chat.ultimo_mensaje">
+            Sin mensajes
+          </div>
+        </div>
+
+        <!-- Metadata -->
+        <div class="chat-meta">
+          <div class="chat-time" *ngIf="chat.ultimo_mensaje">
+            {{ formatearFecha(chat.ultimo_mensaje.fecha_envio) }}
+          </div>
+          <div 
+            class="unread-badge" 
+            *ngIf="chat.mensajes_no_leidos && chat.mensajes_no_leidos > 0"
+          >
+            {{ chat.mensajes_no_leidos }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Estado vacío -->
+      <div *ngIf="!cargandoChats && chats.length === 0" class="empty-state">
+        <i class="bi bi-chat-dots text-muted"></i>
+        <p class="text-muted mt-2">No hay conversaciones</p>
+        <button class="btn btn-outline-primary" (click)="abrirModalNuevoChat()">
+          Iniciar conversación
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel Derecho: Chat Activo -->
+  <div class="chat-main">
+    <!-- No hay chat seleccionado -->
+    <div *ngIf="!chatActual" class="no-chat-selected">
+      <i class="bi bi-chat-text text-muted"></i>
+      <h5 class="text-muted mt-3">Selecciona una conversación</h5>
+      <p class="text-muted">Elige un chat o inicia una nueva conversación</p>
+    </div>
+
+    <!-- Chat Activo -->
+    <div *ngIf="chatActual" class="chat-active">
+      <!-- Header del Chat -->
+      <div class="chat-active-header">
+        <div class="d-flex align-items-center">
+          <div class="chat-avatar me-3">
+            <div class="avatar-circle" [ngClass]="getTipoBadge(chatActual.destinatario_tipo)">
+              {{ getNombreCompleto(chatActual).charAt(0).toUpperCase() }}
+            </div>
+          </div>
+          <div>
+            <h5 class="mb-0">{{ getNombreCompleto(chatActual) }}</h5>
+            <div class="d-flex align-items-center gap-2">
+              <span 
+                class="badge"
+                [ngClass]="getTipoBadge(chatActual.destinatario_tipo)"
+              >
+                {{ getTipoTexto(chatActual.destinatario_tipo) }}
+              </span>
+              <small class="text-muted">{{ chatActual.destinatario?.email }}</small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Área de Mensajes -->
+      <div 
+        class="messages-area" 
+        #messagesContainer
+      >
+        <!-- Loading Mensajes -->
+        <div *ngIf="cargandoMensajes" class="text-center p-3">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando mensajes...</span>
+          </div>
+        </div>
+
+        <!-- Mensajes -->
+        <div *ngFor="let mensaje of mensajes" class="message-wrapper">
+          <div 
+            class="message"
+            [class.message-sent]="esMensajeMio(mensaje)"
+            [class.message-received]="!esMensajeMio(mensaje)"
+          >
+            <div class="message-content">
+              {{ mensaje.contenido }}
+            </div>
+            <div class="message-time">
+              {{ formatearHora(mensaje.fecha_envio) }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Placeholder si no hay mensajes -->
+        <div *ngIf="!cargandoMensajes && mensajes.length === 0" class="no-messages">
+          <p class="text-muted text-center">
+            Inicia la conversación enviando un mensaje
+          </p>
+        </div>
+      </div>
+
+      <!-- Input para Nuevo Mensaje -->
+      <div class="message-input-area">
+        <div class="input-group">
+          <textarea 
+            class="form-control" 
+            placeholder="Escribe un mensaje..."
+            [(ngModel)]="nuevoMensaje"
+            (keydown)="onEnterPress($event)"
+            rows="1"
+          ></textarea>
+          <button 
+            class="btn btn-primary" 
+            type="button"
+            (click)="enviarMensaje()"
+            [disabled]="!nuevoMensaje.trim()"
+          >
+            <i class="bi bi-send"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Nuevo Chat -->
+<div 
+  class="modal fade" 
+  [class.show]="mostrarModalNuevoChat" 
+  [style.display]="mostrarModalNuevoChat ? 'block' : 'none'" 
+  tabindex="-1" 
+  *ngIf="mostrarModalNuevoChat"
+>
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-chat-dots me-2"></i>
+          Nueva Conversación
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModalNuevoChat()"></button>
+      </div>
+      <div class="modal-body">
+        
+        <!-- Filtros -->
+        <div class="mb-3">
+          <label class="form-label fw-bold">Filtrar por tipo:</label>
+          <div class="btn-group w-100" role="group">
+            <input 
+              type="radio" 
+              class="btn-check" 
+              name="filtroTipo" 
+              id="filtroTodos" 
+              [(ngModel)]="filtroTipoUsuario" 
+              value="todos"
+            >
+            <label class="btn btn-outline-primary" for="filtroTodos">
+              <i class="bi bi-people me-1"></i> Todos
+            </label>
+
+            <input 
+              type="radio" 
+              class="btn-check" 
+              name="filtroTipo" 
+              id="filtroPsicologos" 
+              [(ngModel)]="filtroTipoUsuario" 
+              value="psicologos"
+            >
+            <label class="btn btn-outline-primary" for="filtroPsicologos">
+              <i class="bi bi-person-badge me-1"></i> Psicólogos
+            </label>
+
+            <input 
+              type="radio" 
+              class="btn-check" 
+              name="filtroTipo" 
+              id="filtroPacientes" 
+              [(ngModel)]="filtroTipoUsuario" 
+              value="pacientes"
+            >
+            <label class="btn btn-outline-primary" for="filtroPacientes">
+              <i class="bi bi-person me-1"></i> Pacientes
+            </label>
+          </div>
+        </div>
+
+        <!-- Lista de usuarios -->
+        <label class="form-label fw-bold">Selecciona un usuario:</label>
+        <div class="user-list-modal">
+          <div 
+            *ngFor="let usuario of usuariosFiltrados" 
+            class="user-item"
+            [class.selected]="usuarioSeleccionado?.id === usuario.id && usuarioSeleccionado?.tipo === usuario.tipo"
+            (click)="usuarioSeleccionado = usuario"
+          >
+            <div class="d-flex align-items-center">
+              <div class="avatar-circle me-3" [ngClass]="getTipoBadge(usuario.tipo)">
+                {{ getNombreCompletoUsuario(usuario).charAt(0).toUpperCase() }}
+              </div>
+              <div class="flex-grow-1">
+                <div class="fw-semibold">{{ getNombreCompletoUsuario(usuario) }}</div>
+                <small class="text-muted">{{ usuario.email }}</small>
+              </div>
+              <span class="badge" [ngClass]="getTipoBadge(usuario.tipo)">
+                {{ getTipoTexto(usuario.tipo) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Empty state -->
+          <div *ngIf="usuariosFiltrados.length === 0" class="text-center py-4">
+            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-2">
+              No hay usuarios disponibles.<br>
+              <small>Todos los usuarios ya tienen un chat activo.</small>
+            </p>
+          </div>
+        </div>
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="cerrarModalNuevoChat()">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="crearNuevoChat()"
+          [disabled]="!usuarioSeleccionado"
+        >
+          <i class="bi bi-chat-dots me-2"></i>
+          Iniciar Conversación
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop del Modal -->
+<div 
+  class="modal-backdrop fade show" 
+  *ngIf="mostrarModalNuevoChat"
+  (click)="cerrarModalNuevoChat()"
+></div>

@@ -58,4 +58,8 @@ export class ChatService {
   buscarChats(termino: string): Observable<Chat[]> {
     return this.http.get<Chat[]>(`${this.AppUrl}${this.APIUrl}/chats/buscar?q=${encodeURIComponent(termino)}`);
   }
+  // Agregar este método en el servicio existente
+  verificarChatPaciente(idPaciente: number): Observable<any> {
+    return this.http.get(`${this.AppUrl}${this.APIUrl}/chat/verificar/${idPaciente}`);
+  }
 }

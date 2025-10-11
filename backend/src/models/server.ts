@@ -7,6 +7,7 @@ import agendaRoutes from '../routes/agenda';
 import disponibilidadRoutes from '../routes/disponibilidad';
 import chatRoutes from '../routes/chat'; 
 import adminRoutes from '../routes/admin';
+import chatAdminRoutes from '../routes/chat-admin';
 import { Psicologo } from './psicologo';
 import { Paciente } from './paciente';
 import { Agenda } from './agenda/agenda';
@@ -23,16 +24,12 @@ class Server {
     constructor() {
         this.app = express();
         this.port = process.env.PORT || '3016';
-
         // 1. Conectar a la base de datos
         this.connetionBaseDatos();
-
         // 2. Configurar middlewares
         this.midlewares();
-
         // 3. Configurar las rutas
         this.routes();
-
         // 4. Iniciar el servidor
         this.listen();
     }
@@ -51,6 +48,7 @@ class Server {
         this.app.use(disponibilidadRoutes);
         this.app.use(chatRoutes); 
         this.app.use(adminRoutes); 
+        this.app.use(chatAdminRoutes);
     }
 
     // Método para iniciar el servidor

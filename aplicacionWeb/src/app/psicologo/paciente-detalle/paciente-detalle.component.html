@@ -1,0 +1,99 @@
+<div class="container-fluid py-3">
+  <!-- Header con información básica -->
+  <div class="row mb-3">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="d-flex align-items-center">
+          <button class="btn btn-outline-primary me-3" (click)="volver()">
+            <i class="bi bi-arrow-left"></i> Volver
+          </button>
+          <h2 class="mb-0" *ngIf="paciente">
+            <i class="bi bi-person-circle me-2"></i>
+            {{ paciente.nombre }} {{ paciente.apellido_paterno }} {{ paciente.apellido_materno }}
+          </h2>
+        </div>
+        <div class="badge bg-primary" *ngIf="paciente">
+          ID: {{ paciente.id_paciente }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando información del paciente...</p>
+  </div>
+
+  <!-- Contenido principal -->
+  <div *ngIf="!cargando && paciente" class="row">
+    <div class="col-12">
+      <!-- Tabs de navegación -->
+      <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+          <a class="nav-link" 
+             [class.active]="tabActiva === 'info'"
+             (click)="cambiarTab('info')"
+             style="cursor: pointer;">
+            <i class="bi bi-info-circle me-1"></i> Información General
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link"
+             [class.active]="tabActiva === 'graficas'"
+             (click)="cambiarTab('graficas')"
+             style="cursor: pointer;">
+            <i class="bi bi-graph-up me-1"></i> Gráficas y Notas
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link"
+             [class.active]="tabActiva === 'modulos'"
+             (click)="cambiarTab('modulos')"
+             style="cursor: pointer;">
+            <i class="bi bi-layers me-1"></i> Módulos de Duelo
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link"
+             [class.active]="tabActiva === 'actividades'"
+             (click)="cambiarTab('actividades')"
+             style="cursor: pointer;">
+            <i class="bi bi-list-task me-1"></i> Actividades
+          </a>
+        </li>
+      </ul>
+
+      <!-- Contenido de las tabs -->
+      <div class="tab-content">
+        <!-- Tab Información -->
+        <div *ngIf="tabActiva === 'info'" class="tab-pane fade show active">
+          <app-paciente-info [paciente]="paciente" [idPaciente]="idPaciente"></app-paciente-info>
+        </div>
+
+        <!-- Tab Gráficas y Notas -->
+        <div *ngIf="tabActiva === 'graficas'" class="tab-pane fade show active">
+          <app-graficas-notas [idPaciente]="idPaciente"></app-graficas-notas>
+        </div>
+
+        <!-- Tab Módulos -->
+        <div *ngIf="tabActiva === 'modulos'" class="tab-pane fade show active">
+          <app-modulos-duelo [idPaciente]="idPaciente"></app-modulos-duelo>
+        </div>
+
+        <!-- Tab Actividades -->
+        <div *ngIf="tabActiva === 'actividades'" class="tab-pane fade show active">
+          <app-actividades-personalizadas [idPaciente]="idPaciente"></app-actividades-personalizadas>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado vacío si no hay paciente -->
+  <div *ngIf="!cargando && !paciente" class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    No se encontró información del paciente.
+  </div>
+</div>

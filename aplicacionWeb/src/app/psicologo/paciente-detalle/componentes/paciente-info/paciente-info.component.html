@@ -1,0 +1,166 @@
+<div class="row">
+  <!-- Columna izquierda: Información personal -->
+  <div class="col-lg-6 mb-4">
+    <div class="card h-100">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-person-vcard me-2"></i>
+          Información Personal
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="info-item">
+          <label class="text-muted">Nombre completo:</label>
+          <p class="fw-bold">
+            {{ paciente.nombre }} {{ paciente.apellido_paterno }} {{ paciente.apellido_materno }}
+          </p>
+        </div>
+
+        <div class="info-item">
+          <label class="text-muted">Edad:</label>
+          <p class="fw-bold">
+            {{ getEdad() }} años
+            <small class="text-muted ms-2">
+              ({{ formatearFecha(paciente.fecha_nacimiento || '') }})
+            </small>
+          </p>
+        </div>
+
+        <div class="info-item">
+          <label class="text-muted">Correo electrónico:</label>
+          <p class="fw-bold">
+            <i class="bi bi-envelope me-1"></i>
+            {{ paciente.email }}
+          </p>
+        </div>
+
+        <div class="info-item">
+          <label class="text-muted">Teléfono:</label>
+          <p class="fw-bold">
+            <i class="bi bi-telephone me-1"></i>
+            {{ paciente.telefono || 'No registrado' }}
+          </p>
+        </div>
+
+        <div class="info-item">
+          <label class="text-muted">ID del paciente:</label>
+          <p class="fw-bold">
+            <span class="badge bg-secondary">{{ paciente.id_paciente }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Columna derecha: Acciones rápidas y próxima cita -->
+  <div class="col-lg-6">
+    <!-- Card de Próxima cita -->
+    <div class="card mb-4">
+      <div class="card-header bg-info text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-calendar-event me-2"></i>
+          Próxima Cita
+        </h5>
+      </div>
+      <div class="card-body">
+        <div *ngIf="cargandoCita" class="text-center py-3">
+          <div class="spinner-border spinner-border-sm text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+        </div>
+
+        <div *ngIf="!cargandoCita && proximaCita" class="cita-info">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <i class="bi bi-calendar3 me-2 text-primary"></i>
+              <strong>Fecha:</strong> {{ formatearFecha(proximaCita.fecha) }}
+            </div>
+            <span class="badge"
+                  [ngClass]="{
+                    'bg-warning text-dark': proximaCita.estado === 'pendiente',
+                    'bg-success': proximaCita.estado === 'confirmada'
+                  }">
+              {{ proximaCita.estado | titlecase }}
+            </span>
+          </div>
+          
+          <div class="mb-2">
+            <i class="bi bi-clock me-2 text-primary"></i>
+            <strong>Hora:</strong> 
+            {{ formatearHora(proximaCita.hora_inicio) }} - {{ formatearHora(proximaCita.hora_fin) }}
+          </div>
+
+          <div class="mb-2">
+            <i class="bi bi-geo-alt me-2 text-primary"></i>
+            <strong>Modalidad:</strong> {{ proximaCita.modalidad }}
+          </div>
+
+          <div *ngIf="proximaCita.notas" class="mt-3 p-2 bg-light rounded">
+            <small class="text-muted">
+              <strong>Notas:</strong> {{ proximaCita.notas }}
+            </small>
+          </div>
+        </div>
+
+        <div *ngIf="!cargandoCita && !proximaCita" class="text-center py-3">
+          <i class="bi bi-calendar-x text-muted fs-1"></i>
+          <p class="text-muted mt-2">Sin cita asignada</p>
+          <button class="btn btn-primary btn-sm" (click)="agendarCita()">
+            <i class="bi bi-calendar-plus me-1"></i>
+            Agendar Cita
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Card de Acciones rápidas -->
+    <div class="card">
+      <div class="card-header bg-success text-white">
+        <h5 class="mb-0">
+          <i class="bi bi-lightning me-2"></i>
+          Acciones Rápidas
+        </h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <!-- Botón de Chat -->
+          <button *ngIf="chatExiste && !cargandoChat"
+                  class="btn btn-primary"
+                  (click)="abrirChat()">
+            <i class="bi bi-chat-dots me-2"></i>
+            Abrir Chat
+          </button>
+
+          <button *ngIf="!chatExiste && !cargandoChat"
+                  class="btn btn-outline-primary"
+                  (click)="crearChat()">
+            <i class="bi bi-chat-plus me-2"></i>
+            Crear Chat
+          </button>
+
+          <button *ngIf="cargandoChat"
+                  class="btn btn-secondary"
+                  disabled>
+            <div class="spinner-border spinner-border-sm me-2" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            Verificando chat...
+          </button>
+
+          <!-- Botón de Agendar Cita -->
+          <button class="btn btn-outline-success"
+                  (click)="agendarCita()">
+            <i class="bi bi-calendar-plus me-2"></i>
+            Agendar Nueva Cita
+          </button>
+
+          <!-- Botón de Historial -->
+          <button class="btn btn-outline-info">
+            <i class="bi bi-clock-history me-2"></i>
+            Ver Historial Completo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

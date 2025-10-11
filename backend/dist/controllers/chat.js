@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.buscarChats = exports.marcarComoLeido = exports.crearChat = exports.enviarMensaje = exports.getMensajes = exports.getChats = void 0;
+exports.verificarChatPaciente = exports.buscarChats = exports.marcarComoLeido = exports.crearChat = exports.enviarMensaje = exports.getMensajes = exports.getChats = void 0;
 const connection_1 = __importDefault(require("../database/connection"));
 const sequelize_1 = require("sequelize");
 /**
@@ -440,3 +440,30 @@ const buscarChats = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
     }
 });
 exports.buscarChats = buscarChats;
+// Verificar si existe chat con un paciente
+const verificarChatPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const { idPaciente } = req.params;
+        const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        const chat = yield connection_1.default.query(`
+            SELECT id_chat FROM chat 
+            WHERE id_psicologo = ? AND id_paciente = ?
+            LIMIT 1
+        `, {
+            replacements: [id_psicologo, idPaciente],
+            type: sequelize_1.QueryTypes.SELECT
+        });
+        res.json({
+            existe: chat.length > 0,
+            idChat: chat.length > 0 ? chat[0].id_chat : null
+        });
+    }
+    catch (error) {
+        console.error('Error verificando chat:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.verificarChatPaciente = verificarChatPaciente;

@@ -1,3 +1,4 @@
+
 <div class="container">
     <div class="title">
         <h4>Listado de Pacientes</h4>
@@ -7,7 +8,7 @@
     
   <thead>
     <tr>
-      <th>ID</th>                           <!-- ✅ AGREGADO -->
+      <th>ID</th>
       <th>Nombre</th>
       <th>Apellido Paterno</th>
       <th>Apellido Materno</th>
@@ -17,18 +18,36 @@
   </thead>
   <tbody>
     @for (paciente of listPacientes; track paciente.id_paciente) {
-      <tr class="table-active">      
-      <td>{{paciente.id_paciente}}</td>    <!-- ✅ AGREGADO -->
-      <td>{{paciente.nombre}}</td>
-      <td>{{paciente.apellido_paterno}}</td>
-      <td>{{paciente.apellido_materno}}</td>
-      <td>{{paciente.email}}</td>
+      <tr class="table-active" style="cursor: pointer;">      
+      <td (click)="verDetallePaciente(paciente)">{{paciente.id_paciente}}</td>
+      <td (click)="verDetallePaciente(paciente)">{{paciente.nombre}}</td>
+      <td (click)="verDetallePaciente(paciente)">{{paciente.apellido_paterno}}</td>
+      <td (click)="verDetallePaciente(paciente)">{{paciente.apellido_materno}}</td>
+      <td (click)="verDetallePaciente(paciente)">{{paciente.email}}</td>
       <td>
-        <button type="button" class="btn btn-secondary btn-sm ms-2">Eliminar</button>
+        <button type="button" 
+                class="btn btn-primary btn-sm me-2"
+                (click)="verDetallePaciente(paciente)"
+                title="Ver detalles">
+          <i class="bi bi-eye"></i> Ver
+        </button>
+        <button type="button" 
+                class="btn btn-secondary btn-sm"
+                title="Eliminar paciente"
+                disabled>
+          <i class="bi bi-trash"></i> Eliminar
+        </button>
       </td>
     </tr>
     }
-   
+    @empty {
+      <tr>
+        <td colspan="6" class="text-center py-4">
+          <i class="bi bi-person-x fs-1 text-muted"></i>
+          <p class="mt-2 text-muted">No hay pacientes registrados</p>
+        </td>
+      </tr>
+    }
   </tbody>
 </table>
 </div>

@@ -17,10 +17,15 @@ export class PacientesService {
     this.APIUrl = "api/psicologo";
   }
 
-  // ✅ MÉTODO SIMPLIFICADO - El token se agrega automáticamente por el interceptor
+  //  MÉTODO SIMPLIFICADO - El token se agrega automáticamente por el interceptor
   getPacientesPorPsicologo(): Observable<Paciente[]> {
     // El interceptor ya agrega el token Bearer automáticamente
     return this.http.get<Paciente[]>(`${this.AppUrl}${this.APIUrl}/lista-pacientes`);
+  }
+
+  // Nuevo método para obtener un paciente específico
+  getPacientePorId(idPaciente: number): Observable<Paciente> {
+    return this.http.get<Paciente>(`${this.AppUrl}${this.APIUrl}/paciente/${idPaciente}`);
   }
 }
 

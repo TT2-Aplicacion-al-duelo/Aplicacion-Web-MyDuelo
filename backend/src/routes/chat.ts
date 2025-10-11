@@ -6,7 +6,8 @@ import {
   enviarMensaje, 
   crearChat,
   marcarComoLeido,
-  buscarChats
+  buscarChats,
+  verificarChatPaciente
 } from "../controllers/chat";
 import validarToken from "./validarToken";
 
@@ -31,5 +32,5 @@ router.post("/api/psicologo/chats", validarToken, crearChat);
 // ===== RUTAS DE MENSAJES =====
 // Enviar mensaje
 router.post("/api/psicologo/mensajes", validarToken, enviarMensaje);
-
+router.get("/api/psicologo/chat/verificar/:idPaciente", validarToken, verificarChatPaciente);
 export default router;

@@ -22,4 +22,5 @@ router.post("/api/psicologo/chats", validarToken_1.default, chat_1.crearChat);
 // ===== RUTAS DE MENSAJES =====
 // Enviar mensaje
 router.post("/api/psicologo/mensajes", validarToken_1.default, chat_1.enviarMensaje);
+router.get("/api/psicologo/chat/verificar/:idPaciente", validarToken_1.default, chat_1.verificarChatPaciente);
 exports.default = router;

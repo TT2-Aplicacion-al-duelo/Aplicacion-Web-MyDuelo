@@ -463,3 +463,30 @@ export const buscarChats = async (req: AuthRequest, res: Response) => {
     res.status(500).json({ msg: "Error interno del servidor", error });
   }
 };
+// Verificar si existe chat con un paciente
+export const verificarChatPaciente = async (req: AuthRequest, res: Response) => {
+    try {
+        const { idPaciente } = req.params;
+        const id_psicologo = req.user?.id_psicologo;
+        
+        const chat = await sequelize.query(`
+            SELECT id_chat FROM chat 
+            WHERE id_psicologo = ? AND id_paciente = ?
+            LIMIT 1
+        `, {
+            replacements: [id_psicologo, idPaciente],
+            type: QueryTypes.SELECT
+        });
+        
+        res.json({ 
+            existe: chat.length > 0,
+            idChat: chat.length > 0 ? (chat[0] as any).id_chat : null
+        });
+        
+    } catch (error) {
+        console.error('Error verificando chat:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+}
