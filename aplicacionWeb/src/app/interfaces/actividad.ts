@@ -1,32 +1,57 @@
 export interface Actividad {
   id_actividad: number;
   titulo: string;
-  descripcion: string;
-  tipo: string;
+  descripcion?: string;
+  tipo?: string;
   obligatoria: boolean;
   repetitiva: boolean;
-  periodo: number | null;
-  archivo_url: string | null;
+  periodo?: number;
+  archivo_url?: string;
   origen: 'personalizada' | 'modulo';
-  id_psicologo_creador: number;
+  id_psicologo_creador?: number;
 }
 
 export interface ActividadAsignada {
   id_asignacion: number;
   id_actividad: number;
   id_paciente: number;
-  estado: 'en_proceso' | 'finalizada';
-  fecha_asignacion: string;
-  fecha_limite: string | null;
-  instrucciones_personalizadas: string | null;
-  prioridad: 'baja' | 'media' | 'alta';
+  fecha_asignacion: Date | string;
+  fecha_limite?: Date | string;
+  fecha_completada?: Date | string;
+  estado: 'pendiente' | 'en_curso' | 'completada' | 'cancelada';
+  notas?: string;
   actividad?: Actividad;
 }
 
 export interface AsignarActividadRequest {
   id_actividad: number;
-  pacientes: number[];
+  ids_pacientes: number[];
   fecha_limite?: string;
-  instrucciones_personalizadas?: string;
-  prioridad?: 'baja' | 'media' | 'alta';
+  notas?: string;
 }
+
+export interface CrearActividadRequest {
+  titulo: string;
+  descripcion: string;
+  tipo?: string;
+  obligatoria: boolean;
+  repetitiva: boolean;
+  periodo?: number;
+  archivo_url?: string;
+}
+
+export interface ActualizarActividadRequest {
+  titulo?: string;
+  descripcion?: string;
+  tipo?: string;
+  obligatoria?: boolean;
+  repetitiva?: boolean;
+  periodo?: number;
+  archivo_url?: string;
+}
+
+
+
+
+
+
