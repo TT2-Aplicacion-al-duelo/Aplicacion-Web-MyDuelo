@@ -8,6 +8,9 @@ import disponibilidadRoutes from '../routes/disponibilidad';
 import chatRoutes from '../routes/chat'; 
 import adminRoutes from '../routes/admin';
 import chatAdminRoutes from '../routes/chat-admin';
+import actividadRoutes from '../routes/actividad';
+import { Actividad } from './actividad/actividad'; 
+import { ActividadAsignada } from './actividad/actividad-asignada'; 
 import { Psicologo } from './psicologo';
 import { Paciente } from './paciente';
 import { Agenda } from './agenda/agenda';
@@ -49,6 +52,7 @@ class Server {
         this.app.use(chatRoutes); 
         this.app.use(adminRoutes); 
         this.app.use(chatAdminRoutes);
+        this.app.use(actividadRoutes);
     }
 
     // Método para iniciar el servidor
@@ -71,6 +75,11 @@ class Server {
             await Agenda.sync({ alter: false });
             await Cita.sync({ alter: false });
             await Recordatorio.sync({ alter: false });
+
+             //Sincronizar modelos de actividades
+            await Actividad.sync({ alter: false });
+            await ActividadAsignada.sync({ alter: false });
+
             console.log('Conexión a la base de datos exitosa.');
             console.log('Tablas sincronizadas correctamente.');
 

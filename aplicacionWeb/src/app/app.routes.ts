@@ -14,6 +14,7 @@ import { PsicologosAdminComponent } from './admin/psicologos-admin/psicologos-ad
 import { PacientesAdminComponent } from './admin/pacientes-admin/pacientes-admin.component';
 import { ChatAdminComponent } from './admin/chat-admin/chat-admin.component';
 import { PacienteDetalleComponent } from './psicologo/paciente-detalle/paciente-detalle.component';
+import { ActividadesGlobalesComponent } from './psicologo/paciente-detalle/componentes/actividades-globales/actividades-globales.component';
 
 const canActivate: CanActivateFn = (route, state) => {
   const auth = inject(AuthService);
@@ -36,6 +37,7 @@ export const routes: Routes = [
   { path: 'lista-pacientes-del-psicologo', component: PacientesComponent, canActivate: [canActivate] },
   { path: 'chat-pacientes-del-psicologo', component: ChatComponent, canActivate: [canActivate] },
   { path: 'admin/psicologos', component: PsicologosAdminComponent, canActivate: [canActivate] },
+  { path: 'actividades-globales', component: ActividadesGlobalesComponent, canActivate: [canActivate] },
   { path: 'admin/pacientes', component: PacientesAdminComponent, canActivate: [canActivate] },
   { path: 'admin/chat', component: ChatAdminComponent, canActivate: [canActivate] },
   { path: 'paciente/:id', component: PacienteDetalleComponent, canActivate: [canActivate] 

@@ -1,10 +1,11 @@
-import { ApplicationConfig, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@angular/common/http';
 import { TokenInterceptor } from './utils/token.interceptor';
+import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -12,12 +13,13 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideAnimations(),
     provideToastr(),
+    
     provideHttpClient(withInterceptorsFromDi()),
-    // ✅ CONFIGURACIÓN CORRECTA DEL INTERCEPTOR
     {
       provide: HTTP_INTERCEPTORS,
       useClass: TokenInterceptor,
       multi: true
-    }
+    },
+    importProvidersFrom([SweetAlert2Module.forRoot()]),
   ]
 };

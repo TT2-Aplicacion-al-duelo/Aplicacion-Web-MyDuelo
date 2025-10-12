@@ -1,0 +1,98 @@
+.actividades-container {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+}
+
+.actividad-card {
+  transition: transform 0.2s ease-in-out;
+}
+
+.actividad-card:hover {
+  transform: translateY(-2px);
+}
+
+.card {
+  border: none;
+  border-left: 4px solid #007bff;
+}
+
+.card-title {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.dropdown-menu {
+  z-index: 1050;
+}
+
+.dropdown-menu.show {
+  display: block;
+}
+
+.menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1040;
+  background-color: transparent;
+}
+
+.badge {
+  padding: 0.4em 0.6em;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* Prioridades con colores distintivos */
+.actividad-card:has(.bg-danger) .card {
+  border-left-color: #dc3545;
+}
+
+.actividad-card:has(.bg-warning) .card {
+  border-left-color: #ffc107;
+}
+
+.actividad-card:has(.bg-success) .card {
+  border-left-color: #28a745;
+}
+
+/* Animación para nuevos elementos */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.actividades-list > div {
+  animation: slideIn 0.3s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .actividades-container {
+    padding: 15px;
+  }
+  
+  .card-body {
+    padding: 1rem;
+  }
+  
+  .d-flex.justify-content-between {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .dropdown {
+    margin-left: 0 !important;
+    margin-top: 10px;
+    align-self: flex-end;
+  }
+}

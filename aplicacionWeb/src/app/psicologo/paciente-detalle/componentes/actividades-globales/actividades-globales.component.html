@@ -1,0 +1,129 @@
+<div class="container-fluid py-4">
+  <div class="row">
+    <div class="col-12">
+      <!-- Encabezado -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <h2 class="mb-1">
+            <i class="bi bi-file-earmark-text me-2"></i>
+            Plantillas de Actividades
+          </h2>
+          <p class="text-muted mb-0">
+            Gestiona tus plantillas globales de actividades
+          </p>
+        </div>
+        <button class="btn btn-primary" (click)="crearActividad()">
+          <i class="bi bi-plus-circle me-2"></i>
+          Nueva Actividad
+        </button>
+      </div>
+
+      <!-- Loader -->
+      <div *ngIf="cargando" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-2 text-muted">Cargando plantillas...</p>
+      </div>
+
+      <!-- Sin actividades -->
+      <div *ngIf="!cargando && actividades.length === 0" class="empty-state">
+        <div class="text-center py-5">
+          <i class="bi bi-inbox display-1 text-muted"></i>
+          <h4 class="mt-3">No hay plantillas creadas</h4>
+          <p class="text-muted">Crea tu primera plantilla de actividad para comenzar</p>
+          <button class="btn btn-primary mt-3" (click)="crearActividad()">
+            <i class="bi bi-plus-circle me-2"></i>
+            Crear Primera Actividad
+          </button>
+        </div>
+      </div>
+
+      <!-- Gid de actividades -->
+      <div *ngIf="!cargando && actividades.length > 0" class="row g-3">
+        <div *ngFor="let actividad of actividades" class="col-12 col-md-6 col-lg-4">
+          <div class="card actividad-card h-100 shadow-sm">
+            <div class="card-body d-flex flex-column">
+              <!-- Encabezado de la tarjeta -->
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div class="plantilla-icon">
+                  <i class="bi bi-file-earmark-text text-primary"></i>
+                  <span class="badge bg-primary ms-2">📘 Plantilla</span>
+                </div>
+                
+                <!-- Menú de acciones -->
+                <div class="dropdown">
+                  <button 
+                    class="btn btn-sm btn-link text-dark" 
+                    type="button" 
+                    (click)="toggleMenu(actividad.id_actividad)"
+                    [attr.aria-expanded]="menuAbierto === actividad.id_actividad">
+                    <i class="bi bi-three-dots-vertical"></i>
+                  </button>
+                  <ul 
+                    class="dropdown-menu dropdown-menu-end" 
+                    [class.show]="menuAbierto === actividad.id_actividad">
+                    <li>
+                      <a class="dropdown-item" (click)="asignarActividad(actividad)">
+                        <i class="bi bi-person-plus me-2"></i>
+                        Asignar a paciente(s)
+                      </a>
+                    </li>
+                    <li>
+                      <a class="dropdown-item" (click)="editarActividad(actividad)">
+                        <i class="bi bi-pencil me-2"></i>
+                        Editar
+                      </a>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                      <a class="dropdown-item text-danger" (click)="eliminarActividad(actividad)">
+                        <i class="bi bi-trash me-2"></i>
+                        Eliminar
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Contenido principal -->
+              <h5 class="card-title mb-2">{{ actividad.titulo }}</h5>
+              <p class="card-text text-muted flex-grow-1">
+                {{ actividad.descripcion }}
+              </p>
+
+              <!-- Información adicional -->
+              <div class="mt-auto">
+                <div class="d-flex gap-2 flex-wrap mb-2">
+                  <span *ngIf="actividad.tipo" class="badge bg-light text-dark">
+                    <i class="bi bi-tag me-1"></i>
+                    {{ actividad.tipo }}
+                  </span>
+                  <span *ngIf="actividad.obligatoria" class="badge bg-warning text-dark">
+                    <i class="bi bi-exclamation-circle me-1"></i>
+                    Obligatoria
+                  </span>
+                </div>
+                
+                <!-- Botón de acción rápida -->
+                <button 
+                  class="btn btn-outline-primary btn-sm w-100" 
+                  (click)="asignarActividad(actividad)">
+                  <i class="bi bi-person-plus me-2"></i>
+                  Asignar a pacientes
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Overlay para cerrar menús -->
+<div 
+  *ngIf="menuAbierto !== null" 
+  class="menu-overlay" 
+  (click)="cerrarMenu()">
+</div>

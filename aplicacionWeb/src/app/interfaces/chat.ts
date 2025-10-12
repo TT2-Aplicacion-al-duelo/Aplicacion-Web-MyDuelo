@@ -1,4 +1,3 @@
-// aplicacionWeb/src/app/interfaces/chat.ts
 export interface Chat {
   id_chat: number;
   id_psicologo: number;

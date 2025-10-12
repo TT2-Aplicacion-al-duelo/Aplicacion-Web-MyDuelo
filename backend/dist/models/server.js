@@ -21,6 +21,9 @@ const disponibilidad_1 = __importDefault(require("../routes/disponibilidad"));
 const chat_1 = __importDefault(require("../routes/chat"));
 const admin_1 = __importDefault(require("../routes/admin"));
 const chat_admin_1 = __importDefault(require("../routes/chat-admin"));
+const actividad_1 = __importDefault(require("../routes/actividad"));
+const actividad_2 = require("./actividad/actividad");
+const actividad_asignada_1 = require("./actividad/actividad-asignada");
 const psicologo_2 = require("./psicologo");
 const paciente_2 = require("./paciente");
 const agenda_2 = require("./agenda/agenda");
@@ -56,6 +59,7 @@ class Server {
         this.app.use(chat_1.default);
         this.app.use(admin_1.default);
         this.app.use(chat_admin_1.default);
+        this.app.use(actividad_1.default);
     }
     // Método para iniciar el servidor
     listen() {
@@ -74,6 +78,9 @@ class Server {
                 yield agenda_2.Agenda.sync({ alter: false });
                 yield cita_1.Cita.sync({ alter: false });
                 yield recordatorio_1.Recordatorio.sync({ alter: false });
+                //Sincronizar modelos de actividades
+                yield actividad_2.Actividad.sync({ alter: false });
+                yield actividad_asignada_1.ActividadAsignada.sync({ alter: false });
                 console.log('Conexión a la base de datos exitosa.');
                 console.log('Tablas sincronizadas correctamente.');
                 // Programar cron: revisar citas para mañana a las 00:05
