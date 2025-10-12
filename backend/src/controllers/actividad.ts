@@ -13,7 +13,7 @@ import { Op } from "sequelize";
  */
 export const getActividadesGlobales = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     
     if (!id_psicologo) {
       return res.status(401).json({ msg: "No autorizado" });
@@ -40,7 +40,7 @@ export const getActividadesGlobales = async (req: Request, res: Response) => {
  */
 export const crearActividadGlobal = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     
     if (!id_psicologo) {
       return res.status(401).json({ msg: "No autorizado" });
@@ -77,7 +77,7 @@ export const crearActividadGlobal = async (req: Request, res: Response) => {
  */
 export const actualizarActividadGlobal = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     const { id_actividad } = req.params;
     
     if (!id_psicologo) {
@@ -120,7 +120,7 @@ export const actualizarActividadGlobal = async (req: Request, res: Response) => 
  */
 export const eliminarActividadGlobal = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     const { id_actividad } = req.params;
     
     if (!id_psicologo) {
@@ -154,7 +154,7 @@ export const eliminarActividadGlobal = async (req: Request, res: Response) => {
  */
 export const getActividadesPaciente = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     const { id_paciente } = req.params;
     
     if (!id_psicologo) {
@@ -205,7 +205,7 @@ export const getActividadesPaciente = async (req: Request, res: Response) => {
  */
 export const asignarActividad = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     
     if (!id_psicologo) {
       return res.status(401).json({ msg: "No autorizado" });
@@ -273,7 +273,7 @@ export const asignarActividad = async (req: Request, res: Response) => {
  */
 export const actualizarActividadAsignada = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     const { id_asignacion } = req.params;
     
     if (!id_psicologo) {
@@ -317,7 +317,7 @@ export const actualizarActividadAsignada = async (req: Request, res: Response) =
  */
 export const eliminarActividadAsignada = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     const { id_asignacion } = req.params;
     
     if (!id_psicologo) {
@@ -353,7 +353,7 @@ export const eliminarActividadAsignada = async (req: Request, res: Response) => 
  */
 export const enviarRecordatorio = async (req: Request, res: Response) => {
   try {
-    const id_psicologo = (req as any).psicologo?.id_psicologo;
+    const id_psicologo = (req as any).user?.id_psicologo;
     const { id_asignacion } = req.params;
     
     if (!id_psicologo) {
