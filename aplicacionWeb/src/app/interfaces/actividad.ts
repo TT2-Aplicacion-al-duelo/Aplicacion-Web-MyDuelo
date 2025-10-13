@@ -18,7 +18,9 @@ export interface ActividadAsignada {
   fecha_asignacion: Date | string;
   fecha_limite?: Date | string;
   fecha_completada?: Date | string;
-  estado: 'pendiente' | 'en_curso' | 'completada' | 'cancelada';
+  estado: 'en_proceso' | 'finalizada';
+  instrucciones_personalizadas?: string;
+  prioridad?: 'baja' | 'media' | 'alta';
   notas?: string;
   actividad?: Actividad;
 }
@@ -28,6 +30,8 @@ export interface AsignarActividadRequest {
   ids_pacientes: number[];
   fecha_limite?: string;
   notas?: string;
+  instrucciones_personalizadas?: string;
+  prioridad?: 'baja' | 'media' | 'alta';
 }
 
 export interface CrearActividadRequest {
@@ -49,9 +53,3 @@ export interface ActualizarActividadRequest {
   periodo?: number;
   archivo_url?: string;
 }
-
-
-
-
-
-

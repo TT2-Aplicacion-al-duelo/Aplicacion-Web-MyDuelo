@@ -1,124 +1,129 @@
-<div class="actividades-container">
-  <!-- Encabezado -->
-  <div class="d-flex justify-content-between align-items-center mb-4">
-    <h4 class="mb-0">
+<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/actividades-personalizadas/actividades-personalizadas.component.html -->
+<div class="card">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">
       <i class="bi bi-clipboard-check me-2"></i>
       Actividades Asignadas
-    </h4>
-  </div>
-
-  <!-- Loader -->
-  <div *ngIf="cargando" class="text-center py-5">
-    <div class="spinner-border text-primary" role="status">
-      <span class="visually-hidden">Cargando...</span>
+    </h5>
+    <div>
+      <button class="btn btn-sm btn-outline-primary me-2" (click)="asignarActividad()">
+        <i class="bi bi-link-45deg me-1"></i>
+        Asignar Existente
+      </button>
+      <button class="btn btn-sm btn-primary" (click)="crearActividad()">
+        <i class="bi bi-plus-lg me-1"></i>
+        Nueva Actividad
+      </button>
     </div>
-    <p class="mt-2 text-muted">Cargando actividades...</p>
   </div>
-
-  <!-- Sin actividades -->
-  <div *ngIf="!cargando && actividades.length === 0" class="alert alert-info">
-    <i class="bi bi-info-circle me-2"></i>
-    No hay actividades asignadas a este paciente.
-  </div>
-
-  <!-- Lista de actividades -->
-  <div *ngIf="!cargando && actividades.length > 0" class="actividades-list">
-    <div *ngFor="let actividad of actividades" class="actividad-card mb-3">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <div class="d-flex justify-content-between align-items-start">
-            <!-- Contenido principal -->
-            <div class="flex-grow-1">
-              <div class="d-flex align-items-center mb-2">
-                <h5 class="card-title mb-0 me-2">
-                  {{ actividad.actividad?.titulo }}
-                </h5>
-                <span [class]="getEstadoClass(actividad.estado)">
-                  {{ actividad.estado === 'en_proceso' ? 'En Proceso' : 'Finalizada' }}
-                </span>
-                <span [class]="getPrioridadClass(actividad.prioridad)" class="ms-2">
-                  {{ actividad.prioridad === 'alta' ? '🔴 Alta' : 
-                     actividad.prioridad === 'media' ? '🟡 Media' : '🟢 Baja' }}
-                </span>
-              </div>
-
-              <!-- Descripción o instrucciones personalizadas -->
-              <p class="card-text text-muted mb-2">
-                {{ actividad.instrucciones_personalizadas || actividad.actividad?.descripcion }}
-              </p>
-
-              <!-- Información adicional -->
-              <div class="small text-muted">
-                <span class="me-3">
-                  <i class="bi bi-calendar-event me-1"></i>
-                  Asignada: {{ actividad.fecha_asignacion | date: 'dd/MM/yyyy' }}
-                </span>
-                <span *ngIf="actividad.fecha_limite" class="me-3">
-                  <i class="bi bi-calendar-x me-1"></i>
-                  Fecha límite: {{ actividad.fecha_limite | date: 'dd/MM/yyyy' }}
-                </span>
-                <span *ngIf="actividad.actividad?.tipo">
-                  <i class="bi bi-tag me-1"></i>
-                  Tipo: {{ actividad.actividad?.tipo }}
-                </span>
-              </div>
-
-              <!-- Advertencia si tiene instrucciones personalizadas -->
-              <div *ngIf="actividad.instrucciones_personalizadas" class="alert alert-warning mt-2 mb-0 py-1 px-2" style="font-size: 12px;">
-                <i class="bi bi-info-circle me-1"></i>
-                Esta actividad tiene instrucciones personalizadas
-              </div>
-            </div>
-
-            <!-- Menú de acciones -->
-            <div class="dropdown ms-3">
-              <button 
-                class="btn btn-sm btn-outline-secondary dropdown-toggle" 
-                type="button" 
-                (click)="toggleMenu(actividad.id_asignacion)"
-                [attr.aria-expanded]="menuAbierto === actividad.id_asignacion">
-                <i class="bi bi-three-dots-vertical"></i>
-              </button>
-              <ul 
-                class="dropdown-menu" 
-                [class.show]="menuAbierto === actividad.id_asignacion">
-                <li>
-                  <a class="dropdown-item" (click)="cambiarEstado(actividad)">
-                    <i class="bi bi-arrow-repeat me-2"></i>
-                    Cambiar a {{ actividad.estado === 'en_proceso' ? 'Finalizada' : 'En Proceso' }}
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" (click)="modificarActividad(actividad)">
-                    <i class="bi bi-pencil me-2"></i>
-                    Modificar
-                  </a>
-                </li>
-                <li>
-                  <a class="dropdown-item" (click)="enviarRecordatorio(actividad)">
-                    <i class="bi bi-bell me-2"></i>
-                    Enviar Recordatorio
-                  </a>
-                </li>
-                <li><hr class="dropdown-divider"></li>
-                <li>
-                  <a class="dropdown-item text-danger" (click)="eliminarActividad(actividad)">
-                    <i class="bi bi-trash me-2"></i>
-                    Eliminar
-                  </a>
-                </li>
-              </ul>
-            </div>
-          </div>
+  
+  <div class="card-body">
+    <!-- Loader -->
+    @if (cargando) {
+      <div class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
         </div>
       </div>
-    </div>
+    }
+    
+    <!-- Lista de actividades -->
+    @if (!cargando && actividades.length > 0) {
+      <div class="list-group">
+        @for (actividad of actividades; track actividad.id_asignacion) {
+          <div class="list-group-item">
+            <div class="d-flex justify-content-between align-items-start">
+              <div class="flex-grow-1">
+                <h6 class="mb-1">{{ actividad.actividad?.titulo || 'Sin título' }}</h6>
+                <div class="d-flex gap-2 mb-2">
+                  <span [class]="getEstadoClass(actividad.estado)">
+                    {{ actividad.estado === 'en_proceso' ? 'En Proceso' : 'Finalizada' }}
+                  </span>
+                  @if (actividad.prioridad) {
+                    <span [class]="getPrioridadClass(actividad.prioridad)" class="ms-2">
+                      {{ actividad.prioridad === 'alta' ? '🔴 Alta' : 
+                         actividad.prioridad === 'media' ? '🟡 Media' : 
+                         '🟢 Baja' }}
+                    </span>
+                  }
+                </div>
+                <p class="mb-1 text-muted small">
+                  {{ actividad.instrucciones_personalizadas || actividad.actividad?.descripcion || 'Sin descripción' }}
+                </p>
+                <div class="text-muted small">
+                  @if (actividad.fecha_limite) {
+                    <i class="bi bi-calendar-event me-1"></i>
+                    Fecha límite: {{ actividad.fecha_limite | date:'dd/MM/yyyy' }}
+                  } @else {
+                    <span class="text-info">Sin fecha límite</span>
+                  }
+                </div>
+              </div>
+              
+              <!-- Menú de opciones -->
+              <div class="position-relative">
+                <button class="btn btn-sm btn-outline-secondary" 
+                        (click)="toggleMenu(actividad.id_asignacion)">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                
+                @if (menuAbierto === actividad.id_asignacion) {
+                  <div class="dropdown-menu show position-absolute end-0" 
+                       style="z-index: 1000;">
+                    @if (actividad.instrucciones_personalizadas) {
+                      <div class="alert alert-info mx-2 mb-2 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Esta actividad tiene instrucciones personalizadas
+                      </div>
+                    }
+                    
+                    <button class="dropdown-item" 
+                            (click)="cambiarEstado(actividad)">
+                      <i class="bi bi-arrow-repeat me-2"></i>
+                      Cambiar a {{ actividad.estado === 'en_proceso' ? 'Finalizada' : 'En Proceso' }}
+                    </button>
+                    <button class="dropdown-item" 
+                            (click)="modificarActividad(actividad)">
+                      <i class="bi bi-pencil me-2"></i>
+                      Modificar
+                    </button>
+                    <button class="dropdown-item" 
+                            (click)="mandarRecordatorio(actividad)">
+                      <i class="bi bi-bell me-2"></i>
+                      Enviar recordatorio
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <button class="dropdown-item text-danger" 
+                            (click)="eliminarActividad(actividad)">
+                      <i class="bi bi-trash me-2"></i>
+                      Eliminar
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+    
+    <!-- Mensaje cuando no hay actividades -->
+    @if (!cargando && actividades.length === 0) {
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-clipboard-x display-4"></i>
+        <p class="mt-3">No hay actividades asignadas a este paciente</p>
+        <button class="btn btn-primary mt-2" (click)="crearActividad()">
+          <i class="bi bi-plus-lg me-1"></i>
+          Crear primera actividad
+        </button>
+      </div>
+    }
   </div>
 </div>
 
-<!-- Click fuera del menú para cerrarlo -->
-<div 
-  *ngIf="menuAbierto !== null" 
-  class="menu-overlay" 
-  (click)="cerrarMenu()">
-</div>
+<!-- Click outside para cerrar menú -->
+@if (menuAbierto !== null) {
+  <div class="position-fixed top-0 start-0 w-100 h-100" 
+       style="z-index: 999;" 
+       (click)="cerrarMenu()"></div>
+}

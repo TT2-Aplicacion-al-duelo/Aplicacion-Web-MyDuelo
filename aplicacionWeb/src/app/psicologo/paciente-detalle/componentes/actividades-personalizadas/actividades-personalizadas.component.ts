@@ -91,24 +91,27 @@ export class ActividadesPersonalizadasComponent implements OnInit {
         </div>`,
       focusConfirm: false,
       showCancelButton: true,
-      confirmButtonText: 'Guardar',
+      confirmButtonText: 'Guardar cambios',
       cancelButtonText: 'Cancelar',
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
       preConfirm: () => {
-        const instrucciones = (document.getElementById('instrucciones') as HTMLTextAreaElement).value;
-        const fecha = (document.getElementById('fecha') as HTMLInputElement).value;
-        const prioridad = (document.getElementById('prioridad') as HTMLSelectElement).value;
-        return { instrucciones, fecha, prioridad };
+        return {
+          instrucciones: (document.getElementById('instrucciones') as HTMLTextAreaElement).value,
+          fecha: (document.getElementById('fecha') as HTMLInputElement).value,
+          prioridad: (document.getElementById('prioridad') as HTMLSelectElement).value
+        }
       }
     });
-
+  
     if (formValues) {
       this.actividadService.actualizarActividadAsignada(actividad.id_asignacion, {
         instrucciones_personalizadas: formValues.instrucciones,
-        fecha_limite: formValues.fecha || null,
+        fecha_limite: formValues.fecha || undefined,
         prioridad: formValues.prioridad as 'baja' | 'media' | 'alta'
       }).subscribe({
-        next: (updated) => {
-          Object.assign(actividad, updated);
+        next: (updatedActividad) => {
+          Object.assign(actividad, updatedActividad);
           this.cerrarMenu();
           Swal.fire('Éxito', 'Actividad modificada correctamente', 'success');
         },
@@ -118,48 +121,26 @@ export class ActividadesPersonalizadasComponent implements OnInit {
         }
       });
     }
-  }
-
-  enviarRecordatorio(actividad: ActividadAsignada): void {
-    Swal.fire({
-      title: '¿Enviar recordatorio?',
-      text: `Se enviará un recordatorio al paciente sobre: ${actividad.actividad?.titulo}`,
-      icon: 'question',
-      showCancelButton: true,
-      confirmButtonText: 'Sí, enviar',
-      cancelButtonText: 'Cancelar'
-    }).then((result) => {
-      if (result.isConfirmed) {
-        this.actividadService.enviarRecordatorio(actividad.id_asignacion).subscribe({
-          next: () => {
-            this.cerrarMenu();
-            Swal.fire('Enviado', 'Recordatorio enviado correctamente', 'success');
-          },
-          error: (error) => {
-            console.error('Error al enviar recordatorio:', error);
-            Swal.fire('Error', 'No se pudo enviar el recordatorio', 'error');
-          }
-        });
-      }
-    });
+    this.cerrarMenu();
   }
 
   eliminarActividad(actividad: ActividadAsignada): void {
     Swal.fire({
-      title: '¿Eliminar actividad?',
-      text: `Esta acción eliminará la asignación de: ${actividad.actividad?.titulo}`,
+      title: '¿Estás seguro?',
+      text: 'Esta acción no se puede deshacer',
       icon: 'warning',
       showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#dc3545'
+      cancelButtonText: 'Cancelar'
     }).then((result) => {
       if (result.isConfirmed) {
         this.actividadService.eliminarActividadAsignada(actividad.id_asignacion).subscribe({
           next: () => {
             this.actividades = this.actividades.filter(a => a.id_asignacion !== actividad.id_asignacion);
             this.cerrarMenu();
-            Swal.fire('Eliminado', 'Actividad eliminada correctamente', 'success');
+            Swal.fire('Eliminada', 'La actividad ha sido eliminada.', 'success');
           },
           error: (error) => {
             console.error('Error al eliminar actividad:', error);
@@ -170,16 +151,56 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     });
   }
 
-  getPrioridadClass(prioridad: string): string {
-    switch (prioridad) {
-      case 'alta': return 'badge bg-danger';
-      case 'media': return 'badge bg-warning text-dark';
-      case 'baja': return 'badge bg-success';
-      default: return 'badge bg-secondary';
-    }
+  mandarRecordatorio(actividad: ActividadAsignada): void {
+    this.actividadService.enviarRecordatorio(actividad.id_asignacion).subscribe({
+      next: () => {
+        this.cerrarMenu();
+        Swal.fire('Éxito', 'Recordatorio enviado correctamente', 'success');
+      },
+      error: (error) => {
+        console.error('Error al enviar recordatorio:', error);
+        Swal.fire('Error', 'No se pudo enviar el recordatorio', 'error');
+      }
+    });
+  }
+
+  crearActividad(): void {
+    // Abrir el modal de actividades globales desde el componente padre
+    const event = new CustomEvent('abrirModalActividades', { 
+      detail: { idPaciente: this.idPaciente } 
+    });
+    window.dispatchEvent(event);
+  }
+
+  asignarActividad(): void {
+    // Abrir el modal de asignación desde el componente padre
+    const event = new CustomEvent('abrirModalAsignacion', { 
+      detail: { idPacienteActual: this.idPaciente } 
+    });
+    window.dispatchEvent(event);
   }
 
   getEstadoClass(estado: string): string {
-    return estado === 'finalizada' ? 'badge bg-success' : 'badge bg-primary';
+    switch (estado) {
+      case 'en_proceso':
+        return 'badge bg-warning text-dark';
+      case 'finalizada':
+        return 'badge bg-success';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
+
+  getPrioridadClass(prioridad?: string): string {
+    switch (prioridad) {
+      case 'alta':
+        return 'badge bg-danger';
+      case 'media':
+        return 'badge bg-warning text-dark';
+      case 'baja':
+        return 'badge bg-info text-dark';
+      default:
+        return 'badge bg-secondary';
+    }
   }
 }

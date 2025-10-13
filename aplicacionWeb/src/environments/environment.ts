@@ -3,6 +3,6 @@
 //     apiUrl: 'http://https://midueloapp.com/'
 // };
 export const environment = {
-    production: false,
-    apiUrl: 'http://localhost:3017/'
+    production: true,
+    apiUrl: 'http://api.miduelo.com/api'
 };
