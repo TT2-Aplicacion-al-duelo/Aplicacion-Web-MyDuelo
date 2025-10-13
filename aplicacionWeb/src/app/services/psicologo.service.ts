@@ -13,7 +13,7 @@ export class PsicologoService {
 
   constructor(private http: HttpClient) {
     this.AppUrl = environment.apiUrl;  // Corregí la coma por punto y coma
-    this.APIUrl = "api/psicologo";
+    this.APIUrl = "/psicologo";
   }
 
   registrarUsuario(usuario: Psicologo): Observable <any>{

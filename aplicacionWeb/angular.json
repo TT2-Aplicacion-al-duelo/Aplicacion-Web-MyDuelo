@@ -53,9 +53,7 @@
               ],
               "outputHashing": "all",
               "optimization": true,
-              "buildOptimizer": true,
               "sourceMap": false,
-              "namedChunks": false,
               "fileReplacements": [
                 {
                   "replace": "src/environments/environment.ts",
