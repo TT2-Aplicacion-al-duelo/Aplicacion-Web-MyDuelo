@@ -19,7 +19,7 @@ export class AdminService {
 
   constructor(private http: HttpClient) {
     this.AppUrl = environment.apiUrl;
-    this.APIUrl = "api/admin";
+    this.APIUrl = "/api/admin";
   }
 
   /**

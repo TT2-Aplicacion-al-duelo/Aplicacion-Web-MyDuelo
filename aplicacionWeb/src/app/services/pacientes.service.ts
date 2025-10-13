@@ -14,7 +14,7 @@ export class PacientesService {
 
   constructor(private http: HttpClient) {
     this.AppUrl = environment.apiUrl;
-    this.APIUrl = "api/psicologo";
+    this.APIUrl = "/api/psicologo";
   }
 
   //  MÉTODO SIMPLIFICADO - El token se agrega automáticamente por el interceptor

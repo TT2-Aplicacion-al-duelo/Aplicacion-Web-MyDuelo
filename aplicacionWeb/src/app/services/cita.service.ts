@@ -13,7 +13,7 @@ export class CitaService {
 
   constructor(private http: HttpClient) { 
     this.AppUrl = environment.apiUrl;  // Corregí la coma por punto y coma
-    this.APIUrl = "api/psicologo";
+    this.APIUrl = "/api/psicologo";
   }
 
    crearCita(payload: any): Observable<any> {

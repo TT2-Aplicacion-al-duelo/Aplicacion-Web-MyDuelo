@@ -1,4 +1,4 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://api.miduelo.com/api'
+    apiUrl: 'https://api.midueloapp.com'
 };

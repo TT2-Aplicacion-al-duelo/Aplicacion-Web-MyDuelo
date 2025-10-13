@@ -17,7 +17,7 @@ export class ActividadService {
 
   constructor(private http: HttpClient) {
     this.AppUrl = environment.apiUrl;
-    this.APIUrl = "api/psicologo";
+    this.APIUrl = "/api/psicologo";
   }
 
   private getHeaders(): HttpHeaders {

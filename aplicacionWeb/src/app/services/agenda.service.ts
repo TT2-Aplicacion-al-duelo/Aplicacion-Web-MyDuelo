@@ -11,7 +11,7 @@ export class AgendaService {
 
   constructor(private http: HttpClient, private _authService: AuthService) {
     this.AppUrl = environment.apiUrl;
-    this.APIUrl = "api/psicologo";
+    this.APIUrl = "/api/psicologo";
   }
 
   private getHeaders() {

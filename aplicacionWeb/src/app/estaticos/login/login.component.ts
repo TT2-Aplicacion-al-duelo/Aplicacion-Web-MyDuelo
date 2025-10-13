@@ -56,7 +56,7 @@ export class LoginComponent {
         if (response.usuario.rol_admin) {
           this.router.navigate(['/admin/psicologos']); // 👈 CAMBIO AQUÍ
         } else {
-          this.router.navigate(['/psicologo/agenda']);
+          this.router.navigate(['/agenda']);
         }
         
       }, error: (event: HttpErrorResponse) =>{

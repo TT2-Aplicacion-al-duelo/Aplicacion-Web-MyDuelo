@@ -125,9 +125,9 @@ class Server {
     // Método para iniciar el servidor
     listen() {
         this.app.listen(this.port, () => {
-            console.log(`🚀 Servidor ejecutándose en el puerto: ${this.port}`);
-            console.log(`🌍 Entorno: ${process.env.NODE_ENV || 'development'}`);
-            console.log(`📅 Iniciado: ${new Date().toISOString()}`);
+            console.log(`Servidor ejecutándose en el puerto: ${this.port}`);
+            console.log(`Entorno: ${process.env.NODE_ENV || 'development'}`);
+            console.log(`Iniciado: ${new Date().toISOString()}`);
         });
     }
     // Método para conectar a la base de datos
