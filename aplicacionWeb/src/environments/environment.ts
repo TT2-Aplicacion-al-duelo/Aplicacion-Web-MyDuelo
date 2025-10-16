@@ -1,4 +1,5 @@
 export const environment = {
-    production: true,
-    apiUrl: 'https://api.midueloapp.com'
+    production: false,
+   // apiUrl: 'https://api.midueloapp.com'
+    apiUrl: 'http://localhost:3017/'
 };

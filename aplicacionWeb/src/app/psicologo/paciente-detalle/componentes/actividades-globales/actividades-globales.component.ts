@@ -612,9 +612,9 @@ export class ActividadesGlobalesComponent implements OnInit {
 
         return {
           id_actividad: actividad.id_actividad,
-          ids_pacientes: pacientesSeleccionados,
+          pacientes: pacientesSeleccionados,  
           fecha_limite: fecha_limite || null,
-          notas: notas || null
+          instrucciones_personalizadas: notas || null  
         };
       }
     });
@@ -630,7 +630,7 @@ export class ActividadesGlobalesComponent implements OnInit {
 
       this.actividadService.asignarActividad(formValues).subscribe({
         next: (response) => {
-          const cantidadAsignada = formValues.ids_pacientes.length;
+          const cantidadAsignada = formValues.pacientes.length;
           Swal.fire({
             icon: 'success',
             title: '¡Actividad asignada!',

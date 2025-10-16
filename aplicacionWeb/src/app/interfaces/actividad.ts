@@ -27,7 +27,7 @@ export interface ActividadAsignada {
 
 export interface AsignarActividadRequest {
   id_actividad: number;
-  ids_pacientes: number[];
+  pacientes: number[];
   fecha_limite?: string;
   notas?: string;
   instrucciones_personalizadas?: string;
