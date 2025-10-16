@@ -227,7 +227,7 @@ export class ActividadesPersonalizadasComponent implements OnInit {
   }
 
   // ==================== ASIGNAR ACTIVIDAD EXISTENTE ====================
-  async asignarActividadExistente(): Promise<void> {
+  async asignarActividad(): Promise<void> {
     if (this.actividadesGlobales.length === 0) {
       Swal.fire({
         icon: 'info',
