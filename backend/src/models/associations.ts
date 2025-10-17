@@ -1,7 +1,7 @@
 // backend/src/models/associations.ts
 import { Modulo } from "./modulo";
 import { Actividad } from "./actividad/actividad";
-import { ActividadModulo } from "./actividad/actividad-modulo";
+import { ActividadModulo } from "./actividad-modulo";
 import { ActividadAsignada } from "./actividad/actividad-asignada";
 import { Evidencia } from "./evidencia";
 import { Paciente } from "./paciente";

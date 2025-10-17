@@ -6,7 +6,7 @@ import {
   getEvidenciasActividad,
   marcarActividadRevisada
 } from "../controllers/modulos";
-import { verificarToken } from "../middlewares/auth";
+import { verificarToken } from "../middlewares/verificarToken";
 
 const router = Router();
 

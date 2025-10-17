@@ -35,17 +35,12 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
 
     // Obtener todos los módulos
     const modulos = await Modulo.findAll({
-      order: [
-        [
-          'etapa_duelo',
-          'ASC'
-        ]
-      ]
+      order: [['etapa_duelo', 'ASC']]
     });
 
     // Para cada módulo, calcular el progreso
     const modulosConProgreso = await Promise.all(
-      modulos.map(async (modulo) => {
+      modulos.map(async (modulo: any) => {
         // Obtener todas las actividades del módulo
         const actividadesModulo = await ActividadModulo.findAll({
           where: { id_modulo: modulo.id_modulo },
@@ -65,7 +60,7 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
           where: {
             id_paciente,
             id_actividad: {
-              [Op.in]: actividadesModulo.map(am => am.id_actividad)
+              [Op.in]: actividadesModulo.map((am: any) => am.id_actividad)
             }
           },
           include: [
@@ -83,7 +78,7 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
         });
 
         const actividades_completadas = actividadesAsignadas.filter(
-          aa => aa.estado === 'finalizada'
+          (aa: any) => aa.estado === 'finalizada'
         ).length;
 
         // Calcular progreso
@@ -92,34 +87,38 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
           : 0;
 
         // Mapear actividades con su estado
-        const actividades = actividadesModulo.map(am => {
+        const actividades = actividadesModulo.map((am: any) => {
           const asignacion = actividadesAsignadas.find(
-            aa => aa.id_actividad === am.id_actividad
+            (aa: any) => aa.id_actividad === am.id_actividad
           );
 
           if (!asignacion) {
-            return {
-              id_actividad: am.actividad.id_actividad,
-              titulo: am.actividad.titulo,
-              descripcion: am.actividad.descripcion,
-              tipo: am.actividad.tipo,
-              estado: 'no_asignada',
-              visible_para_psicologo: false
-            };
-          }
+        return {
+          id_actividad: am.actividad.id_actividad,
+          titulo: am.actividad.titulo,
+          descripcion: am.actividad.descripcion,
+          tipo: am.actividad.tipo,
+          estado: 'no_asignada',
+          visible_para_psicologo: false
+        };
+      }
 
-          return {
-            id_actividad: am.actividad.id_actividad,
-            id_asignacion: asignacion.id_asignacion,
-            titulo: am.actividad.titulo,
-            descripcion: am.actividad.descripcion,
-            tipo: am.actividad.tipo,
-            estado: asignacion.estado,
-            fecha_asignacion: asignacion.fecha_asignacion,
-            fecha_completada: asignacion.fecha_completada,
-            visible_para_psicologo: true, // Esto debería venir de la configuración del paciente
-            evidencias: (asignacion as any).evidencias?.map((ev: any) => ({
-              id_evidencia: ev.id_evidencia,
+      const asignacionData = asignacion as any;
+
+      return {
+        id_actividad: am.actividad.id_actividad,
+        id_asignacion: asignacionData.id_asignacion,
+        titulo: am.actividad.titulo,
+        descripcion: am.actividad.descripcion,
+        tipo: am.actividad.tipo,
+        estado: asignacionData.estado,
+        fecha_asignacion: asignacionData.fecha_asignacion,
+        fecha_completada: asignacionData.fecha_completada,
+        instrucciones_personalizadas: asignacionData.instrucciones_personalizadas,
+        notas: asignacionData.notas,
+        visible_para_psicologo: true,
+        evidencias: asignacionData.evidencias?.map((ev: any) => ({
+          id_evidencia: ev.id_evidencia,
           archivo_url: ev.archivo_url,
           tipo_archivo: determinarTipoArchivo(ev.archivo_url),
           comentario: ev.comentario,
@@ -129,10 +128,12 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
       };
     });
 
+    const moduloData = modulo as any;
+
     res.json({
-      id_modulo: modulo.id_modulo,
-      nombre: modulo.nombre,
-      etapa_duelo: modulo.etapa_duelo,
+      id_modulo: moduloData.id_modulo,
+      nombre: moduloData.nombre,
+      etapa_duelo: moduloData.etapa_duelo,
       progreso,
       actividades_completadas,
       actividades_totales,
@@ -181,7 +182,7 @@ export const getEvidenciasActividad = async (req: Request, res: Response) => {
       order: [['fecha_subida', 'DESC']]
     });
 
-    const evidenciasFormateadas = evidencias.map(ev => ({
+    const evidenciasFormateadas = evidencias.map((ev: any) => ({
       id_evidencia: ev.id_evidencia,
       archivo_url: ev.archivo_url,
       tipo_archivo: determinarTipoArchivo(ev.archivo_url),
@@ -265,7 +266,31 @@ function determinarTipoArchivo(url: string): 'imagen' | 'video' | 'audio' | 'doc
 
   return 'otro';
 }
-evidencia,
+acion) {
+            return {
+              id_actividad: am.actividad.id_actividad,
+              titulo: am.actividad.titulo,
+              descripcion: am.actividad.descripcion,
+              tipo: am.actividad.tipo,
+              estado: 'no_asignada',
+              visible_para_psicologo: false
+            };
+          }
+
+          const asignacionData = asignacion as any;
+
+          return {
+            id_actividad: am.actividad.id_actividad,
+            id_asignacion: asignacionData.id_asignacion,
+            titulo: am.actividad.titulo,
+            descripcion: am.actividad.descripcion,
+            tipo: am.actividad.tipo,
+            estado: asignacionData.estado,
+            fecha_asignacion: asignacionData.fecha_asignacion,
+            fecha_completada: asignacionData.fecha_completada,
+            visible_para_psicologo: true,
+            evidencias: asignacionData.evidencias?.map((ev: any) => ({
+              id_evidencia: ev.id_evidencia,
               archivo_url: ev.archivo_url,
               tipo_archivo: determinarTipoArchivo(ev.archivo_url),
               comentario: ev.comentario,
@@ -341,7 +366,7 @@ export const getDetalleModulo = async (req: Request, res: Response) => {
       where: {
         id_paciente,
         id_actividad: {
-          [Op.in]: actividadesModulo.map(am => am.id_actividad)
+          [Op.in]: actividadesModulo.map((am: any) => am.id_actividad)
         }
       },
       include: [
@@ -358,40 +383,16 @@ export const getDetalleModulo = async (req: Request, res: Response) => {
 
     const actividades_totales = actividadesModulo.length;
     const actividades_completadas = actividadesAsignadas.filter(
-      aa => aa.estado === 'finalizada'
+      (aa: any) => aa.estado === 'finalizada'
     ).length;
 
     const progreso = actividades_totales > 0
       ? Math.round((actividades_completadas / actividades_totales) * 100)
       : 0;
 
-    const actividades = actividadesModulo.map(am => {
+    const actividades = actividadesModulo.map((am: any) => {
       const asignacion = actividadesAsignadas.find(
-        aa => aa.id_actividad === am.id_actividad
+        (aa: any) => aa.id_actividad === am.id_actividad
       );
 
-      if (!asignacion) {
-        return {
-          id_actividad: am.actividad.id_actividad,
-          titulo: am.actividad.titulo,
-          descripcion: am.actividad.descripcion,
-          tipo: am.actividad.tipo,
-          estado: 'no_asignada',
-          visible_para_psicologo: false
-        };
-      }
-
-      return {
-        id_actividad: am.actividad.id_actividad,
-        id_asignacion: asignacion.id_asignacion,
-        titulo: am.actividad.titulo,
-        descripcion: am.actividad.descripcion,
-        tipo: am.actividad.tipo,
-        estado: asignacion.estado,
-        fecha_asignacion: asignacion.fecha_asignacion,
-        fecha_completada: asignacion.fecha_completada,
-        instrucciones_personalizadas: asignacion.instrucciones_personalizadas,
-        notas: asignacion.notas,
-        visible_para_psicologo: true,
-        evidencias: (asignacion as any).evidencias?.map((ev: any) => ({
-          id_evidencia: ev.id_
+      if (!asign

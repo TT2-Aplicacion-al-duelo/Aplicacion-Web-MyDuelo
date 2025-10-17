@@ -2,11 +2,11 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Evidencia } from '../../../../../../interfaces/moduloDuelo';
-
+import { Evidencia } from '../../modulos-duelo.component';
 
 @Component({
   selector: 'app-visor-evidencia',
+  standalone: true,
   imports: [CommonModule],
   templateUrl: './visor-evidencia.component.html',
   styleUrls: ['./visor-evidencia.component.css']
@@ -47,12 +47,25 @@ export class VisorEvidenciaComponent implements OnInit {
     }
   }
 
+  esImagen(url: string): boolean {
+    return /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(url);
+  }
+
+  esVideo(url: string): boolean {
+    return /\.(mp4|webm|ogg|mov|avi)$/i.test(url) || 
+           url.includes('youtube.com') || 
+           url.includes('youtu.be') || 
+           url.includes('vimeo.com');
+  }
+
   esAudio(url: string): boolean {
     return /\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(url);
   }
 
   esPDFoDocumento(url: string): boolean {
-    return /\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i.test(url) || url.includes('/document/') || url.includes('docs.google.com');
+    return /\.(pdf|doc|docx|xls|xlsx|ppt|pptx)$/i.test(url) || 
+           url.includes('/document/') || 
+           url.includes('docs.google.com');
   }
 
   obtenerURLYoutube(): SafeResourceUrl | null {
@@ -107,15 +120,4 @@ export class VisorEvidenciaComponent implements OnInit {
     const partes = url.split('/');
     return partes[partes.length - 1] || 'archivo';
   }
-}Imagen(url: string): boolean {
-    return /\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(url);
-  }
-
-  esVideo(url: string): boolean {
-    return /\.(mp4|webm|ogg|mov|avi)$/i.test(url) || 
-           url.includes('youtube.com') || 
-           url.includes('youtu.be') || 
-           url.includes('vimeo.com');
-  }
-
-  es
+}

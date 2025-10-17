@@ -1,3 +1,4 @@
+// modulos-duelo.component.ts
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ListaModulosComponent } from './componentes/lista-modulos/lista-modulos.component';
@@ -5,8 +6,9 @@ import { ModulosService } from '../../../../services/modulos.service';
 import { ToastrService } from 'ngx-toastr';
 import { ModuloDuelo } from '../../../../interfaces/moduloDuelo';
 
+
 @Component({
-selector: 'app-modulos-duelo',
+  selector: 'app-modulos-duelo',
   standalone: true,
   imports: [CommonModule, ListaModulosComponent],
   templateUrl: './modulos-duelo.component.html',
@@ -31,12 +33,12 @@ export class ModulosDueloComponent implements OnInit {
   cargarModulos(): void {
     this.cargando = true;
     this.modulosService.getModulosPorPaciente(this.idPaciente).subscribe({
-      next: (modulos) => {
+      next: (modulos: ModuloDuelo[]) => {
         this.modulos = modulos;
         this.calcularProgresoGeneral();
         this.cargando = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error al cargar módulos:', error);
         this.toastr.error('Error al cargar los módulos de duelo');
         this.cargando = false;
