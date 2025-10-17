@@ -1,1 +1,195 @@
-<p>visor-evidencia works!</p>
+
+<div class="modal-backdrop fade show" (click)="cerrarVisor()"></div>
+
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered modal-xl" 
+       role="document"
+       (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-{{colorModulo}} text-white">
+        <div class="d-flex align-items-center">
+          <i class="bi bi-eye fs-4 me-3"></i>
+          <div>
+            <h5 class="modal-title mb-0">Visualizador de Evidencia</h5>
+            <small class="opacity-75">
+              {{ obtenerNombreArchivo() }}
+            </small>
+          </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+          <button 
+            class="btn btn-light btn-sm"
+            (click)="descargarArchivo()"
+            title="Descargar archivo">
+            <i class="bi bi-download"></i>
+          </button>
+          <button 
+            type="button" 
+            class="btn-close btn-close-white"
+            (click)="cerrarVisor()"
+            aria-label="Cerrar">
+          </button>
+        </div>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body p-0">
+        <!-- Visor de Imagen -->
+        <div *ngIf="tipoVisualizacion === 'imagen'" class="visor-contenido">
+          <div class="imagen-container">
+            <img 
+              [src]="evidencia.archivo_url" 
+              [alt]="'Evidencia del paciente'"
+              class="img-fluid"
+              (error)="manejarErrorCarga()"
+              *ngIf="!errorCarga">
+            
+            <div *ngIf="errorCarga" class="error-carga">
+              <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+              <p class="mt-3">No se pudo cargar la imagen</p>
+              <button class="btn btn-primary" (click)="descargarArchivo()">
+                <i class="bi bi-download me-2"></i>
+                Descargar archivo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visor de Video -->
+        <div *ngIf="tipoVisualizacion === 'video'" class="visor-contenido">
+          <iframe 
+            *ngIf="evidencia.archivo_url.includes('youtube') || evidencia.archivo_url.includes('youtu.be')"
+            [src]="obtenerURLYoutube()"
+            class="video-frame"
+            frameborder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+
+          <iframe 
+            *ngIf="evidencia.archivo_url.includes('vimeo')"
+            [src]="obtenerURLVimeo()"
+            class="video-frame"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen>
+          </iframe>
+
+          <video 
+            *ngIf="!evidencia.archivo_url.includes('youtube') && 
+                   !evidencia.archivo_url.includes('youtu.be') && 
+                   !evidencia.archivo_url.includes('vimeo')"
+            [src]="evidencia.archivo_url"
+            controls
+            class="video-player"
+            (error)="manejarErrorCarga()">
+            Tu navegador no soporta la reproducción de video.
+          </video>
+
+          <div *ngIf="errorCarga" class="error-carga">
+            <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+            <p class="mt-3">No se pudo cargar el video</p>
+            <button class="btn btn-primary" (click)="descargarArchivo()">
+              <i class="bi bi-download me-2"></i>
+              Descargar archivo
+            </button>
+          </div>
+        </div>
+
+        <!-- Visor de Audio -->
+        <div *ngIf="tipoVisualizacion === 'audio'" class="visor-contenido">
+          <div class="audio-container">
+            <div class="audio-visual">
+              <i class="bi bi-music-note-beamed fs-1 text-{{colorModulo}}"></i>
+              <h5 class="mt-3">Archivo de Audio</h5>
+            </div>
+            
+            <audio 
+              [src]="evidencia.archivo_url"
+              controls
+              class="audio-player"
+              (error)="manejarErrorCarga()">
+              Tu navegador no soporta la reproducción de audio.
+            </audio>
+
+            <div *ngIf="errorCarga" class="error-carga mt-3">
+              <i class="bi bi-exclamation-triangle fs-1 text-warning"></i>
+              <p class="mt-3">No se pudo cargar el audio</p>
+              <button class="btn btn-primary" (click)="descargarArchivo()">
+                <i class="bi bi-download me-2"></i>
+                Descargar archivo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visor de Documentos -->
+        <div *ngIf="tipoVisualizacion === 'iframe'" class="visor-contenido">
+          <iframe 
+            [src]="urlSegura"
+            class="documento-frame"
+            frameborder="0"
+            (error)="manejarErrorCarga()">
+          </iframe>
+
+          <div *ngIf="errorCarga" class="error-carga">
+            <i class="bi bi-file-earmark-text fs-1 text-info"></i>
+            <p class="mt-3">No se pudo visualizar el documento</p>
+            <button class="btn btn-primary" (click)="descargarArchivo()">
+              <i class="bi bi-download me-2"></i>
+              Descargar documento
+            </button>
+          </div>
+        </div>
+
+        <!-- Enlace directo -->
+        <div *ngIf="tipoVisualizacion === 'enlace'" class="visor-contenido">
+          <div class="enlace-container">
+            <i class="bi bi-link-45deg fs-1 text-{{colorModulo}}"></i>
+            <h5 class="mt-3">Archivo Externo</h5>
+            <p class="text-muted">
+              Este tipo de archivo no puede visualizarse directamente en el navegador
+            </p>
+            
+            <div class="mt-4 d-flex gap-2 justify-content-center">
+              <button class="btn btn-{{colorModulo}}" (click)="descargarArchivo()">
+                <i class="bi bi-box-arrow-up-right me-2"></i>
+                Abrir en nueva pestaña
+              </button>
+              <button class="btn btn-outline-{{colorModulo}}" (click)="descargarArchivo()">
+                <i class="bi bi-download me-2"></i>
+                Descargar
+              </button>
+            </div>
+
+            <div class="mt-4 p-3 bg-light rounded">
+              <small class="text-muted d-block mb-2">
+                <strong>URL del archivo:</strong>
+              </small>
+              <small class="text-break">
+                {{ evidencia.archivo_url }}
+              </small>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer con comentarios -->
+      <div class="modal-footer" *ngIf="evidencia.comentario">
+        <div class="w-100">
+          <div class="comentario-box">
+            <div class="d-flex align-items-start">
+              <i class="bi bi-chat-text text-{{colorModulo}} fs-5 me-3 mt-1"></i>
+              <div class="flex-grow-1">
+                <h6 class="mb-2">Comentario del paciente:</h6>
+                <p class="mb-0 text-muted">{{ evidencia.comentario }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

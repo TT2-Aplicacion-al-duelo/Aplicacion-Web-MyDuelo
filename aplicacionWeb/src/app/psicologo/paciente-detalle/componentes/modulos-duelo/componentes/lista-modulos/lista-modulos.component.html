@@ -1,1 +1,72 @@
-<p>lista-modulos works!</p>
+
+<div class="lista-modulos">
+  <div class="row g-4">
+    <div 
+      *ngFor="let modulo of modulos; let i = index" 
+      class="col-12 col-lg-6"
+      [style.animation-delay.ms]="i * 100">
+      
+      <app-tarjeta-modulo
+        [modulo]="modulo"
+        [color]="obtenerColorEtapa(modulo.etapa_duelo)"
+        [icono]="obtenerIconoEtapa(modulo.etapa_duelo)"
+        [idPaciente]="idPaciente"
+        (moduloActualizado)="onModuloActualizado()">
+      </app-tarjeta-modulo>
+    </div>
+  </div>
+
+  <!-- Resumen al final -->
+  <div class="resumen-modulos mt-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <h6 class="mb-3">
+          <i class="bi bi-graph-up text-success me-2"></i>
+          Resumen de Progreso
+        </h6>
+        
+        <div class="row text-center">
+          <div class="col-6 col-md-3 mb-3">
+            <div class="stat-box">
+              <i class="bi bi-list-check text-primary fs-3"></i>
+              <h4 class="mt-2 mb-0">
+                {{ calcularActividadesCompletadas() }}
+              </h4>
+              <small class="text-muted">Actividades Completadas</small>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3 mb-3">
+            <div class="stat-box">
+              <i class="bi bi-hourglass-split text-warning fs-3"></i>
+              <h4 class="mt-2 mb-0">
+                {{ calcularActividadesEnProceso() }}
+              </h4>
+              <small class="text-muted">En Proceso</small>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3 mb-3">
+            <div class="stat-box">
+              <i class="bi bi-layers text-info fs-3"></i>
+              <h4 class="mt-2 mb-0">
+                {{ modulos.length }}
+              </h4>
+              <small class="text-muted">Módulos Totales</small>
+            </div>
+          </div>
+
+          <div class="col-6 col-md-3 mb-3">
+            <div class="stat-box">
+              <i class="bi bi-trophy text-success fs-3"></i>
+              <h4 class="mt-2 mb-0">
+                {{ calcularModulosCompletados() }}
+              </h4>
+              <small class="text-muted">Módulos Completados</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

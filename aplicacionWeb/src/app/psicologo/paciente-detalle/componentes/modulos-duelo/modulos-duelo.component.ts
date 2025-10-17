@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 import { ModuloDuelo } from '../../../../interfaces/moduloDuelo';
 
 
+
 @Component({
   selector: 'app-modulos-duelo',
   standalone: true,

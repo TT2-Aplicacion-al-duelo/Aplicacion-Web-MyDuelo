@@ -1,1 +1,69 @@
-<p>modulos-duelo works!</p>
+<!-- ============================================ -->
+<!-- modulos-duelo.component.html -->
+<!-- Ubicación: aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/modulos-duelo/ -->
+<!-- ============================================ -->
+
+<div class="modulos-duelo-container">
+  <!-- Header con progreso general -->
+  <div class="progreso-general-card mb-4">
+    <div class="card shadow-sm">
+      <div class="card-body">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">
+            <i class="bi bi-heart-pulse text-primary me-2"></i>
+            Progreso General en Módulos de Duelo
+          </h5>
+          <span class="badge bg-{{obtenerColorProgreso(progresoGeneral)}} fs-6">
+            {{progresoGeneral}}%
+          </span>
+        </div>
+
+        <!-- Barra de progreso general -->
+        <div class="progress" style="height: 25px;">
+          <div 
+            class="progress-bar progress-bar-striped progress-bar-animated bg-{{obtenerColorProgreso(progresoGeneral)}}"
+            role="progressbar"
+            [style.width.%]="progresoGeneral"
+            [attr.aria-valuenow]="progresoGeneral"
+            aria-valuemin="0"
+            aria-valuemax="100">
+            {{progresoGeneral}}%
+          </div>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="mt-3 text-muted small">
+          <i class="bi bi-info-circle me-1"></i>
+          Este progreso refleja el avance del paciente en las 5 etapas del duelo
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estado de carga -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando módulos...</span>
+    </div>
+    <p class="mt-3 text-muted">Cargando módulos de duelo...</p>
+  </div>
+
+  <!-- Lista de módulos -->
+  <app-lista-modulos 
+    *ngIf="!cargando"
+    [modulos]="modulos"
+    [idPaciente]="idPaciente"
+    (moduloActualizado)="cargarModulos()">
+  </app-lista-modulos>
+
+  <!-- Estado vacío -->
+  <div *ngIf="!cargando && modulos.length === 0" class="text-center py-5">
+    <i class="bi bi-folder-x text-muted" style="font-size: 4rem;"></i>
+    <h5 class="mt-3 text-muted">No hay módulos disponibles</h5>
+    <p class="text-muted">
+      Los módulos de duelo se configuran automáticamente para cada paciente
+    </p>
+  </div>
+</div>
+
+

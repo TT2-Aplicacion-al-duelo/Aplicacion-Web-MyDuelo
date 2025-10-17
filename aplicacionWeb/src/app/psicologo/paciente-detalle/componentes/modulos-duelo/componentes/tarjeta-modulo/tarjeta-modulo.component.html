@@ -1,4 +1,3 @@
-<!-- sub-componentes/tarjeta-modulo/tarjeta-modulo.component.html -->
 <div class="tarjeta-modulo card shadow-sm" [class.expandida]="expandido">
   <!-- Header del módulo -->
   <div class="card-header border-0 bg-{{color}} text-white" (click)="toggleExpandir()">
@@ -91,7 +90,6 @@
           <div class="d-flex justify-content-between align-items-start">
             <div class="flex-grow-1">
               <div class="d-flex align-items-center mb-1">
-                <!-- Icono según estado -->
                 <i class="bi me-2" 
                    [ngClass]="{
                      'bi-circle text-secondary': actividad.estado === 'no_asignada',
@@ -103,11 +101,10 @@
               </div>
               
               <p class="mb-1 text-muted small">
-                {{ actividad.descripcion | slice:0:100 }}
+                {{ actividad.descripcion.substring(0, 100) }}
                 <span *ngIf="actividad.descripcion.length > 100">...</span>
               </p>
 
-              <!-- Info adicional -->
               <div class="d-flex align-items-center gap-2 mt-2">
                 <span class="badge bg-{{obtenerEstadoBadge(actividad.estado)}}">
                   {{ obtenerTextoEstado(actividad.estado) }}
@@ -117,7 +114,6 @@
                   <i class="bi bi-tag me-1"></i>{{ actividad.tipo }}
                 </span>
 
-                <!-- Evidencias disponibles -->
                 <span 
                   class="badge bg-info" 
                   *ngIf="actividad.evidencias && actividad.evidencias.length > 0 && actividad.visible_para_psicologo">
@@ -125,7 +121,6 @@
                   {{ actividad.evidencias.length }} evidencia(s)
                 </span>
 
-                <!-- Fecha de completado -->
                 <small class="text-muted" *ngIf="actividad.fecha_completada">
                   <i class="bi bi-calendar-check me-1"></i>
                   {{ actividad.fecha_completada | date:'dd/MM/yyyy' }}
@@ -133,7 +128,6 @@
               </div>
             </div>
 
-            <!-- Indicador de acceso -->
             <div class="ms-2">
               <i 
                 class="bi bi-chevron-right text-muted"
@@ -161,3 +155,4 @@
   (cerrar)="cerrarModal()"
   (actividadActualizada)="onActividadActualizada()">
 </app-detalle-actividad>
+

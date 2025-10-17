@@ -1,0 +1,151 @@
+
+.tarjeta-modulo {
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.tarjeta-modulo:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.tarjeta-modulo.expandida {
+  transform: translateY(0);
+}
+
+.card-header {
+  padding: 20px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.3s ease;
+}
+
+.card-header:hover {
+  opacity: 0.95;
+}
+
+.card-header h5 {
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+
+.card-header small {
+  font-size: 0.85rem;
+}
+
+.mini-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px;
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
+}
+
+.mini-stat:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: scale(1.05);
+}
+
+.mini-stat i {
+  font-size: 1.5rem;
+  margin-bottom: 5px;
+}
+
+.mini-stat span {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #2c3e50;
+}
+
+.mini-stat small {
+  font-size: 0.75rem;
+  color: #6c757d;
+  margin-top: 2px;
+}
+
+.actividades-lista {
+  animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    max-height: 0;
+  }
+  to {
+    opacity: 1;
+    max-height: 1000px;
+  }
+}
+
+.list-group-item {
+  border: none;
+  border-left: 3px solid transparent;
+  padding: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.list-group-item:hover:not(.disabled) {
+  background: rgba(0, 123, 255, 0.05);
+  border-left-color: #007bff;
+  transform: translateX(5px);
+}
+
+.list-group-item.disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.list-group-item h6 {
+  font-weight: 600;
+  color: #2c3e50;
+}
+
+.badge {
+  font-weight: 500;
+  padding: 5px 10px;
+  font-size: 0.75rem;
+}
+
+.progress {
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.progress-bar {
+  transition: width 0.6s ease;
+  border-radius: 10px;
+}
+
+@media (max-width: 768px) {
+  .card-header {
+    padding: 15px;
+  }
+
+  .card-header h5 {
+    font-size: 1.1rem;
+  }
+
+  .mini-stat {
+    padding: 8px;
+  }
+
+  .mini-stat i {
+    font-size: 1.25rem;
+  }
+
+  .mini-stat span {
+    font-size: 1rem;
+  }
+
+  .list-group-item {
+    padding: 12px;
+  }
+}
+

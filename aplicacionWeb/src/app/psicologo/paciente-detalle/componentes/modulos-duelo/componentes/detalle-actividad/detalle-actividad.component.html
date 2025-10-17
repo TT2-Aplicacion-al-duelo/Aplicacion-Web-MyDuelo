@@ -1,1 +1,236 @@
-<p>detalle-actividad works!</p>
+
+<div class="modal-backdrop fade show" (click)="cerrarModal()"></div>
+
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+  <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable" 
+       role="document" 
+       (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-{{colorModulo}} text-white">
+        <div>
+          <h5 class="modal-title mb-1">
+            <i class="bi bi-list-task me-2"></i>
+            {{ actividad.titulo }}
+          </h5>
+          <span class="badge bg-light text-dark">
+            {{ obtenerTextoEstado(actividad.estado) }}
+          </span>
+        </div>
+        <button 
+          type="button" 
+          class="btn-close btn-close-white" 
+          (click)="cerrarModal()"
+          aria-label="Cerrar">
+        </button>
+      </div>
+
+      <!-- Tabs de navegación -->
+      <ul class="nav nav-tabs px-3 pt-3 bg-light">
+        <li class="nav-item">
+          <a 
+            class="nav-link"
+            [class.active]="tabActiva === 'detalles'"
+            (click)="cambiarTab('detalles')"
+            style="cursor: pointer;">
+            <i class="bi bi-info-circle me-2"></i>
+            Detalles
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="tieneEvidenciasVisibles()">
+          <a 
+            class="nav-link"
+            [class.active]="tabActiva === 'evidencias'"
+            (click)="cambiarTab('evidencias')"
+            style="cursor: pointer;">
+            <i class="bi bi-paperclip me-2"></i>
+            Evidencias
+            <span class="badge bg-primary rounded-pill ms-2">
+              {{ actividad.evidencias?.length || 0 }}
+            </span>
+          </a>
+        </li>
+      </ul>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Tab: Detalles -->
+        <div *ngIf="tabActiva === 'detalles'" class="tab-content-detalles">
+          <!-- Información general -->
+          <div class="info-section mb-4">
+            <h6 class="section-title">
+              <i class="bi bi-info-circle text-{{colorModulo}} me-2"></i>
+              Información General
+            </h6>
+            
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Tipo de actividad:</label>
+                <span class="badge bg-secondary">
+                  {{ actividad.tipo || 'Sin especificar' }}
+                </span>
+              </div>
+
+              <div class="info-item" *ngIf="actividad.fecha_asignacion">
+                <label>Fecha de asignación:</label>
+                <span>
+                  <i class="bi bi-calendar-plus text-muted me-1"></i>
+                  {{ actividad.fecha_asignacion | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+
+              <div class="info-item" *ngIf="actividad.fecha_completada">
+                <label>Fecha de completado:</label>
+                <span>
+                  <i class="bi bi-calendar-check text-success me-1"></i>
+                  {{ actividad.fecha_completada | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+
+              <div class="info-item">
+                <label>Estado:</label>
+                <span class="badge bg-{{obtenerEstadoBadge(actividad.estado)}}">
+                  {{ obtenerTextoEstado(actividad.estado) }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <div class="info-section mb-4">
+            <h6 class="section-title">
+              <i class="bi bi-text-paragraph text-{{colorModulo}} me-2"></i>
+              Descripción de la Actividad
+            </h6>
+            <div class="description-box">
+              <p class="mb-0">{{ actividad.descripcion || 'Sin descripción' }}</p>
+            </div>
+          </div>
+
+          <!-- Visibilidad para psicólogo -->
+          <div class="info-section mb-4">
+            <h6 class="section-title">
+              <i class="bi bi-eye text-{{colorModulo}} me-2"></i>
+              Configuración de Visibilidad
+            </h6>
+            <div class="alert" 
+                 [ngClass]="actividad.visible_para_psicologo ? 'alert-success' : 'alert-warning'">
+              <i class="bi" 
+                 [ngClass]="actividad.visible_para_psicologo ? 'bi-eye-fill' : 'bi-eye-slash-fill'">
+              </i>
+              <span class="ms-2">
+                <strong *ngIf="actividad.visible_para_psicologo">
+                  El paciente ha permitido visualizar las evidencias de esta actividad
+                </strong>
+                <strong *ngIf="!actividad.visible_para_psicologo">
+                  El paciente ha configurado esta actividad como privada
+                </strong>
+              </span>
+            </div>
+          </div>
+
+          <!-- Estado de evidencias -->
+          <div class="info-section" *ngIf="actividad.evidencias && actividad.evidencias.length > 0">
+            <h6 class="section-title">
+              <i class="bi bi-paperclip text-{{colorModulo}} me-2"></i>
+              Evidencias Adjuntas
+            </h6>
+            <div class="alert alert-info">
+              <i class="bi bi-info-circle me-2"></i>
+              El paciente ha subido <strong>{{ actividad.evidencias.length }}</strong> evidencia(s).
+              <span *ngIf="actividad.visible_para_psicologo">
+                Puedes verlas en la pestaña "Evidencias".
+              </span>
+            </div>
+          </div>
+
+          <div class="alert alert-secondary" 
+               *ngIf="!actividad.evidencias || actividad.evidencias.length === 0">
+            <i class="bi bi-inbox me-2"></i>
+            El paciente aún no ha subido evidencias para esta actividad.
+          </div>
+        </div>
+
+        <!-- Tab: Evidencias -->
+        <div *ngIf="tabActiva === 'evidencias'" class="tab-content-evidencias">
+          <div *ngIf="!tieneEvidenciasVisibles()" class="text-center py-5">
+            <i class="bi bi-lock fs-1 text-muted"></i>
+            <h5 class="mt-3 text-muted">Evidencias no disponibles</h5>
+            <p class="text-muted">
+              El paciente no ha permitido visualizar las evidencias de esta actividad
+            </p>
+          </div>
+
+          <div *ngIf="tieneEvidenciasVisibles()" class="evidencias-grid">
+            <div 
+              *ngFor="let evidencia of actividad.evidencias"
+              class="evidencia-card card shadow-sm"
+              (click)="verEvidencia(evidencia)">
+              
+              <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div class="tipo-badge">
+                    <i class="{{obtenerIconoTipoArchivo(evidencia.tipo_archivo)}} fs-1 text-{{obtenerColorTipoArchivo(evidencia.tipo_archivo)}}"></i>
+                    <span class="badge bg-{{obtenerColorTipoArchivo(evidencia.tipo_archivo)}} mt-2">
+                      {{ evidencia.tipo_archivo }}
+                    </span>
+                  </div>
+                  
+                  <button 
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="$event.stopPropagation(); descargarEvidencia(evidencia)"
+                    title="Descargar">
+                    <i class="bi bi-download"></i>
+                  </button>
+                </div>
+
+                <div class="evidencia-info">
+                  <small class="text-muted d-block mb-2">
+                    <i class="bi bi-calendar me-1"></i>
+                    {{ evidencia.fecha_subida | date:'dd/MM/yyyy HH:mm' }}
+                  </small>
+
+                  <p class="mb-0 small text-muted" *ngIf="evidencia.comentario">
+                    <i class="bi bi-chat-text me-1"></i>
+                    {{ evidencia.comentario.substring(0, 80) }}
+                    <span *ngIf="evidencia.comentario.length > 80">...</span>
+                  </p>
+
+                  <p class="mb-0 small text-muted fst-italic" *ngIf="!evidencia.comentario">
+                    Sin comentarios
+                  </p>
+                </div>
+
+                <div class="mt-3">
+                  <button class="btn btn-sm btn-{{colorModulo}} w-100">
+                    <i class="bi bi-eye me-2"></i>
+                    Ver evidencia
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModal()">
+          <i class="bi bi-x-circle me-2"></i>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Visor de evidencia -->
+<app-visor-evidencia
+  *ngIf="mostrarVisorEvidencia && evidenciaSeleccionada"
+  [evidencia]="evidenciaSeleccionada"
+  [colorModulo]="colorModulo"
+  (cerrar)="cerrarVisorEvidencia()">
+</app-visor-evidencia>
