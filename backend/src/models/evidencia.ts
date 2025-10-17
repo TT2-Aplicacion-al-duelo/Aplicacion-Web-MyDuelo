@@ -1,5 +1,6 @@
 import { DataTypes } from "sequelize";
 import db from "../database/connection";
+import { ActividadAsignada } from "./actividad/actividad-asignada";
 
 export const Evidencia = db.define('evidencia', {
   id_evidencia: {
@@ -35,3 +36,13 @@ export const Evidencia = db.define('evidencia', {
   tableName: 'evidencia',
   timestamps: false
 });
+
+Evidencia.belongsTo(ActividadAsignada, {
+    foreignKey: 'id_asignacion',
+    as: 'asignacion'
+  });
+
+  ActividadAsignada.hasMany(Evidencia, {
+    foreignKey: 'id_asignacion',
+    as: 'evidencias'
+  });

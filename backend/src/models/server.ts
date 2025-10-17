@@ -8,6 +8,7 @@ import chatRoutes from '../routes/chat';
 import adminRoutes from '../routes/admin';
 import chatAdminRoutes from '../routes/chat-admin';
 import actividadRoutes from '../routes/actividad';
+import modulosRoutes from '../routes/modulos';
 import { Actividad } from './actividad/actividad';
 import { ActividadAsignada } from './actividad/actividad-asignada';
 import { Psicologo } from './psicologo';
@@ -34,8 +35,9 @@ class Server {
         this.routes();
         // 4. Iniciar el servidor
         this.listen();
+        
     }
-
+    
     // Método para configurar middlewares
     private midlewares() {
         this.app.use(express.json());
@@ -111,6 +113,7 @@ class Server {
         this.app.use(adminRoutes); 
         this.app.use(chatAdminRoutes);
         this.app.use(actividadRoutes);
+        this.app.use(modulosRoutes);
 
         // Ruta 404 crashea con ña siguiente linea
         // this.app.use('*', (req: Request, res: Response) => {

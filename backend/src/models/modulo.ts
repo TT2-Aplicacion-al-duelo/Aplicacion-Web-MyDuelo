@@ -1,6 +1,7 @@
-// backend/src/models/modulo.ts
 import { DataTypes } from "sequelize";
 import db from "../database/connection";
+import { Actividad } from "./actividad/actividad";
+import { ActividadModulo } from "./actividad-modulo";
 
 export const Modulo = db.define('modulo', {
   id_modulo: {
@@ -20,3 +21,17 @@ export const Modulo = db.define('modulo', {
   tableName: 'modulo',
   timestamps: false
 });
+
+ Modulo.belongsToMany(Actividad, {
+    through: ActividadModulo,
+    foreignKey: 'id_modulo',
+    otherKey: 'id_actividad',
+    as: 'actividades'
+  });
+
+  Actividad.belongsToMany(Modulo, {
+    through: ActividadModulo,
+    foreignKey: 'id_actividad',
+    otherKey: 'id_modulo',
+    as: 'modulos'
+  });

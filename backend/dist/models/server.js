@@ -22,6 +22,7 @@ const chat_1 = __importDefault(require("../routes/chat"));
 const admin_1 = __importDefault(require("../routes/admin"));
 const chat_admin_1 = __importDefault(require("../routes/chat-admin"));
 const actividad_1 = __importDefault(require("../routes/actividad"));
+const modulos_1 = __importDefault(require("../routes/modulos"));
 const actividad_2 = require("./actividad/actividad");
 const actividad_asignada_1 = require("./actividad/actividad-asignada");
 const psicologo_2 = require("./psicologo");
@@ -114,6 +115,7 @@ class Server {
         this.app.use(admin_1.default);
         this.app.use(chat_admin_1.default);
         this.app.use(actividad_1.default);
+        this.app.use(modulos_1.default);
         // Ruta 404 crashea con ña siguiente linea
         // this.app.use('*', (req: Request, res: Response) => {
         //     res.status(404).json({
