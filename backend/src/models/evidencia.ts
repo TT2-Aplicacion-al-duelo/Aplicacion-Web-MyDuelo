@@ -37,12 +37,12 @@ export const Evidencia = db.define('evidencia', {
   timestamps: false
 });
 
-Evidencia.belongsTo(ActividadAsignada, {
-    foreignKey: 'id_asignacion',
-    as: 'asignacion'
-  });
+// Evidencia.belongsTo(ActividadAsignada, {
+//     foreignKey: 'id_asignacion',
+//     as: 'asignacion'
+//   });
 
-  ActividadAsignada.hasMany(Evidencia, {
-    foreignKey: 'id_asignacion',
-    as: 'evidencias'
-  });
+//   ActividadAsignada.hasMany(Evidencia, {
+//     foreignKey: 'id_asignacion',
+//     as: 'evidencias'
+//   }); 

@@ -9,6 +9,7 @@ import adminRoutes from '../routes/admin';
 import chatAdminRoutes from '../routes/chat-admin';
 import actividadRoutes from '../routes/actividad';
 import modulosRoutes from '../routes/modulos';
+import { setupAssociations } from './associations';
 import { Actividad } from './actividad/actividad';
 import { ActividadAsignada } from './actividad/actividad-asignada';
 import { Psicologo } from './psicologo';
@@ -151,6 +152,19 @@ class Server {
              //Sincronizar modelos de actividades
             await Actividad.sync({ alter: false });
             await ActividadAsignada.sync({ alter: false });
+
+            //  AGREGAR ESTAS LÍNEAS AQUÍ:
+            // Importar y sincronizar modelos de módulos (si existen)
+            const { Modulo } = await import('./modulo');
+            const { ActividadModulo } = await import('./actividad-modulo');
+            const { Evidencia } = await import('./evidencia');
+            
+            await Modulo.sync({ alter: false });
+            await ActividadModulo.sync({ alter: false });
+            await Evidencia.sync({ alter: false });
+
+            // ✅ CONFIGURAR ASOCIACIONES AQUÍ (DESPUÉS de sync)
+            setupAssociations();
 
             console.log('Conexión a la base de datos exitosa.');
             console.log('Tablas sincronizadas correctamente.');
