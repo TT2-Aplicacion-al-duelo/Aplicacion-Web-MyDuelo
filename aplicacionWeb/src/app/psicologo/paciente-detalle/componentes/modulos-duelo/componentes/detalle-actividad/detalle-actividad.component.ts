@@ -1,11 +1,107 @@
-import { Component } from '@angular/core';
+// ============================================
+// detalle-actividad.component.ts
+// ============================================
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { VisorEvidenciaComponent } from '../visor-evidencia/visor-evidencia.component';
+//import { ActividadModulo, Evidencia } from '../../modulos-duelo.component';
+import { ToastrService } from 'ngx-toastr';
+import { ActividadModulo, Evidencia } from '../../../../../../interfaces/moduloDuelo';
 
 @Component({
   selector: 'app-detalle-actividad',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule, VisorEvidenciaComponent],
   templateUrl: './detalle-actividad.component.html',
-  styleUrl: './detalle-actividad.component.css'
+  styleUrls: ['./detalle-actividad.component.css']
 })
-export class DetalleActividadComponent {
+export class DetalleActividadComponent implements OnInit {
+  @Input() actividad!: ActividadModulo;
+  @Input() idPaciente!: number;
+  @Input() colorModulo: string = 'primary';
+  @Output() cerrar = new EventEmitter<void>();
+  @Output() actividadActualizada = new EventEmitter<void>();
 
+  evidenciaSeleccionada: Evidencia | null = null;
+  mostrarVisorEvidencia: boolean = false;
+  tabActiva: 'detalles' | 'evidencias' = 'detalles';
+
+  constructor(private toastr: ToastrService) {}
+
+  ngOnInit(): void {
+    // Si hay evidencias y está permitido verlas, mostrar tab de evidencias
+    if (this.tieneEvidenciasVisibles()) {
+      this.tabActiva = 'evidencias';
+    }
+  }
+
+  cerrarModal(): void {
+    this.cerrar.emit();
+  }
+
+  cambiarTab(tab: 'detalles' | 'evidencias'): void {
+    this.tabActiva = tab;
+  }
+
+  tieneEvidenciasVisibles(): boolean {
+    return (
+      this.actividad.evidencias !== undefined &&
+      this.actividad.evidencias.length > 0 &&
+      this.actividad.visible_para_psicologo
+    );
+  }
+
+  obtenerEstadoBadge(estado: string): string {
+    const badges: Record<string, string> = {
+      'no_asignada': 'secondary',
+      'en_proceso': 'warning',
+      'finalizada': 'success'
+    };
+    return badges[estado] || 'secondary';
+  }
+
+  obtenerTextoEstado(estado: string): string {
+    const textos: Record<string, string> = {
+      'no_asignada': 'No Asignada',
+      'en_proceso': 'En Proceso',
+      'finalizada': 'Completada'
+    };
+    return textos[estado] || estado;
+  }
+
+  verEvidencia(evidencia: Evidencia): void {
+    this.evidenciaSeleccionada = evidencia;
+    this.mostrarVisorEvidencia = true;
+  }
+
+  cerrarVisorEvidencia(): void {
+    this.mostrarVisorEvidencia = false;
+    this.evidenciaSeleccionada = null;
+  }
+
+  obtenerIconoTipoArchivo(tipo: string): string {
+    const iconos: Record<string, string> = {
+      'imagen': 'bi-file-earmark-image',
+      'video': 'bi-file-earmark-play',
+      'audio': 'bi-file-earmark-music',
+      'documento': 'bi-file-earmark-text',
+      'otro': 'bi-file-earmark'
+    };
+    return iconos[tipo] || 'bi-file-earmark';
+  }
+
+  obtenerColorTipoArchivo(tipo: string): string {
+    const colores: Record<string, string> = {
+      'imagen': 'primary',
+      'video': 'danger',
+      'audio': 'warning',
+      'documento': 'info',
+      'otro': 'secondary'
+    };
+    return colores[tipo] || 'secondary';
+  }
+
+  descargarEvidencia(evidencia: Evidencia): void {
+    window.open(evidencia.archivo_url, '_blank');
+  }
 }

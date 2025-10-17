@@ -2,7 +2,8 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { Evidencia } from '../../modulos-duelo.component';
+import { Evidencia } from '../../../../../../interfaces/moduloDuelo';
+//import { Evidencia } from '../../modulos-duelo.component';
 
 @Component({
   selector: 'app-visor-evidencia',

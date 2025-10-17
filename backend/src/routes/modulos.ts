@@ -6,12 +6,12 @@ import {
   getEvidenciasActividad,
   marcarActividadRevisada
 } from "../controllers/modulos";
-import { verificarToken } from "../middlewares/verificarToken";
+import validarToken from "./validarToken";
 
 const router = Router();
 
 // Todas las rutas requieren autenticación
-router.use(verificarToken);
+router.use(validarToken);
 
 // Rutas de módulos
 router.get('/pacientes/:id_paciente/modulos', getModulosPorPaciente);
