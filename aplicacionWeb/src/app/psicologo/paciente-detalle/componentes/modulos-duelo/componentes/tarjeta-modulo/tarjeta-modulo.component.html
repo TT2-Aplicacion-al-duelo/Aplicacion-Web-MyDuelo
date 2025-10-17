@@ -1,1 +1,163 @@
-<p>tarjeta-modulo works!</p>
+<!-- sub-componentes/tarjeta-modulo/tarjeta-modulo.component.html -->
+<div class="tarjeta-modulo card shadow-sm" [class.expandida]="expandido">
+  <!-- Header del módulo -->
+  <div class="card-header border-0 bg-{{color}} text-white" (click)="toggleExpandir()">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center">
+        <i class="{{icono}} fs-4 me-3"></i>
+        <div>
+          <h5 class="mb-0">{{ modulo.nombre }}</h5>
+          <small class="opacity-75">Etapa: {{ modulo.etapa_duelo }}</small>
+        </div>
+      </div>
+      
+      <div class="d-flex align-items-center gap-3">
+        <span class="badge bg-light text-dark fs-6">
+          {{ modulo.actividades_completadas }}/{{ modulo.actividades_totales }}
+        </span>
+        <i class="bi" [ngClass]="expandido ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body con progreso -->
+  <div class="card-body">
+    <!-- Barra de progreso del módulo -->
+    <div class="mb-3">
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-muted small">Progreso del módulo</span>
+        <span class="fw-bold text-{{obtenerColorProgreso(modulo.progreso)}}">
+          {{ modulo.progreso }}%
+        </span>
+      </div>
+      
+      <div class="progress" style="height: 8px;">
+        <div 
+          class="progress-bar bg-{{obtenerColorProgreso(modulo.progreso)}}"
+          role="progressbar"
+          [style.width.%]="modulo.progreso"
+          [attr.aria-valuenow]="modulo.progreso"
+          aria-valuemin="0"
+          aria-valuemax="100">
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini estadísticas -->
+    <div class="row text-center g-2 mb-3">
+      <div class="col-4">
+        <div class="mini-stat">
+          <i class="bi bi-check-circle text-success"></i>
+          <span>{{ contarActividadesPorEstado('finalizada') }}</span>
+          <small>Completadas</small>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="mini-stat">
+          <i class="bi bi-hourglass-split text-warning"></i>
+          <span>{{ contarActividadesPorEstado('en_proceso') }}</span>
+          <small>En proceso</small>
+        </div>
+      </div>
+      <div class="col-4">
+        <div class="mini-stat">
+          <i class="bi bi-circle text-secondary"></i>
+          <span>{{ contarActividadesPorEstado('no_asignada') }}</span>
+          <small>Pendientes</small>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de actividades (expandible) -->
+    <div class="actividades-lista" *ngIf="expandido">
+      <hr class="my-3">
+      <h6 class="mb-3">
+        <i class="bi bi-list-task text-{{color}} me-2"></i>
+        Actividades del Módulo
+      </h6>
+
+      <div *ngIf="modulo.actividades.length === 0" class="text-center text-muted py-3">
+        <i class="bi bi-inbox fs-1"></i>
+        <p class="mb-0 mt-2">No hay actividades en este módulo</p>
+      </div>
+
+      <div class="list-group list-group-flush">
+        <div 
+          *ngFor="let actividad of modulo.actividades"
+          class="list-group-item list-group-item-action"
+          [class.disabled]="actividad.estado === 'no_asignada'"
+          (click)="verDetalleActividad(actividad)">
+          
+          <div class="d-flex justify-content-between align-items-start">
+            <div class="flex-grow-1">
+              <div class="d-flex align-items-center mb-1">
+                <!-- Icono según estado -->
+                <i class="bi me-2" 
+                   [ngClass]="{
+                     'bi-circle text-secondary': actividad.estado === 'no_asignada',
+                     'bi-hourglass-split text-warning': actividad.estado === 'en_proceso',
+                     'bi-check-circle-fill text-success': actividad.estado === 'finalizada'
+                   }">
+                </i>
+                <h6 class="mb-0">{{ actividad.titulo }}</h6>
+              </div>
+              
+              <p class="mb-1 text-muted small">
+                {{ actividad.descripcion | slice:0:100 }}
+                <span *ngIf="actividad.descripcion.length > 100">...</span>
+              </p>
+
+              <!-- Info adicional -->
+              <div class="d-flex align-items-center gap-2 mt-2">
+                <span class="badge bg-{{obtenerEstadoBadge(actividad.estado)}}">
+                  {{ obtenerTextoEstado(actividad.estado) }}
+                </span>
+                
+                <span class="badge bg-light text-dark" *ngIf="actividad.tipo">
+                  <i class="bi bi-tag me-1"></i>{{ actividad.tipo }}
+                </span>
+
+                <!-- Evidencias disponibles -->
+                <span 
+                  class="badge bg-info" 
+                  *ngIf="actividad.evidencias && actividad.evidencias.length > 0 && actividad.visible_para_psicologo">
+                  <i class="bi bi-paperclip me-1"></i>
+                  {{ actividad.evidencias.length }} evidencia(s)
+                </span>
+
+                <!-- Fecha de completado -->
+                <small class="text-muted" *ngIf="actividad.fecha_completada">
+                  <i class="bi bi-calendar-check me-1"></i>
+                  {{ actividad.fecha_completada | date:'dd/MM/yyyy' }}
+                </small>
+              </div>
+            </div>
+
+            <!-- Indicador de acceso -->
+            <div class="ms-2">
+              <i 
+                class="bi bi-chevron-right text-muted"
+                *ngIf="actividad.estado !== 'no_asignada'">
+              </i>
+              <i 
+                class="bi bi-lock text-muted"
+                *ngIf="actividad.estado === 'no_asignada'"
+                title="Actividad no asignada">
+              </i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de detalle de actividad -->
+<app-detalle-actividad
+  *ngIf="mostrarDetalleModal && actividadSeleccionada"
+  [actividad]="actividadSeleccionada"
+  [idPaciente]="idPaciente"
+  [colorModulo]="color"
+  (cerrar)="cerrarModal()"
+  (actividadActualizada)="onActividadActualizada()">
+</app-detalle-actividad>

@@ -1,30 +1,62 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { ListaModulosComponent } from './componentes/lista-modulos/lista-modulos.component';
+import { ModulosService } from '../../../../services/modulos.service';
+import { ToastrService } from 'ngx-toastr';
+import { ModuloDuelo } from '../../../../interfaces/moduloDuelo';
 
 @Component({
-  selector: 'app-modulos-duelo',
-  imports: [CommonModule],
-  template: `
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-12">
-          <div class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>
-            Módulos de Duelo - En desarrollo
-          </div>
-          <p>ID del Paciente: {{ idPaciente }}</p>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: []
+selector: 'app-modulos-duelo',
+  standalone: true,
+  imports: [CommonModule, ListaModulosComponent],
+  templateUrl: './modulos-duelo.component.html',
+  styleUrls: ['./modulos-duelo.component.css']
 })
 export class ModulosDueloComponent implements OnInit {
   @Input() idPaciente!: number;
 
-  constructor() {}
+  modulos: ModuloDuelo[] = [];
+  cargando: boolean = true;
+  progresoGeneral: number = 0;
+
+  constructor(
+    private modulosService: ModulosService,
+    private toastr: ToastrService
+  ) {}
 
   ngOnInit(): void {
-    console.log('Cargando módulos para paciente:', this.idPaciente);
+    this.cargarModulos();
+  }
+
+  cargarModulos(): void {
+    this.cargando = true;
+    this.modulosService.getModulosPorPaciente(this.idPaciente).subscribe({
+      next: (modulos) => {
+        this.modulos = modulos;
+        this.calcularProgresoGeneral();
+        this.cargando = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar módulos:', error);
+        this.toastr.error('Error al cargar los módulos de duelo');
+        this.cargando = false;
+      }
+    });
+  }
+
+  calcularProgresoGeneral(): void {
+    if (this.modulos.length === 0) {
+      this.progresoGeneral = 0;
+      return;
+    }
+
+    const sumaProgresos = this.modulos.reduce((sum, modulo) => sum + modulo.progreso, 0);
+    this.progresoGeneral = Math.round(sumaProgresos / this.modulos.length);
+  }
+
+  obtenerColorProgreso(progreso: number): string {
+    if (progreso < 30) return 'danger';
+    if (progreso < 70) return 'warning';
+    return 'success';
   }
 }
