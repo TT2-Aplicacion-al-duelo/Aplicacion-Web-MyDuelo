@@ -1,7 +1,8 @@
 import { Request, Response } from "express";
 import Nota from "../models/nota";
-import Paciente from "../models/paciente";
-import AplicacionTest from "../models/aplicacion_test";
+import { Paciente } from "../models/paciente";
+import AplicacionTest from "../models/aplicacionTest";
+
 
 /**
  * GET /api/psicologo/pacientes/:id_paciente/notas
@@ -162,9 +163,9 @@ export const actualizarNota = async (req: Request, res: Response) => {
     }
 
     // Actualizar campos
-    if (titulo) nota.titulo = titulo;
-    if (contenido) nota.contenido = contenido;
-    nota.fecha_actualizacion = new Date();
+    if (titulo) (nota as any).titulo = titulo;
+    if (contenido) (nota as any).contenido = contenido;
+    (nota as any).fecha_actualizacion = new Date();
 
     await nota.save();
 

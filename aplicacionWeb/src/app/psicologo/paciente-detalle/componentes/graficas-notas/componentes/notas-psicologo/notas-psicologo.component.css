@@ -47,6 +47,7 @@
 .nota-contenido p {
   display: -webkit-box;
   -webkit-line-clamp: 5;
+  line-clamp: 5;  /* ← AGREGAR ESTA LÍNEA */
   -webkit-box-orient: vertical;
   overflow: hidden;
   text-overflow: ellipsis;

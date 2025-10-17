@@ -1,12 +1,10 @@
-// backend/src/controllers/tests.ts
-
 import { Request, Response } from "express";
 import Test from "../models/test";
-import PreguntaTest from "../models/pregunta_test";
-import AplicacionTest from "../models/aplicacion_test";
-import RespuestaTest from "../models/respuesta_test";
-import ResultadoTest from "../models/resultado_test";
-import Paciente from "../models/paciente";
+import PreguntaTest from '../models/preguntaTest';
+import AplicacionTest from '../models/aplicacionTest';
+import RespuestaTest from '../models/respuesta-test';
+import ResultadoTest from '../models/Resultado_test';
+import { Paciente } from "../models/paciente";
 
 /**
  * GET /api/psicologo/tests
@@ -96,7 +94,7 @@ export const aplicarTest = async (req: Request, res: Response) => {
     if (respuestas && Array.isArray(respuestas)) {
       for (const respuesta of respuestas) {
         await RespuestaTest.create({
-          id_aplicacion: aplicacion.id_aplicacion,
+          id_aplicacion: (aplicacion as any).id_aplicacion,
           id_pregunta: respuesta.id_pregunta,
           respuesta: respuesta.respuesta
         });
@@ -104,18 +102,18 @@ export const aplicarTest = async (req: Request, res: Response) => {
 
       // Calcular puntaje e interpretación
       const puntaje = calcularPuntaje(respuestas);
-      const interpretacion = generarInterpretacion(puntaje, test.nombre);
+      const interpretacion = generarInterpretacion(puntaje, (test as any).nombre);
 
       // Crear resultado
       await ResultadoTest.create({
-        id_aplicacion: aplicacion.id_aplicacion,
+        id_aplicacion: (aplicacion as any).id_aplicacion,
         puntaje_total: puntaje,
         interpretacion
       });
     }
 
     // Cargar la aplicación completa con relaciones
-    const aplicacionCompleta = await AplicacionTest.findByPk(aplicacion.id_aplicacion, {
+    const aplicacionCompleta = await AplicacionTest.findByPk((aplicacion as any).id_aplicacion, {
       include: [
         { model: Test, as: 'test' },
         { model: ResultadoTest, as: 'resultado' }

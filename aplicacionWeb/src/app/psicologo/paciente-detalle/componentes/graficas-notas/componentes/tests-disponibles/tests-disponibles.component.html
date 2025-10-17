@@ -91,7 +91,7 @@
           <div 
             class="progress-bar progress-bar-striped progress-bar-animated"
             [style.width.%]="getProgreso()">
-            {{ respuestas.size }} / {{ testSeleccionado?.preguntas.length }} preguntas
+            {{ respuestas.size }} / {{ testSeleccionado?.preguntas?.length || 0 }} preguntas
           </div>
         </div>
 
@@ -177,7 +177,7 @@
           type="button" 
           class="btn btn-primary" 
           (click)="aplicarTest()"
-          [disabled]="aplicandoTest || respuestas.size < (testSeleccionado?.preguntas.length || 0)">
+          [disabled]="aplicandoTest || respuestas.size < (testSeleccionado?.preguntas?.length || 0)">
           <span *ngIf="aplicandoTest">
             <span class="spinner-border spinner-border-sm me-2"></span>
             Aplicando...

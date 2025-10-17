@@ -9,6 +9,8 @@ import adminRoutes from '../routes/admin';
 import chatAdminRoutes from '../routes/chat-admin';
 import actividadRoutes from '../routes/actividad';
 import modulosRoutes from '../routes/modulos';
+import testRoutes from '../routes/tests';
+import notasRoutes from '../routes/notas';
 import { setupAssociations } from './associations';
 import { Actividad } from './actividad/actividad';
 import { ActividadAsignada } from './actividad/actividad-asignada';
@@ -115,6 +117,8 @@ class Server {
         this.app.use(chatAdminRoutes);
         this.app.use(actividadRoutes);
         this.app.use(modulosRoutes);
+        this.app.use(testRoutes);
+        this.app.use(notasRoutes);
 
         // Ruta 404 crashea con ña siguiente linea
         // this.app.use('*', (req: Request, res: Response) => {
