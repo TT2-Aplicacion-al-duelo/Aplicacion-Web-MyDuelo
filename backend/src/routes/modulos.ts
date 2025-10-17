@@ -1,4 +1,3 @@
-// backend/src/routes/modulos.ts
 import { Router } from "express";
 import { 
   getModulosPorPaciente, 
@@ -13,14 +12,19 @@ const router = Router();
 // Todas las rutas requieren autenticación
 router.use(validarToken);
 
-// Rutas de módulos
-router.get('/pacientes/:id_paciente/modulos', getModulosPorPaciente);
-router.get('/pacientes/:id_paciente/modulos/:id_modulo', getDetalleModulo);
+// ===== RUTAS DE MÓDULOS =====
+// Obtener módulos por paciente
+router.get('/api/psicologo/pacientes/:id_paciente/modulos', getModulosPorPaciente);
 
-// Rutas de evidencias
-router.get('/actividades/asignadas/:id_asignacion/evidencias', getEvidenciasActividad);
+// Obtener detalle de un módulo específico
+router.get('/api/psicologo/pacientes/:id_paciente/modulos/:id_modulo', getDetalleModulo);
 
-// Rutas de revisión
-router.put('/actividades/asignadas/:id_asignacion/revisar', marcarActividadRevisada);
+// ===== RUTAS DE EVIDENCIAS =====
+// Obtener evidencias de una actividad asignada
+router.get('/api/psicologo/actividades/asignadas/:id_asignacion/evidencias', getEvidenciasActividad);
+
+// ===== RUTAS DE REVISIÓN =====
+// Marcar actividad como revisada
+router.put('/api/psicologo/actividades/asignadas/:id_asignacion/revisar', marcarActividadRevisada);
 
 export default router;

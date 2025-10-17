@@ -1,0 +1,81 @@
+
+.modal.show {
+  display: block;
+}
+
+/* Puntaje grande */
+.puntaje-grande {
+  padding: 1rem;
+  background-color: #f8f9fa;
+  border-radius: 10px;
+}
+
+/* Respuestas */
+.respuestas-container {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.respuesta-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.respuesta-item .card {
+  border-left: 4px solid #0d6efd;
+  transition: all 0.2s ease;
+}
+
+.respuesta-item .card:hover {
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+}
+
+/* Número de pregunta */
+.numero-pregunta {
+  min-width: 35px;
+}
+
+/* Respuesta valor */
+.respuesta-valor {
+  margin-top: 0.5rem;
+}
+
+.respuesta-valor .badge {
+  padding: 0.5rem 1rem;
+}
+
+/* Scrollbar personalizado */
+.respuestas-container::-webkit-scrollbar {
+  width: 8px;
+}
+
+.respuestas-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.respuestas-container::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 10px;
+}
+
+.respuestas-container::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .puntaje-grande {
+    margin-top: 1rem;
+  }
+}

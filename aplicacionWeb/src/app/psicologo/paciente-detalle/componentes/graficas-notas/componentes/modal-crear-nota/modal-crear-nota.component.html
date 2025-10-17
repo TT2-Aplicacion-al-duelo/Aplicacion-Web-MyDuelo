@@ -1,0 +1,139 @@
+<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/modal-crear-nota/modal-crear-nota.component.html -->
+
+<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header" [class.bg-primary]="!modoEdicion" [class.bg-warning]="modoEdicion" class="text-white">
+        <h5 class="modal-title">
+          <i class="bi" [class.bi-plus-circle]="!modoEdicion" [class.bi-pencil-square]="modoEdicion"></i>
+          {{ modoEdicion ? 'Editar Nota' : 'Nueva Nota' }}
+        </h5>
+        <button 
+          type="button" 
+          class="btn-close btn-close-white" 
+          (click)="cerrarModal()"
+          [disabled]="guardando">
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <form>
+          <!-- Tipo de nota -->
+          <div class="mb-4" *ngIf="!modoEdicion">
+            <label class="form-label fw-bold">
+              <i class="bi bi-tag me-2"></i>
+              Tipo de Nota
+            </label>
+            <div class="btn-group w-100" role="group">
+              <input 
+                type="radio" 
+                class="btn-check" 
+                name="tipo" 
+                id="tipo-general" 
+                value="general"
+                [(ngModel)]="tipo"
+                [disabled]="!!idAplicacion">
+              <label class="btn btn-outline-success" for="tipo-general">
+                <i class="bi bi-journal-text me-2"></i>
+                Nota General
+              </label>
+
+              <input 
+                type="radio" 
+                class="btn-check" 
+                name="tipo" 
+                id="tipo-test" 
+                value="test"
+                [(ngModel)]="tipo"
+                [disabled]="!!idAplicacion">
+              <label class="btn btn-outline-primary" for="tipo-test">
+                <i class="bi bi-clipboard-data me-2"></i>
+                Nota de Test
+              </label>
+            </div>
+            <small class="text-muted d-block mt-2">
+              <i class="bi bi-info-circle me-1"></i>
+              Las notas de test están vinculadas a evaluaciones específicas
+            </small>
+          </div>
+
+          <!-- Título -->
+          <div class="mb-4">
+            <label for="titulo" class="form-label fw-bold">
+              <i class="bi bi-card-heading me-2"></i>
+              Título
+            </label>
+            <input 
+              type="text" 
+              class="form-control form-control-lg"
+              id="titulo"
+              placeholder="Escribe un título descriptivo..."
+              [(ngModel)]="titulo"
+              name="titulo"
+              maxlength="100"
+              [disabled]="guardando">
+            <div class="d-flex justify-content-between mt-2">
+              <small class="text-muted">Título breve y descriptivo</small>
+              <small class="text-muted">{{ contadorTitulo }}</small>
+            </div>
+          </div>
+
+          <!-- Contenido -->
+          <div class="mb-3">
+            <label for="contenido" class="form-label fw-bold">
+              <i class="bi bi-file-text me-2"></i>
+              Contenido
+            </label>
+            <textarea 
+              class="form-control"
+              id="contenido"
+              rows="10"
+              placeholder="Escribe aquí tus observaciones, comentarios o notas sobre el paciente..."
+              [(ngModel)]="contenido"
+              name="contenido"
+              maxlength="1000"
+              [disabled]="guardando">
+            </textarea>
+            <div class="d-flex justify-content-between mt-2">
+              <small class="text-muted">
+                <i class="bi bi-lightbulb me-1"></i>
+                Incluye observaciones importantes y recomendaciones
+              </small>
+              <small class="text-muted">{{ contadorContenido }}</small>
+            </div>
+          </div>
+        </form>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModal()"
+          [disabled]="guardando">
+          <i class="bi bi-x-circle me-2"></i>
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn"
+          [class.btn-primary]="!modoEdicion"
+          [class.btn-warning]="modoEdicion"
+          (click)="guardarNota()"
+          [disabled]="guardando || !titulo.trim() || !contenido.trim()">
+          <span *ngIf="guardando">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Guardando...
+          </span>
+          <span *ngIf="!guardando">
+            <i class="bi" [class.bi-save]="!modoEdicion" [class.bi-check-circle]="modoEdicion" class="me-2"></i>
+            {{ modoEdicion ? 'Actualizar' : 'Guardar' }} Nota
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

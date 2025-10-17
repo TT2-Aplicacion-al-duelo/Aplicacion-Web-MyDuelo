@@ -1,0 +1,131 @@
+<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/detalle-respuestas/detalle-respuestas.component.html -->
+
+<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-primary text-white">
+        <div>
+          <h5 class="modal-title mb-0">
+            <i class="bi bi-file-text me-2"></i>
+            Respuestas del Test
+          </h5>
+          <small class="d-block mt-1">
+            {{ aplicacion.test?.nombre }} - 
+            {{ aplicacion.fecha | date: 'dd/MM/yyyy HH:mm' }}
+          </small>
+        </div>
+        <button 
+          type="button" 
+          class="btn-close btn-close-white" 
+          (click)="cerrarModal()">
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Resultado general -->
+        <div *ngIf="aplicacion.resultado" class="alert alert-info mb-4">
+          <div class="row align-items-center">
+            <div class="col-md-8">
+              <h6 class="mb-2">
+                <i class="bi bi-clipboard-data me-2"></i>
+                Resultado General
+              </h6>
+              <p class="mb-0">{{ aplicacion.resultado.interpretacion }}</p>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="puntaje-grande">
+                <span class="display-4 fw-bold text-primary">
+                  {{ aplicacion.resultado.puntaje_total }}
+                </span>
+                <div class="text-muted">Puntaje Total</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estado de carga -->
+        <div *ngIf="cargando" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-3 text-muted">Cargando respuestas...</p>
+        </div>
+
+        <!-- Respuestas -->
+        <div *ngIf="!cargando" class="respuestas-container">
+          <div *ngFor="let respuesta of respuestas; let i = index" class="respuesta-item mb-3">
+            <div class="card">
+              <div class="card-body">
+                <div class="d-flex align-items-start">
+                  <!-- Número -->
+                  <div class="numero-pregunta me-3">
+                    <span class="badge bg-primary rounded-circle" 
+                          style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                      {{ i + 1 }}
+                    </span>
+                  </div>
+
+                  <!-- Pregunta y respuesta -->
+                  <div class="flex-grow-1">
+                    <h6 class="mb-2">{{ respuesta.pregunta?.texto_pregunta }}</h6>
+                    
+                    <!-- Respuesta según tipo -->
+                    <div class="respuesta-valor">
+                      <!-- Respuesta escala -->
+                      <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'escala'">
+                        <span class="badge bg-{{getColorRespuesta(respuesta.respuesta)}} fs-6">
+                          {{ respuesta.respuesta }}
+                        </span>
+                      </div>
+
+                      <!-- Respuesta si/no -->
+                      <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'si_no'">
+                        <span class="badge" 
+                              [class.bg-success]="respuesta.respuesta === 'si'"
+                              [class.bg-danger]="respuesta.respuesta === 'no'">
+                          {{ respuesta.respuesta === 'si' ? 'Sí' : 'No' }}
+                        </span>
+                      </div>
+
+                      <!-- Respuesta texto -->
+                      <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'texto'">
+                        <div class="alert alert-light mb-0">
+                          <i class="bi bi-quote me-2"></i>
+                          {{ respuesta.respuesta }}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Sin respuestas -->
+          <div *ngIf="respuestas.length === 0" class="text-center py-5">
+            <i class="bi bi-inbox fs-1 text-muted d-block mb-3"></i>
+            <h6 class="text-muted">No hay respuestas registradas</h6>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <button 
+          type="button" 
+          class="btn btn-outline-danger"
+          (click)="descargarPDF()">
+          <i class="bi bi-file-pdf me-2"></i>
+          Descargar PDF
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModal()">
+          <i class="bi bi-x-circle me-2"></i>
+          Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

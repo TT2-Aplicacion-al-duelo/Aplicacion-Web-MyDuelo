@@ -1,0 +1,74 @@
+/* aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/graficas-notas.component.css */
+
+.graficas-notas-container {
+  padding: 1rem;
+  min-height: 500px;
+}
+
+/* Estilos para las tabs */
+.nav-tabs .nav-link {
+  color: #495057;
+  border: none;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  padding: 1rem 1.5rem;
+}
+
+.nav-tabs .nav-link:hover {
+  background-color: #f8f9fa;
+  border-bottom-color: #dee2e6;
+}
+
+.nav-tabs .nav-link.active {
+  color: #0d6efd;
+  background-color: white;
+  border-bottom-color: #0d6efd;
+}
+
+.nav-tabs .nav-link i {
+  font-size: 1.1rem;
+}
+
+/* Estilos del card header */
+.card-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+}
+
+.card-header h5 {
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Animación de transición entre tabs */
+.tab-pane {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .graficas-notas-container {
+    padding: 0.5rem;
+  }
+  
+  .nav-tabs .nav-link {
+    padding: 0.75rem 1rem;
+    font-size: 0.875rem;
+  }
+  
+  .nav-tabs .nav-link i {
+    font-size: 1rem;
+  }
+}

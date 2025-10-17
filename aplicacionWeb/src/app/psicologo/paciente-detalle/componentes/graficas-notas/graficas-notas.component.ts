@@ -1,31 +1,45 @@
+// aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/graficas-notas.component.ts
+
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TestsDisponiblesComponent } from './componentes/tests-disponibles/tests-disponibles.component';
+import { HistorialTestsComponent } from './componentes/historial-tests/historial-tests.component';
+import { NotasPsicologoComponent } from './componentes/notas-psicologo/notas-psicologo.component';
 
 @Component({
   selector: 'app-graficas-notas',
-
-  imports: [CommonModule],
-  template: `
-    <div class="container-fluid">
-      <div class="row">
-        <div class="col-12">
-          <div class="alert alert-info">
-            <i class="bi bi-info-circle me-2"></i>
-            Sección de Gráficas y Notas - En desarrollo
-          </div>
-          <p>ID del Paciente: {{ idPaciente }}</p>
-        </div>
-      </div>
-    </div>
-  `,
-  styles: []
+  imports: [
+    CommonModule,
+    TestsDisponiblesComponent,
+    HistorialTestsComponent,
+    NotasPsicologoComponent
+  ],
+  templateUrl: './graficas-notas.component.html',
+  styleUrls: ['./graficas-notas.component.css']
 })
 export class GraficasNotasComponent implements OnInit {
   @Input() idPaciente!: number;
 
+  // Control de las sub-secciones visibles
+  seccionActiva: 'historial' | 'disponibles' | 'notas' = 'historial';
+
   constructor() {}
 
   ngOnInit(): void {
-    console.log('Cargando gráficas para paciente:', this.idPaciente);
+    console.log('Cargando gráficas y notas para paciente:', this.idPaciente);
+  }
+
+  /**
+   * Cambiar la sección activa
+   */
+  cambiarSeccion(seccion: 'historial' | 'disponibles' | 'notas'): void {
+    this.seccionActiva = seccion;
+  }
+
+  /**
+   * Actualizar el historial cuando se aplica un nuevo test
+   */
+  onTestAplicado(): void {
+    this.seccionActiva = 'historial';
   }
 }

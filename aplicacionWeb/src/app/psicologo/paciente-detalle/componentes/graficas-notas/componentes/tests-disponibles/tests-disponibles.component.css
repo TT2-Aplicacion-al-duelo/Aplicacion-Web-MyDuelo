@@ -1,0 +1,118 @@
+
+.tests-disponibles-container {
+  padding: 1.5rem;
+}
+
+/* Efecto hover en las cards */
+.hover-card {
+  transition: all 0.3s ease;
+  border: 1px solid #dee2e6;
+}
+
+.hover-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+  border-color: #0d6efd;
+}
+
+/* Icono del test */
+.icon-test {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Card title */
+.card-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #212529;
+}
+
+/* Pregunta card */
+.pregunta-card {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Botones de escala */
+.escala-respuesta .btn {
+  min-height: 70px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.escala-respuesta .btn:hover {
+  transform: scale(1.05);
+}
+
+.escala-respuesta .btn.active {
+  background-color: #0d6efd;
+  color: white;
+  border-color: #0d6efd;
+  transform: scale(1.1);
+}
+
+/* Número de pregunta */
+.numero-pregunta {
+  min-width: 35px;
+}
+
+/* Modal */
+.modal.show {
+  display: block;
+}
+
+.modal-xl {
+  max-width: 1200px;
+}
+
+/* Progress bar */
+.progress {
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .tests-disponibles-container {
+    padding: 1rem;
+  }
+
+  .escala-respuesta .btn {
+    min-height: 50px;
+    font-size: 1rem;
+    padding: 0.5rem;
+  }
+
+  .escala-respuesta .btn small {
+    display: none !important;
+  }
+
+  .icon-test {
+    width: 50px;
+    height: 50px;
+  }
+
+  .icon-test i {
+    font-size: 1.5rem !important;
+  }
+}

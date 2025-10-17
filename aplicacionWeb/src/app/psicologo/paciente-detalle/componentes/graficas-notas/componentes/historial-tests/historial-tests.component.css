@@ -1,0 +1,73 @@
+/* aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/historial-tests/historial-tests.component.css */
+
+.historial-tests-container {
+  padding: 1.5rem;
+}
+
+/* Test items */
+.test-item {
+  animation: fadeIn 0.3s ease-in;
+}
+
+.test-item .card {
+  transition: all 0.2s ease;
+}
+
+.test-item .card:hover {
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
+  border-color: #0d6efd !important;
+}
+
+/* Círculo de puntaje */
+.puntaje-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  border: 3px solid currentColor;
+}
+
+/* Gráfica container */
+.grafica-container {
+  min-height: 300px;
+}
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Botones de acción */
+.btn-sm {
+  padding: 0.375rem 0.75rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .historial-tests-container {
+    padding: 1rem;
+  }
+
+  .puntaje-circle {
+    width: 50px;
+    height: 50px;
+  }
+
+  .test-item .card-body .row > div {
+    margin-bottom: 1rem;
+  }
+
+  .test-item .card-body .row > div:last-child {
+    margin-bottom: 0;
+  }
+}
