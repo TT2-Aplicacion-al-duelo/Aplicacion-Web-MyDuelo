@@ -72,7 +72,7 @@ class Server {
 
     // Método para configurar las rutas
     private routes() {
-
+                                      
         this.app.get('/health', async (req: Request, res: Response) => {
             try {
                 await sequelize.authenticate();
