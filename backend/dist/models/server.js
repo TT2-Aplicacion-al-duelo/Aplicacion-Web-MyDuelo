@@ -66,6 +66,13 @@ const paciente_2 = require("./paciente");
 const agenda_2 = require("./agenda/agenda");
 const cita_1 = require("./agenda/cita");
 const recordatorio_1 = require("./agenda/recordatorio");
+// ⚠️ AGREGAR ESTAS IMPORTACIONES PARA LOS TESTS
+const test_1 = __importDefault(require("./test"));
+const preguntaTest_1 = __importDefault(require("./preguntaTest"));
+const aplicacionTest_1 = __importDefault(require("./aplicacionTest"));
+const respuesta_test_1 = __importDefault(require("./respuesta-test"));
+const resultado_test_1 = __importDefault(require("./resultado_test"));
+const nota_1 = __importDefault(require("./nota"));
 const cors_1 = __importDefault(require("cors"));
 const node_cron_1 = __importDefault(require("node-cron"));
 const sequelize_1 = require("sequelize");
@@ -92,49 +99,77 @@ class Server {
             : ['http://localhost:4200', 'http://localhost:3000'];
         const corsOptions = {
             origin: (origin, callback) => {
-                // Permitir requests sin origin (como mobile apps o curl requests)
-                if (!origin)
-                    return callback(null, true);
-                if (Array.isArray(allowedOrigins)) {
-                    if (allowedOrigins.includes(origin)) {
-                        callback(null, true);
-                    }
-                    else {
-                        callback(new Error('No permitido por CORS'));
-                    }
+                if (!origin || allowedOrigins.includes(origin)) {
+                    callback(null, true);
                 }
                 else {
-                    // Si es '*', permitir todo
-                    callback(null, true);
+                    callback(new Error('No permitido por CORS'));
                 }
             },
             credentials: true,
             methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-            allowedHeaders: ['Content-Type', 'Authorization']
+            allowedHeaders: ['Content-Type', 'Authorization', 'token']
         };
-        this.app.use((0, cors_1.default)());
+        this.app.use((0, cors_1.default)(corsOptions));
+        // Endpoint de health check para Azure
+        this.app.get('/health', (req, res) => {
+            res.status(200).json({
+                status: 'OK',
+                message: 'Servidor funcionando correctamente',
+                timestamp: new Date().toISOString(),
+                environment: process.env.NODE_ENV || 'development'
+            });
+        });
+        // Programar tarea cron para recordatorios
+        node_cron_1.default.schedule('0 9 * * *', () => __awaiter(this, void 0, void 0, function* () {
+            console.log('Ejecutando tarea de recordatorios...');
+            try {
+                const hoy = new Date();
+                const tresDias = new Date();
+                tresDias.setDate(tresDias.getDate() + 3);
+                const citasProximas = yield cita_1.Cita.findAll({
+                    where: {
+                        fecha: {
+                            [sequelize_1.Op.between]: [hoy, tresDias]
+                        }
+                    }
+                });
+                for (const cita of citasProximas) {
+                    yield recordatorio_1.Recordatorio.create({
+                        id_cita: cita.id_cita,
+                        mensaje: `Recordatorio: Tienes una cita el ${cita.fecha}`,
+                        fecha_envio: hoy,
+                        tipo: 'email'
+                    });
+                }
+                console.log(`✅ ${citasProximas.length} recordatorios generados`);
+            }
+            catch (error) {
+                console.error('Error en cron de recordatorios:', error);
+            }
+        }));
+        console.log('Cron de recordatorios programado.');
     }
     // Método para configurar las rutas
     routes() {
-        this.app.get('/health', (req, res) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                yield connection_1.default.authenticate();
-                res.status(200).json({
-                    status: 'OK',
-                    timestamp: new Date().toISOString(),
+        // Ruta principal de health check para Azure
+        this.app.get('/api/health', (req, res) => {
+            connection_1.default.authenticate()
+                .then(() => {
+                res.json({
+                    status: 'healthy',
                     database: 'connected',
-                    environment: process.env.NODE_ENV || 'development'
+                    timestamp: new Date().toISOString()
                 });
-            }
-            catch (error) {
+            })
+                .catch((error) => {
                 res.status(503).json({
-                    status: 'ERROR',
-                    timestamp: new Date().toISOString(),
+                    status: 'unhealthy',
                     database: 'disconnected',
                     error: error instanceof Error ? error.message : 'Unknown error'
                 });
-            }
-        }));
+            });
+        });
         this.app.get('/', (req, res) => {
             res.status(200).json({
                 message: 'API MiDuelo está funcionando',
@@ -154,13 +189,6 @@ class Server {
         this.app.use(modulos_1.default);
         this.app.use(tests_1.default);
         this.app.use(notas_1.default);
-        // Ruta 404 crashea con ña siguiente linea
-        // this.app.use('*', (req: Request, res: Response) => {
-        //     res.status(404).json({
-        //         message: 'Ruta no encontrada',
-        //         path: req.originalUrl
-        //     });
-        // });
     }
     // Método para iniciar el servidor
     listen() {
@@ -174,70 +202,43 @@ class Server {
     connetionBaseDatos() {
         return __awaiter(this, void 0, void 0, function* () {
             try {
+                // Sincronizar modelos principales
                 yield psicologo_2.Psicologo.sync({ alter: false })
-                    .then(() => console.log("Tablas actualizadas"))
-                    .catch(err => console.error("Error al sincronizar", err));
+                    .then(() => console.log("Tabla Psicologo sincronizada"))
+                    .catch(err => console.error("Error al sincronizar Psicologo:", err));
                 yield paciente_2.Paciente.sync({ force: false });
                 yield agenda_2.Agenda.sync({ alter: false });
                 yield cita_1.Cita.sync({ alter: false });
                 yield recordatorio_1.Recordatorio.sync({ alter: false });
-                //Sincronizar modelos de actividades
+                // Sincronizar modelos de actividades
                 yield actividad_2.Actividad.sync({ alter: false });
                 yield actividad_asignada_1.ActividadAsignada.sync({ alter: false });
-                //  AGREGAR ESTAS LÍNEAS AQUÍ:
-                // Importar y sincronizar modelos de módulos (si existen)
+                // Importar y sincronizar modelos de módulos
                 const { Modulo } = yield Promise.resolve().then(() => __importStar(require('./modulo')));
                 const { ActividadModulo } = yield Promise.resolve().then(() => __importStar(require('./actividad-modulo')));
                 const { Evidencia } = yield Promise.resolve().then(() => __importStar(require('./evidencia')));
                 yield Modulo.sync({ alter: false });
                 yield ActividadModulo.sync({ alter: false });
                 yield Evidencia.sync({ alter: false });
-                // ✅ CONFIGURAR ASOCIACIONES AQUÍ (DESPUÉS de sync)
-                (0, associations_1.setupAssociations)();
+                // ⚠️ AGREGAR SINCRONIZACIÓN DE MODELOS DE TESTS
+                yield test_1.default.sync({ alter: false });
+                yield preguntaTest_1.default.sync({ alter: false });
+                yield aplicacionTest_1.default.sync({ alter: false });
+                yield respuesta_test_1.default.sync({ alter: false });
+                yield resultado_test_1.default.sync({ alter: false });
+                yield nota_1.default.sync({ alter: false });
+                console.log('Tablas de tests sincronizadas correctamente.');
+                // ⚠️ LLAMAR AMBAS FUNCIONES DE CONFIGURACIÓN
+                (0, associations_1.setupAssociations)(); // Asociaciones de módulos y actividades
+                //configurarAsociaciones();  // Asociaciones de tests y notas
                 console.log('Conexión a la base de datos exitosa.');
                 console.log('Tablas sincronizadas correctamente.');
-                // Programar cron: revisar citas para mañana a las 00:05
-                node_cron_1.default.schedule('5 0 * * *', () => __awaiter(this, void 0, void 0, function* () {
-                    try {
-                        const mañana = new Date();
-                        mañana.setDate(mañana.getDate() + 1);
-                        const fechaManana = mañana.toISOString().slice(0, 10);
-                        // buscar citas pendientes para mañana
-                        const citas = yield cita_1.Cita.findAll({
-                            where: {
-                                fecha: fechaManana,
-                                estado: { [sequelize_1.Op.in]: ["pendiente", "confirmada"] }
-                            },
-                            include: [{ model: agenda_2.Agenda }] // para obtener id_psicologo
-                        });
-                        for (const cita of citas) {
-                            const id_cita = cita.id_cita;
-                            const id_agenda = cita.id_agenda;
-                            const agenda = yield agenda_2.Agenda.findByPk(id_agenda);
-                            const id_psicologo = agenda.id_psicologo;
-                            const id_paciente = cita.id_paciente;
-                            const mensaje = `Recordatorio: Tienes cita el ${fechaManana} de ${cita.hora_inicio} a ${cita.hora_fin}`;
-                            yield recordatorio_1.Recordatorio.create({
-                                id_cita,
-                                id_psicologo,
-                                id_paciente,
-                                mensaje,
-                                fecha_programada: new Date() // ahora, o ajusta horario de envío
-                            });
-                            console.log("Recordatorio creado para cita:", id_cita, mensaje);
-                            // Aquí podrías invocar un servicio de email/push
-                        }
-                    }
-                    catch (err) {
-                        console.error("Error en cron de recordatorios:", err);
-                    }
-                }), {
-                    timezone: 'America/Mexico_City'
-                });
-                console.log('Cron de recordatorios programado.');
+                yield connection_1.default.authenticate();
+                console.log('Conexión autenticada con éxito.');
             }
             catch (error) {
-                console.error('Error al sincronizar DB:', error);
+                console.error('Error conectando a la base de datos:', error);
+                throw new Error('No se pudo conectar a la base de datos');
             }
         });
     }
