@@ -3,7 +3,7 @@ import Test from "../models/test";
 import PreguntaTest from '../models/preguntaTest';
 import AplicacionTest from '../models/aplicacionTest';
 import RespuestaTest from '../models/respuesta-test';
-import ResultadoTest from '../models/Resultado_test';
+import ResultadoTest from '../models/resultado_test';
 import { Paciente } from "../models/paciente";
 
 /**
