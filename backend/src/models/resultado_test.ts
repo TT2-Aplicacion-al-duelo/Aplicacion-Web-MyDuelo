@@ -1,10 +1,8 @@
-// backend/src/models/respuesta_test.ts
-
 import { DataTypes } from "sequelize";
 import db from "../database/connection";
 
-const RespuestaTest = db.define('respuesta_test', {
-  id_respuesta: {
+const ResultadoTest = db.define('resultado_test', {
+  id_resultado: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
@@ -12,26 +10,32 @@ const RespuestaTest = db.define('respuesta_test', {
   id_aplicacion: {
     type: DataTypes.INTEGER,
     allowNull: false,
+    unique: true, // Una aplicación solo puede tener un resultado
     references: {
       model: 'aplicacion_test',
       key: 'id_aplicacion'
     }
   },
-  id_pregunta: {
+  puntaje_total: {
     type: DataTypes.INTEGER,
-    allowNull: false,
-    references: {
-      model: 'pregunta_test',
-      key: 'id_pregunta'
-    }
+    allowNull: false
   },
-  respuesta: {
+  interpretacion: {
+    type: DataTypes.TEXT,
+    allowNull: true
+  },
+  pdf_url: {
     type: DataTypes.STRING(255),
     allowNull: true
+  },
+  fecha_creacion: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
   }
 }, {
-  tableName: 'respuesta_test',
+  tableName: 'resultado_test',
   timestamps: false
 });
 
-export default RespuestaTest;
+export default ResultadoTest;

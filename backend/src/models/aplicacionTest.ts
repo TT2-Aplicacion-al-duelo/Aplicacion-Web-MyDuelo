@@ -1,10 +1,10 @@
-// backend/src/models/pregunta_test.ts
+// backend/src/models/aplicacionTest.ts
 
 import { DataTypes } from "sequelize";
 import db from "../database/connection";
 
-const PreguntaTest = db.define('pregunta_test', {
-  id_pregunta: {
+const AplicacionTest = db.define('aplicacion_test', {
+  id_aplicacion: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
@@ -17,26 +17,40 @@ const PreguntaTest = db.define('pregunta_test', {
       key: 'id_test'
     }
   },
-  numero_pregunta: {
+  id_paciente: {
     type: DataTypes.INTEGER,
-    allowNull: false
-  },
-  texto_pregunta: {
-    type: DataTypes.TEXT,
-    allowNull: false
-  },
-  tipo_respuesta: {
-    type: DataTypes.ENUM('escala', 'si_no', 'texto', 'multiple'),
     allowNull: false,
-    defaultValue: 'escala'
+    references: {
+      model: 'paciente',
+      key: 'id_paciente'
+    }
   },
-  opciones: {
-    type: DataTypes.JSON,
-    allowNull: true
+  id_psicologo: {
+    type: DataTypes.INTEGER,
+    allowNull: false,
+    references: {
+      model: 'psicologo',
+      key: 'id_psicologo'
+    }
+  },
+  fecha: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  },
+  fecha_creacion: {
+    type: DataTypes.DATE,
+    allowNull: false,
+    defaultValue: DataTypes.NOW
+  },
+  estado: {
+    type: DataTypes.ENUM('pendiente', 'completado'),
+    allowNull: false,
+    defaultValue: 'completado'
   }
 }, {
-  tableName: 'pregunta_test',
+  tableName: 'aplicacion_test',
   timestamps: false
 });
 
-export default PreguntaTest;
+export default AplicacionTest;

@@ -30,22 +30,4 @@ export const ActividadModulo = db.define('actividad_modulo', {
   timestamps: false
 });
 
-//  ActividadModulo.belongsTo(Modulo, {
-//     foreignKey: 'id_modulo',
-//     as: 'modulo'
-//   });
-
-//   ActividadModulo.belongsTo(Actividad, {
-//     foreignKey: 'id_actividad',
-//     as: 'actividad'
-//   });
-
-//   Modulo.hasMany(ActividadModulo, {
-//     foreignKey: 'id_modulo',
-//     as: 'actividades_modulo'
-//   });
-
-//   Actividad.hasMany(ActividadModulo, {
-//     foreignKey: 'id_actividad',
-//     as: 'modulos_actividad'
-//   });
+  
