@@ -19,7 +19,6 @@ import { Paciente } from './paciente';
 import { Agenda } from './agenda/agenda';
 import { Cita } from './agenda/cita';
 import { Recordatorio } from './agenda/recordatorio';
-// ⚠️ AGREGAR ESTAS IMPORTACIONES PARA LOS TESTS
 import Test from './test';
 import PreguntaTest from './preguntaTest';
 import AplicacionTest from './aplicacionTest';
@@ -53,7 +52,7 @@ class Server {
 
         // Configuración CORS para producción
         const allowedOrigins = process.env.NODE_ENV === 'production'
-            ? (process.env.FRONTEND_URL?.split(',') || ['https://www.miduelo.com', 'https://miduelo.com'])
+            ? (process.env.FRONTEND_URL?.split(',') || ['https://www.midueloapp.com', 'https://midueloapp.com'])
             : ['http://localhost:4200', 'http://localhost:3000'];
 
         const corsOptions = {

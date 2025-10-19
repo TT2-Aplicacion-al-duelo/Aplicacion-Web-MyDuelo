@@ -66,7 +66,6 @@ const paciente_2 = require("./paciente");
 const agenda_2 = require("./agenda/agenda");
 const cita_1 = require("./agenda/cita");
 const recordatorio_1 = require("./agenda/recordatorio");
-// ⚠️ AGREGAR ESTAS IMPORTACIONES PARA LOS TESTS
 const test_1 = __importDefault(require("./test"));
 const preguntaTest_1 = __importDefault(require("./preguntaTest"));
 const aplicacionTest_1 = __importDefault(require("./aplicacionTest"));
@@ -95,7 +94,7 @@ class Server {
         this.app.use(express_1.default.json());
         // Configuración CORS para producción
         const allowedOrigins = process.env.NODE_ENV === 'production'
-            ? (((_a = process.env.FRONTEND_URL) === null || _a === void 0 ? void 0 : _a.split(',')) || ['https://www.miduelo.com', 'https://miduelo.com'])
+            ? (((_a = process.env.FRONTEND_URL) === null || _a === void 0 ? void 0 : _a.split(',')) || ['https://www.midueloapp.com', 'https://midueloapp.com'])
             : ['http://localhost:4200', 'http://localhost:3000'];
         const corsOptions = {
             origin: (origin, callback) => {
