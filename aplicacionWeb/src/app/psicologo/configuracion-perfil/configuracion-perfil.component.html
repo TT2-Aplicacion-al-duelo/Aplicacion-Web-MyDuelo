@@ -1,0 +1,298 @@
+<!-- aplicacionWeb/src/app/psicologo/configuracion-perfil/configuracion-perfil.component.html -->
+<div class="container-fluid py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-10 col-xl-8">
+      
+      <!-- Header -->
+      <div class="mb-4">
+        <h2 class="text-primary">
+          <i class="bi bi-gear-fill me-2"></i>
+          Configuración de Perfil
+        </h2>
+        <p class="text-muted">Administra tu información personal y configuración de seguridad</p>
+      </div>
+
+      <!-- Navegación de Pestañas -->
+      <ul class="nav nav-tabs mb-4">
+        <li class="nav-item">
+          <button 
+            class="nav-link" 
+            [class.active]="seccionActiva === 'perfil'"
+            (click)="cambiarSeccion('perfil')">
+            <i class="bi bi-person-circle me-2"></i>
+            Información Personal
+          </button>
+        </li>
+        <li class="nav-item">
+          <button 
+            class="nav-link" 
+            [class.active]="seccionActiva === 'contrasena'"
+            (click)="cambiarSeccion('contrasena')">
+            <i class="bi bi-shield-lock me-2"></i>
+            Cambiar Contraseña
+          </button>
+        </li>
+      </ul>
+
+      <!-- Contenido de las Pestañas -->
+      <div class="card shadow-sm">
+        <div class="card-body p-4">
+
+          <!-- SECCIÓN: Información Personal -->
+          <div *ngIf="seccionActiva === 'perfil'">
+            <h4 class="mb-4">
+              <i class="bi bi-person-badge text-primary me-2"></i>
+              Información Personal
+            </h4>
+
+            <!-- Información de Usuario (solo lectura) -->
+            <div class="alert alert-info mb-4">
+              <h6><i class="bi bi-info-circle me-2"></i>Información de Cuenta</h6>
+              <div class="row">
+                <div class="col-md-6">
+                  <p class="mb-1"><strong>Nombre:</strong> {{ usuarioInfo?.nombre }} {{ usuarioInfo?.apellido }}</p>
+                  <p class="mb-0"><strong>ID:</strong> {{ usuarioInfo?.id_psicologo }}</p>
+                </div>
+                <div class="col-md-6">
+                  <p class="mb-0">
+                    <strong>Rol:</strong> 
+                    <span class="badge" [class.bg-danger]="usuarioInfo?.rol_admin" [class.bg-primary]="!usuarioInfo?.rol_admin">
+                      {{ usuarioInfo?.rol_admin ? 'Administrador' : 'Psicólogo' }}
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Formulario de Perfil -->
+            <form [formGroup]="perfilForm" (ngSubmit)="actualizarPerfil()">
+              
+              <!-- Teléfono -->
+              <div class="mb-3">
+                <label for="telefono" class="form-label">
+                  <i class="bi bi-telephone me-2"></i>
+                  Número Telefónico
+                  <span class="text-danger">*</span>
+                </label>
+                <input 
+                  type="tel" 
+                  class="form-control" 
+                  id="telefono" 
+                  formControlName="telefono"
+                  (keypress)="soloNumeros($event)"
+                  maxlength="10"
+                  placeholder="10 dígitos"
+                  [class.is-invalid]="telefono?.invalid && telefono?.touched"
+                  [class.is-valid]="telefono?.valid && telefono?.touched">
+                <div class="invalid-feedback" *ngIf="telefono?.invalid && telefono?.touched">
+                  <span *ngIf="telefono?.errors?.['required']">El teléfono es obligatorio</span>
+                  <span *ngIf="telefono?.errors?.['telefonoInvalido']">El teléfono debe tener exactamente 10 dígitos</span>
+                </div>
+              </div>
+
+              <!-- Correo Electrónico -->
+              <div class="mb-3">
+                <label for="correo" class="form-label">
+                  <i class="bi bi-envelope me-2"></i>
+                  Correo Electrónico
+                  <span class="text-danger">*</span>
+                </label>
+                <input 
+                  type="email" 
+                  class="form-control" 
+                  id="correo" 
+                  formControlName="correo"
+                  placeholder="ejemplo@correo.com"
+                  [class.is-invalid]="correo?.invalid && correo?.touched"
+                  [class.is-valid]="correo?.valid && correo?.touched">
+                <div class="invalid-feedback" *ngIf="correo?.invalid && correo?.touched">
+                  <span *ngIf="correo?.errors?.['required']">El correo es obligatorio</span>
+                  <span *ngIf="correo?.errors?.['email']">El formato del correo no es válido</span>
+                </div>
+                <small class="text-muted">
+                  <i class="bi bi-exclamation-circle me-1"></i>
+                  Si cambias tu correo, deberás iniciar sesión nuevamente
+                </small>
+              </div>
+
+              <!-- Dirección de Consultorio -->
+              <div class="mb-4">
+                <label for="direccionConsultorio" class="form-label">
+                  <i class="bi bi-geo-alt me-2"></i>
+                  Dirección del Consultorio
+                </label>
+                <textarea 
+                  class="form-control" 
+                  id="direccionConsultorio" 
+                  formControlName="direccionConsultorio"
+                  rows="3"
+                  placeholder="Calle, número, colonia, ciudad, estado, CP"
+                  [class.is-valid]="direccionConsultorio?.valid && direccionConsultorio?.touched">
+                </textarea>
+                <small class="text-muted">Esta dirección será visible para tus pacientes</small>
+              </div>
+
+              <!-- Botón Guardar -->
+              <div class="d-grid gap-2">
+                <button 
+                  type="submit" 
+                  class="btn btn-primary btn-lg"
+                  [disabled]="perfilForm.invalid || loading">
+                  <span *ngIf="!loading">
+                    <i class="bi bi-save me-2"></i>
+                    Guardar Cambios
+                  </span>
+                  <span *ngIf="loading">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Guardando...
+                  </span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+          <!-- SECCIÓN: Cambiar Contraseña -->
+          <div *ngIf="seccionActiva === 'contrasena'">
+            <h4 class="mb-4">
+              <i class="bi bi-shield-lock text-primary me-2"></i>
+              Cambiar Contraseña
+            </h4>
+
+            <div class="alert alert-warning mb-4">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              Por seguridad, asegúrate de usar una contraseña fuerte y única que no hayas usado en otros sitios.
+            </div>
+
+            <!-- Formulario de Contraseña -->
+            <form [formGroup]="contrasenaForm" (ngSubmit)="cambiarContrasena()">
+              
+              <!-- Contraseña Actual -->
+              <div class="mb-3">
+                <label for="contrasenaActual" class="form-label">
+                  Contraseña Actual
+                  <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <input 
+                    [type]="mostrarContrasenaActual ? 'text' : 'password'" 
+                    class="form-control" 
+                    id="contrasenaActual" 
+                    formControlName="contrasenaActual"
+                    placeholder="Ingresa tu contraseña actual"
+                    [class.is-invalid]="contrasenaActual?.invalid && contrasenaActual?.touched"
+                    [class.is-valid]="contrasenaActual?.valid && contrasenaActual?.touched">
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button" 
+                    (click)="toggleMostrarContrasenaActual()">
+                    <i [class]="mostrarContrasenaActual ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="contrasenaActual?.invalid && contrasenaActual?.touched">
+                  La contraseña actual es obligatoria
+                </div>
+              </div>
+
+              <!-- Nueva Contraseña -->
+              <div class="mb-3">
+                <label for="nuevaContrasena" class="form-label">
+                  Nueva Contraseña
+                  <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <input 
+                    [type]="mostrarNuevaContrasena ? 'text' : 'password'" 
+                    class="form-control" 
+                    id="nuevaContrasena" 
+                    formControlName="nuevaContrasena"
+                    placeholder="Ingresa tu nueva contraseña"
+                    [class.is-invalid]="nuevaContrasena?.invalid && nuevaContrasena?.touched"
+                    [class.is-valid]="nuevaContrasena?.valid && nuevaContrasena?.touched">
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button" 
+                    (click)="toggleMostrarNuevaContrasena()">
+                    <i [class]="mostrarNuevaContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="nuevaContrasena?.invalid && nuevaContrasena?.touched">
+                  <span *ngIf="nuevaContrasena?.errors?.['required']">La nueva contraseña es obligatoria</span>
+                  <span *ngIf="nuevaContrasena?.errors && !nuevaContrasena?.errors?.['required']">
+                    {{ obtenerMensajeErrorContrasena() }}
+                  </span>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-outline-primary mt-2" 
+                  (click)="generarContrasenaSegura()">
+                  <i class="bi bi-key"></i> Generar contraseña segura
+                </button>
+              </div>
+
+              <!-- Confirmar Nueva Contraseña -->
+              <div class="mb-4">
+                <label for="confirmarContrasena" class="form-label">
+                  Confirmar Nueva Contraseña
+                  <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <input 
+                    [type]="mostrarConfirmarContrasena ? 'text' : 'password'" 
+                    class="form-control" 
+                    id="confirmarContrasena" 
+                    formControlName="confirmarContrasena"
+                    placeholder="Confirma tu nueva contraseña"
+                    [class.is-invalid]="confirmarContrasena?.invalid && confirmarContrasena?.touched"
+                    [class.is-valid]="confirmarContrasena?.valid && confirmarContrasena?.touched">
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button" 
+                    (click)="toggleMostrarConfirmarContrasena()">
+                    <i [class]="mostrarConfirmarContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="confirmarContrasena?.invalid && confirmarContrasena?.touched">
+                  <span *ngIf="confirmarContrasena?.errors?.['required']">Debes confirmar la nueva contraseña</span>
+                  <span *ngIf="confirmarContrasena?.errors?.['contrasenasNoCoinciden']">Las contraseñas no coinciden</span>
+                </div>
+              </div>
+
+              <!-- Requisitos -->
+              <div class="alert alert-info mb-4">
+                <strong><i class="bi bi-info-circle me-2"></i>Requisitos de contraseña:</strong>
+                <ul class="mb-0 mt-2 small">
+                  <li>Mínimo 8 caracteres</li>
+                  <li>Al menos una letra mayúscula</li>
+                  <li>Al menos una letra minúscula</li>
+                  <li>Al menos un número</li>
+                  <li>Al menos un carácter especial (!@#$%^&*...)</li>
+                </ul>
+              </div>
+
+              <!-- Botón Cambiar -->
+              <div class="d-grid gap-2">
+                <button 
+                  type="submit" 
+                  class="btn btn-primary btn-lg"
+                  [disabled]="contrasenaForm.invalid || loadingContrasena">
+                  <span *ngIf="!loadingContrasena">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Cambiar Contraseña
+                  </span>
+                  <span *ngIf="loadingContrasena">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Cambiando...
+                  </span>
+                </button>
+              </div>
+
+            </form>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>

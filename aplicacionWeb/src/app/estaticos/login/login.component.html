@@ -1,48 +1,174 @@
-<div class="seccion-fondo"> 
-  <div class="container mt-4">
-    <div class="row align-items-center">
-      
-      <!-- Formulario envuelto con fondo blanco semitransparente -->
-      <div class="col-md-6">
-        <div class="form-container p-4 rounded shadow">
-          <h1 class="text-center mb-4">Inicie sesión</h1>
-          <form class="form" (ngSubmit)="iniciarSeccion()">
+<!-- aplicacionWeb/src/app/estaticos/login/login.component.html -->
+<div class="container-fluid seccion-fondo">
+  <div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-6 col-lg-4">
+      <div class="card shadow-lg form-container">
+        <div class="card-body p-4">
+          
+          <!-- Loading Component -->
+          <app-loading *ngIf="loading"></app-loading>
 
-            <!-- Campo: Correo -->
-            <div class="mb-3 w-100 px-4">
-              <label for="correo" class="form-label">Correo</label>
-              <input id="correo" [(ngModel)]="correo" name="correo" type="text" class="form-control" placeholder="Ingrese correo">              
+          <!-- Header -->
+          <div class="text-center mb-4">
+            <img [src]="logoPath" alt="Logo MiDuelo" class="mb-3" style="max-width: 150px;">
+            <h2 class="text-primary">Iniciar Sesión</h2>
+            <p class="text-muted">Bienvenido de vuelta</p>
+          </div>
+
+          <!-- Formulario de Login -->
+          <form (ngSubmit)="iniciarSeccion()" #loginForm="ngForm">
+            
+            <!-- Correo Electrónico -->
+            <div class="mb-3">
+              <label for="correo" class="form-label">Correo Electrónico</label>
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
+                <input 
+                  type="email" 
+                  class="form-control" 
+                  id="correo" 
+                  name="correo"
+                  [(ngModel)]="correo"
+                  placeholder="ejemplo@correo.com"
+                  required
+                  email>
+              </div>
             </div>
 
-            <!-- Campo: Contraseña -->
-            <div class="mb-3 w-100 px-4">
+            <!-- Contraseña -->
+            <div class="mb-3">
               <label for="contrasena" class="form-label">Contraseña</label>
-              <input id="contrasena" [(ngModel)]="contrasena" name="contrasena" type="password" class="form-control" placeholder="Ingrese contraseña">
-
+              <div class="input-group">
+                <span class="input-group-text"><i class="bi bi-lock"></i></span>
+                <input 
+                  [type]="mostrarContrasena ? 'text' : 'password'" 
+                  class="form-control" 
+                  id="contrasena" 
+                  name="contrasena"
+                  [(ngModel)]="contrasena"
+                  placeholder="••••••••"
+                  required>
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button" 
+                  (click)="toggleMostrarContrasena()"
+                  title="Mostrar/Ocultar contraseña">
+                  <i [class]="mostrarContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
             </div>
 
-            <!-- Botón centrado -->
-            <div class="d-flex justify-content-center mt-4 px-4">
-              <button type="submit" class="btn btn-primary px-4">Iniciar sesión</button>
+            <!-- Olvidé mi contraseña -->
+            <div class="mb-3 text-end">
+              <a 
+                href="javascript:void(0)" 
+                class="text-primary text-decoration-none"
+                (click)="abrirModalRecuperacion()">
+                ¿Olvidaste tu contraseña?
+              </a>
             </div>
 
-            <!-- Recuperar contraseña -->
-            <div class="text-center mt-3">
-              <a href="#" class="text-primary text-decoration-none">¿Olvidaste tu contraseña?</a>
+            <!-- Botón de Inicio de Sesión -->
+            <div class="d-grid gap-2 mb-3">
+              <button 
+                type="submit" 
+                class="btn btn-primary btn-lg"
+                [disabled]="loading || !correo || !contrasena">
+                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+              </button>
             </div>
-            @if (loading) {
-            <app-loading />
-            }
+
+            <!-- Link a Registro -->
+            <div class="text-center">
+              <p class="text-muted">
+                ¿No tienes una cuenta? 
+                <a routerLink="/registro" class="text-primary">Regístrate aquí</a>
+              </p>
+            </div>
+
           </form>
+
         </div>
       </div>
-
-      <!-- Columna 2: Imagen y texto -->
-      <div class="col-md-6 text-center">
-        <h1 class="text-white display-4">¡Bienvenido a MiDuelo!</h1>
-        <img src="/imagenes/branding/logo.png" alt="Logo" class="img-fluid mt-3" style="max-height: 250px;">
-      </div>
-
     </div>
   </div>
+</div>
+
+<!-- Modal de Recuperación de Contraseña -->
+<div 
+  class="modal fade" 
+  [class.show]="mostrarModalRecuperacion" 
+  [style.display]="mostrarModalRecuperacion ? 'block' : 'none'"
+  tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="bi bi-key text-primary me-2"></i>
+          Recuperar Contraseña
+        </h5>
+        <button 
+          type="button" 
+          class="btn-close" 
+          (click)="cerrarModalRecuperacion()">
+        </button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted">
+          Ingresa tu correo electrónico o número de teléfono registrado. 
+          Te enviaremos un enlace para restablecer tu contraseña.
+        </p>
+        
+        <div class="mb-3">
+          <label for="correoOTelefonoRecuperacion" class="form-label">
+            Correo Electrónico o Teléfono
+          </label>
+          <input 
+            type="text" 
+            class="form-control" 
+            id="correoOTelefonoRecuperacion"
+            [(ngModel)]="correoOTelefonoRecuperacion"
+            placeholder="ejemplo@correo.com o 5512345678"
+            [disabled]="loadingRecuperacion">
+        </div>
+
+        <div class="alert alert-info">
+          <i class="bi bi-info-circle me-2"></i>
+          <small>
+            Si ingresas tu número telefónico, recibirás el correo en la dirección 
+            de email registrada con ese número.
+          </small>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModalRecuperacion()"
+          [disabled]="loadingRecuperacion">
+          Cancelar
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="solicitarRecuperacion()"
+          [disabled]="!correoOTelefonoRecuperacion || loadingRecuperacion">
+          <span *ngIf="!loadingRecuperacion">
+            <i class="bi bi-send"></i> Enviar
+          </span>
+          <span *ngIf="loadingRecuperacion">
+            <span class="spinner-border spinner-border-sm me-2"></span>
+            Enviando...
+          </span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop del Modal -->
+<div 
+  class="modal-backdrop fade" 
+  [class.show]="mostrarModalRecuperacion"
+  *ngIf="mostrarModalRecuperacion">
 </div>

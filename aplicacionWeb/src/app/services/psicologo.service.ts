@@ -1,3 +1,4 @@
+// aplicacionWeb/src/app/services/psicologo.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { environment } from '../../environments/environment';
@@ -8,20 +9,64 @@ import { Observable } from 'rxjs';
   providedIn: 'root'
 })
 export class PsicologoService {
- private AppUrl: string;
+  private AppUrl: string;
   private APIUrl: string;
 
   constructor(private http: HttpClient) {
-    this.AppUrl = environment.apiUrl;  // Corregí la coma por punto y coma
+    this.AppUrl = environment.apiUrl;
     this.APIUrl = "/api/psicologo";
   }
 
-  registrarUsuario(usuario: Psicologo): Observable <any>{
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders().set('Authorization', `Bearer ${token}`);
+  }
+
+  registrarUsuario(usuario: Psicologo): Observable<any> {
     return this.http.post(`${this.AppUrl}${this.APIUrl}/registro`, usuario);
   }
-  iniciarSesion(usuario: Psicologo): Observable <string>{
-    const token = localStorage.getItem('token');
-    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
-    return this.http.post<string>(`${this.AppUrl}${this.APIUrl}/iniciar-sesion`, usuario);
+
+  iniciarSesion(usuario: Psicologo): Observable<any> {
+    return this.http.post<any>(`${this.AppUrl}${this.APIUrl}/iniciar-sesion`, usuario);
+  }
+
+  activarCuenta(token: string): Observable<any> {
+    return this.http.get(`${this.AppUrl}${this.APIUrl}/activar/${token}`);
+  }
+
+  reenviarActivacion(correo: string): Observable<any> {
+    return this.http.post(`${this.AppUrl}${this.APIUrl}/reenviar-activacion`, { correo });
+  }
+
+  solicitarRecuperacion(correoOTelefono: string): Observable<any> {
+    return this.http.post(`${this.AppUrl}${this.APIUrl}/recuperar-contrasena`, { 
+      correoOTelefono 
+    });
+  }
+
+  verificarTokenRecuperacion(token: string): Observable<any> {
+    return this.http.get(`${this.AppUrl}${this.APIUrl}/verificar-token/${token}`);
+  }
+
+  restablecerContrasena(token: string, nuevaContrasena: string): Observable<any> {
+    return this.http.post(`${this.AppUrl}${this.APIUrl}/restablecer-contrasena/${token}`, {
+      nuevaContrasena
+    });
+  }
+
+  actualizarPerfil(datos: any): Observable<any> {
+    return this.http.put(
+      `${this.AppUrl}${this.APIUrl}/actualizar-perfil`, 
+      datos, 
+      { headers: this.getHeaders() }
+    );
+  }
+
+  cambiarContrasena(contrasenaActual: string, nuevaContrasena: string): Observable<any> {
+    return this.http.put(
+      `${this.AppUrl}${this.APIUrl}/cambiar-contrasena`,
+      { contrasenaActual, nuevaContrasena },
+      { headers: this.getHeaders() }
+    );
   }
 }

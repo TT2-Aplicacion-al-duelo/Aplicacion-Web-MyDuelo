@@ -1,76 +1,259 @@
-<div class="seccion-fondo">
-    <div class="container mt-1">
-        <div class="row justify-content-center">
-            <div class="col-md-5">
-            <div class="card shadow">
-                <div class="card-body">
-                <h3 class="text-center mb-4">Registro de Profesional</h3>
-                <form>
-                    <div class="form-control mb-3">
-                        <label for="nombre">Nombre</label>
-                        <input type="text" class="form-control" [(ngModel)]="nombre" name="nombre" id="nombre" placeholder="Nombres">
-                    </div>
+<!-- aplicacionWeb/src/app/estaticos/registro/registro.component.html -->
+<div class="container-fluid seccion-fondo">
+  <div class="row justify-content-center align-items-center min-vh-100">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow-lg form-container">
+        <div class="card-body p-4">
+          
+          <!-- Header -->
+          <div class="text-center mb-4">
+            <img src="/imagenes/branding/logo.png" alt="Logo" class="mb-3" style="max-width: 150px;">
+            <h2 class="text-primary">Registro de Psicólogo</h2>
+            <p class="text-muted">Completa todos los campos para crear tu cuenta</p>
+          </div>
 
-                    <div class="form-control mb-3">
-                        <label for="apellidoPaterno">Apellido Paterno</label>
-                        <input type="text" class="form-control" [(ngModel)]="apellidoPaterno" name="apellidoPaterno" id="apellidoPaterno" placeholder="Apellido Paterno">
-                    </div>
+          <!-- Formulario -->
+          <form [formGroup]="registroForm" (ngSubmit)="registrarPsicologo()">
+            
+            <!-- Nombre -->
+            <div class="mb-3">
+              <label for="nombre" class="form-label">Nombre(s) <span class="text-danger">*</span></label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="nombre" 
+                formControlName="nombre"
+                [class.is-invalid]="nombre?.invalid && nombre?.touched"
+                [class.is-valid]="nombre?.valid && nombre?.touched">
+              <div class="invalid-feedback" *ngIf="nombre?.invalid && nombre?.touched">
+                <span *ngIf="nombre?.errors?.['required']">El nombre es obligatorio</span>
+                <span *ngIf="nombre?.errors?.['minlength']">El nombre debe tener al menos 2 caracteres</span>
+              </div>
+            </div>
 
-                    <div class="form-control mb-3">
-                        <label for="apellidoMaterno">Apellido Materno</label>
-                        <input type="text" class="form-control" [(ngModel)]="apellidoMaterno" name="apellidoMaterno" id="apellidoMaterno" placeholder="Apellido Materno">
-                    </div>
-
-                    <div class="form-control mb-3">
-                        <label for="fechaNacimiento">Fecha Nacimiento</label>
-                        <input type="date" class="form-control" [(ngModel)]="fecha_nacimiento" name="fechaNacimiento" id="fechaNacimiento">
-                    </div>
-
-                    <div class="form-control mb-3">
-                        <label for="especialidad">Especialidad</label>
-                        <input type="text" class="form-control" [(ngModel)]="especialidad" name="especialidad" id="especialidad" placeholder="Especialidad">
-                    </div>
-
-                    <div class="form-control mb-3">
-                        <label for="cedulaProfesional">Cédula Profesional</label>
-                        <input type="text" class="form-control" [(ngModel)]="cedulaProfesional" name="cedulaProfesional" id="cedulaProfesional" placeholder="Cédula Profesional">
-                    </div>
-
-                    <div class="form-control mb-3">
-                        <label for="numTelefonico">Número Telefónico</label>
-                        <input type="text" class="form-control" [(ngModel)]="numTelefonico" name="numTelefonico" id="numTelefonico" placeholder="55 5555 5555">
-                    </div>
-
-                    <div class="form-control mb-3">
-                        <label for="correo">Correo</label>
-                        <input type="email" class="form-control" [(ngModel)]="correo" name="correo" id="correo" placeholder="Correo">
-                    </div>
-
-                    <div class="form-control mb-3">
-                        <label for="contrasena">Contraseña</label>
-                        <input type="password" class="form-control" [(ngModel)]="contrasena" name="contrasena" id="contrasena" placeholder="Contraseña">
-                    </div>
-
-                    <div class="form-control mb-3">
-                        <label for="confirmarContrasena">Confirme su contraseña</label>
-                        <input type="password" class="form-control" [(ngModel)]="confirmarContrasena" name="confirmarContrasena" id="confirmarContrasena" placeholder="Confirme su contraseña">
-                    </div>
-
-                    <div class="d-grid ga-2">
-                        <button class="btn btn-primary" (click)="registrarPsicologo()" type="button">Registrar</button>
-                    </div>
-
-                    <div>
-                        <p class="mt-3">¿Ya tienes una cuenta? 
-                        <a routerLink="/iniciar-sesion">Inicia sesión</a>
-                        </p>
-                    </div>
-                    </form>
-
+            <!-- Apellidos -->
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="apellidoPaterno" class="form-label">Apellido Paterno <span class="text-danger">*</span></label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="apellidoPaterno" 
+                  formControlName="apellidoPaterno"
+                  [class.is-invalid]="apellidoPaterno?.invalid && apellidoPaterno?.touched"
+                  [class.is-valid]="apellidoPaterno?.valid && apellidoPaterno?.touched">
+                <div class="invalid-feedback" *ngIf="apellidoPaterno?.invalid && apellidoPaterno?.touched">
+                  <span *ngIf="apellidoPaterno?.errors?.['required']">El apellido paterno es obligatorio</span>
+                  <span *ngIf="apellidoPaterno?.errors?.['minlength']">Debe tener al menos 2 caracteres</span>
                 </div>
+              </div>
+
+              <div class="col-md-6 mb-3">
+                <label for="apellidoMaterno" class="form-label">Apellido Materno</label>
+                <input 
+                  type="text" 
+                  class="form-control" 
+                  id="apellidoMaterno" 
+                  formControlName="apellidoMaterno"
+                  [class.is-invalid]="apellidoMaterno?.invalid && apellidoMaterno?.touched"
+                  [class.is-valid]="apellidoMaterno?.valid && apellidoMaterno?.touched">
+                <div class="invalid-feedback" *ngIf="apellidoMaterno?.invalid && apellidoMaterno?.touched">
+                  <span *ngIf="apellidoMaterno?.errors?.['minlength']">Debe tener al menos 2 caracteres</span>
+                </div>
+              </div>
             </div>
+
+            <!-- Fecha de Nacimiento -->
+            <div class="mb-3">
+              <label for="fecha_nacimiento" class="form-label">Fecha de Nacimiento <span class="text-danger">*</span></label>
+              <input 
+                type="date" 
+                class="form-control" 
+                id="fecha_nacimiento" 
+                formControlName="fecha_nacimiento"
+                [class.is-invalid]="fecha_nacimiento?.invalid && fecha_nacimiento?.touched"
+                [class.is-valid]="fecha_nacimiento?.valid && fecha_nacimiento?.touched">
+              <div class="invalid-feedback" *ngIf="fecha_nacimiento?.invalid && fecha_nacimiento?.touched">
+                <span *ngIf="fecha_nacimiento?.errors?.['required']">La fecha de nacimiento es obligatoria</span>
+                <span *ngIf="fecha_nacimiento?.errors?.['edadMinima'] || fecha_nacimiento?.errors?.['edadMaxima']">
+                  {{ obtenerMensajeErrorEdad() }}
+                </span>
+              </div>
+              <small class="text-muted">Debes tener entre 18 y 90 años</small>
             </div>
+
+            <!-- Especialidad -->
+            <div class="mb-3">
+              <label for="especialidad" class="form-label">Especialidad <span class="text-danger">*</span></label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="especialidad" 
+                formControlName="especialidad"
+                placeholder="Ej: Psicología Clínica, Tanatología..."
+                [class.is-invalid]="especialidad?.invalid && especialidad?.touched"
+                [class.is-valid]="especialidad?.valid && especialidad?.touched">
+              <div class="invalid-feedback" *ngIf="especialidad?.invalid && especialidad?.touched">
+                <span *ngIf="especialidad?.errors?.['required']">La especialidad es obligatoria</span>
+                <span *ngIf="especialidad?.errors?.['minlength']">Debe tener al menos 3 caracteres</span>
+              </div>
+            </div>
+
+            <!-- Cédula Profesional -->
+            <div class="mb-3">
+              <label for="cedulaProfesional" class="form-label">Cédula Profesional <span class="text-danger">*</span></label>
+              <input 
+                type="text" 
+                class="form-control" 
+                id="cedulaProfesional" 
+                formControlName="cedulaProfesional"
+                (keypress)="soloNumeros($event)"
+                maxlength="10"
+                [class.is-invalid]="cedulaProfesional?.invalid && cedulaProfesional?.touched"
+                [class.is-valid]="cedulaProfesional?.valid && cedulaProfesional?.touched">
+              <div class="invalid-feedback" *ngIf="cedulaProfesional?.invalid && cedulaProfesional?.touched">
+                <span *ngIf="cedulaProfesional?.errors?.['required']">La cédula profesional es obligatoria</span>
+                <span *ngIf="cedulaProfesional?.errors?.['cedulaInvalida']">La cédula debe tener entre 7 y 10 dígitos</span>
+              </div>
+              <small class="text-muted">Ingresa solo números (7-10 dígitos)</small>
+            </div>
+
+            <!-- Teléfono -->
+            <div class="mb-3">
+              <label for="numTelefonico" class="form-label">Número Telefónico <span class="text-danger">*</span></label>
+              <input 
+                type="tel" 
+                class="form-control" 
+                id="numTelefonico" 
+                formControlName="numTelefonico"
+                (keypress)="soloNumeros($event)"
+                maxlength="10"
+                placeholder="10 dígitos"
+                [class.is-invalid]="numTelefonico?.invalid && numTelefonico?.touched"
+                [class.is-valid]="numTelefonico?.valid && numTelefonico?.touched">
+              <div class="invalid-feedback" *ngIf="numTelefonico?.invalid && numTelefonico?.touched">
+                <span *ngIf="numTelefonico?.errors?.['required']">El teléfono es obligatorio</span>
+                <span *ngIf="numTelefonico?.errors?.['telefonoInvalido']">El teléfono debe tener exactamente 10 dígitos</span>
+              </div>
+            </div>
+
+            <!-- Correo Electrónico -->
+            <div class="mb-3">
+              <label for="correo" class="form-label">Correo Electrónico <span class="text-danger">*</span></label>
+              <input 
+                type="email" 
+                class="form-control" 
+                id="correo" 
+                formControlName="correo"
+                placeholder="ejemplo@correo.com"
+                [class.is-invalid]="correo?.invalid && correo?.touched"
+                [class.is-valid]="correo?.valid && correo?.touched">
+              <div class="invalid-feedback" *ngIf="correo?.invalid && correo?.touched">
+                <span *ngIf="correo?.errors?.['required']">El correo es obligatorio</span>
+                <span *ngIf="correo?.errors?.['email']">El formato del correo no es válido</span>
+              </div>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="mb-3">
+              <label for="contrasena" class="form-label">Contraseña <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <input 
+                  [type]="mostrarContrasena ? 'text' : 'password'" 
+                  class="form-control" 
+                  id="contrasena" 
+                  formControlName="contrasena"
+                  [class.is-invalid]="contrasena?.invalid && contrasena?.touched"
+                  [class.is-valid]="contrasena?.valid && contrasena?.touched">
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button" 
+                  (click)="toggleMostrarContrasena()">
+                  <i [class]="mostrarContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback d-block" *ngIf="contrasena?.invalid && contrasena?.touched">
+                <span *ngIf="contrasena?.errors?.['required']">La contraseña es obligatoria</span>
+                <span *ngIf="contrasena?.errors && !contrasena?.errors?.['required']">
+                  {{ obtenerMensajeErrorContrasena() }}
+                </span>
+              </div>
+              <button 
+                type="button" 
+                class="btn btn-sm btn-outline-primary mt-2" 
+                (click)="generarContrasenaSegura()">
+                <i class="bi bi-key"></i> Generar contraseña segura
+              </button>
+            </div>
+
+            <!-- Confirmar Contraseña -->
+            <div class="mb-3">
+              <label for="confirmarContrasena" class="form-label">Confirmar Contraseña <span class="text-danger">*</span></label>
+              <div class="input-group">
+                <input 
+                  [type]="mostrarConfirmarContrasena ? 'text' : 'password'" 
+                  class="form-control" 
+                  id="confirmarContrasena" 
+                  formControlName="confirmarContrasena"
+                  [class.is-invalid]="confirmarContrasena?.invalid && confirmarContrasena?.touched"
+                  [class.is-valid]="confirmarContrasena?.valid && confirmarContrasena?.touched">
+                <button 
+                  class="btn btn-outline-secondary" 
+                  type="button" 
+                  (click)="toggleMostrarConfirmarContrasena()">
+                  <i [class]="mostrarConfirmarContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                </button>
+              </div>
+              <div class="invalid-feedback d-block" *ngIf="confirmarContrasena?.invalid && confirmarContrasena?.touched">
+                <span *ngIf="confirmarContrasena?.errors?.['required']">Debes confirmar la contraseña</span>
+                <span *ngIf="confirmarContrasena?.errors?.['contrasenasNoCoinciden']">Las contraseñas no coinciden</span>
+              </div>
+            </div>
+
+            <!-- Términos y Condiciones -->
+            <div class="mb-3 form-check">
+              <input 
+                type="checkbox" 
+                class="form-check-input" 
+                id="aceptaTerminos" 
+                formControlName="aceptaTerminos"
+                [class.is-invalid]="aceptaTerminos?.invalid && aceptaTerminos?.touched">
+              <label class="form-check-label" for="aceptaTerminos">
+                Acepto los <a href="/terminos-y-condiciones" target="_blank">términos y condiciones</a> <span class="text-danger">*</span>
+              </label>
+              <div class="invalid-feedback d-block" *ngIf="aceptaTerminos?.invalid && aceptaTerminos?.touched">
+                Debes aceptar los términos y condiciones para registrarte
+              </div>
+            </div>
+
+            <!-- Botón de Registro -->
+            <div class="d-grid gap-2 mb-3">
+              <button 
+                type="submit" 
+                class="btn btn-primary btn-lg" 
+                [disabled]="registroForm.invalid || loading">
+                <span *ngIf="!loading">
+                  <i class="bi bi-person-plus"></i> Registrarme
+                </span>
+                <span *ngIf="loading">
+                  <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                  Registrando...
+                </span>
+              </button>
+            </div>
+
+            <!-- Link a Login -->
+            <div class="text-center">
+              <p class="text-muted">
+                ¿Ya tienes una cuenta? 
+                <a routerLink="/iniciar-sesion" class="text-primary">Inicia sesión aquí</a>
+              </p>
+            </div>
+
+          </form>
+
         </div>
+      </div>
     </div>
-  
+  </div>
 </div>

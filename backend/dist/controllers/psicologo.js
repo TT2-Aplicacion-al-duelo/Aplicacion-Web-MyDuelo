@@ -12,97 +12,643 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.login = exports.registro = void 0;
+exports.cambiarContrasena = exports.actualizarPerfil = exports.restablecerContrasena = exports.verificarTokenRecuperacion = exports.solicitarRecuperacion = exports.login = exports.reenviarActivacion = exports.activarCuenta = exports.registro = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
-const psicologo_1 = require("../models/psicologo");
-const sequelize_1 = require("sequelize");
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
-const registro = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { nombre, apellidoPaterno, apellidoMaterno, fecha_nacimiento, especialidad, telefono, contrasena, correo, cedula } = req.body;
-    const contrasenaHash = yield bcrypt_1.default.hash(contrasena, 10);
-    const userUnico = yield psicologo_1.Psicologo.findOne({ where: { [sequelize_1.Op.or]: { correo: correo, cedula: cedula, telefono: telefono } } });
-    if (userUnico) {
-        return res.status(400).json({ msg: `El usuario ya existe ${correo} o la credencial ${cedula} o numero telefonico: ${telefono}` });
+const crypto_1 = __importDefault(require("crypto"));
+const psicologo_1 = require("../models/psicologo");
+const token_1 = require("../models/token");
+const email_service_1 = __importDefault(require("../services/email.service"));
+const sequelize_1 = require("sequelize");
+// Función auxiliar para validar edad (18-90 años)
+const validarEdad = (fechaNacimiento) => {
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    const edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+        return (edad - 1) >= 18 && (edad - 1) <= 90;
     }
+    return edad >= 18 && edad <= 90;
+};
+// Función auxiliar para validar formato de cédula (7-10 dígitos)
+const validarCedula = (cedula) => {
+    const regex = /^\d{7,10}$/;
+    return regex.test(cedula);
+};
+// Función auxiliar para validar teléfono (10 dígitos)
+const validarTelefono = (telefono) => {
+    const regex = /^\d{10}$/;
+    return regex.test(telefono);
+};
+// Función auxiliar para validar email
+const validarEmail = (email) => {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
+};
+// Función auxiliar para validar contraseña segura
+const validarContrasenaSegura = (contrasena) => {
+    if (contrasena.length < 8) {
+        return { valida: false, mensaje: 'La contraseña debe tener al menos 8 caracteres' };
+    }
+    if (!/[A-Z]/.test(contrasena)) {
+        return { valida: false, mensaje: 'La contraseña debe contener al menos una letra mayúscula' };
+    }
+    if (!/[a-z]/.test(contrasena)) {
+        return { valida: false, mensaje: 'La contraseña debe contener al menos una letra minúscula' };
+    }
+    if (!/[0-9]/.test(contrasena)) {
+        return { valida: false, mensaje: 'La contraseña debe contener al menos un número' };
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(contrasena)) {
+        return { valida: false, mensaje: 'La contraseña debe contener al menos un carácter especial (!@#$%^&*...)' };
+    }
+    return { valida: true, mensaje: 'Contraseña válida' };
+};
+const registro = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { nombre, apellidoPaterno, apellidoMaterno, fecha_nacimiento, especialidad, cedula, telefono, correo, contrasena, aceptaTerminos } = req.body;
     try {
-        psicologo_1.Psicologo.create({
-            nombre: nombre,
-            apellidoPaterno: apellidoPaterno,
-            apellidoMaterno: apellidoMaterno,
-            fecha_nacimiento: fecha_nacimiento,
-            especialidad: especialidad,
-            telefono: telefono,
-            correo: correo,
-            contrasena: contrasenaHash,
-            cedula: cedula,
-            status: 1,
+        // Validación 1: Campos obligatorios
+        if (!nombre || !apellidoPaterno || !fecha_nacimiento || !especialidad || !cedula || !telefono || !correo || !contrasena) {
+            res.status(400).json({
+                msg: 'Todos los campos son obligatorios'
+            });
+            return;
+        }
+        // Validación 2: Términos y condiciones
+        if (!aceptaTerminos) {
+            res.status(400).json({
+                msg: 'Debes aceptar los términos y condiciones para registrarte'
+            });
+            return;
+        }
+        // Validación 3: Edad (18-90 años)
+        if (!validarEdad(fecha_nacimiento)) {
+            res.status(400).json({
+                msg: 'Debes tener entre 18 y 90 años para registrarte'
+            });
+            return;
+        }
+        // Validación 4: Formato de cédula (7-10 dígitos)
+        if (!validarCedula(cedula)) {
+            res.status(400).json({
+                msg: 'La cédula profesional debe contener entre 7 y 10 dígitos numéricos'
+            });
+            return;
+        }
+        // Validación 5: Formato de teléfono (10 dígitos)
+        if (!validarTelefono(telefono)) {
+            res.status(400).json({
+                msg: 'El teléfono debe contener exactamente 10 dígitos'
+            });
+            return;
+        }
+        // Validación 6: Formato de email
+        if (!validarEmail(correo)) {
+            res.status(400).json({
+                msg: 'El formato del correo electrónico no es válido'
+            });
+            return;
+        }
+        // Validación 7: Contraseña segura
+        const validacionContrasena = validarContrasenaSegura(contrasena);
+        if (!validacionContrasena.valida) {
+            res.status(400).json({
+                msg: validacionContrasena.mensaje
+            });
+            return;
+        }
+        // Validación 8: Usuario existente por correo
+        const existeCorreo = yield psicologo_1.Psicologo.findOne({ where: { correo } });
+        if (existeCorreo) {
+            res.status(400).json({
+                msg: 'Ya existe un usuario registrado con ese correo electrónico'
+            });
+            return;
+        }
+        // Validación 9: Usuario existente por cédula
+        const existeCedula = yield psicologo_1.Psicologo.findOne({ where: { cedula } });
+        if (existeCedula) {
+            res.status(400).json({
+                msg: 'Ya existe un usuario registrado con esa cédula profesional'
+            });
+            return;
+        }
+        // Encriptar contraseña
+        const hashedPassword = yield bcrypt_1.default.hash(contrasena, 10);
+        // Crear psicólogo con status "inactivo"
+        const nuevoPsicologo = yield psicologo_1.Psicologo.create({
+            nombre,
+            apellidoPaterno,
+            apellidoMaterno,
+            fecha_nacimiento,
+            especialidad,
+            cedula,
+            telefono,
+            correo,
+            contrasena: hashedPassword,
+            status: 'inactivo', // La cuenta inicia inactiva hasta que se active
+            cedula_validada: false,
+            rol_admin: false
         });
-        res.json({
-            msg: 'User ${nombre} ${apellidoPaterno} create success...'
+        // Generar token de activación (válido por 48 horas)
+        const tokenActivacion = crypto_1.default.randomBytes(32).toString('hex');
+        const fechaExpiracion = new Date();
+        fechaExpiracion.setHours(fechaExpiracion.getHours() + 48);
+        yield token_1.Token.create({
+            id_psicologo: nuevoPsicologo.id_psicologo,
+            token: tokenActivacion,
+            tipo: 'activacion',
+            fecha_expiracion: fechaExpiracion,
+            usado: false
+        });
+        // Enviar correo de activación
+        const correoEnviado = yield email_service_1.default.enviarCorreoActivacion(correo, tokenActivacion, nombre);
+        if (!correoEnviado) {
+            console.error('No se pudo enviar el correo de activación');
+        }
+        res.status(201).json({
+            msg: 'Registro exitoso. Por favor revisa tu correo electrónico para activar tu cuenta. El enlace expira en 48 horas.',
+            correoEnviado
         });
     }
     catch (error) {
-        res.status(400).json({ msg: 'El usuario ya existe ${correo} o la credencial ${cedula}' });
+        console.error('Error en el registro:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor al registrar el usuario',
+            error: error instanceof Error ? error.message : 'Error desconocido'
+        });
     }
 });
 exports.registro = registro;
-// // LOGIN CORREGIDO
-// export const login = async(req: Request, res: Response) => {
-//     const {correo, contrasena} = req.body;
-//     const userUnico: any = await Psicologo.findOne({where: {correo: correo}});
-//     if(!userUnico){
-//          return res.status(400).json(
-//              {msg: `El usuario NO existe ${correo}`}
-//         )
-//     }
-//     const validarContrasena = await bcrypt.compare(contrasena, userUnico.contrasena);
-//     if(!validarContrasena){
-//         return res.status(400).json(
-//              {msg: `Contraseña Incorrecta`}
-//         )
-//     }
-//     //INCLUIR ID_PSICOLOGO EN EL TOKEN
-//     const token = jwt.sign({
-//         correo: correo,
-//         id_psicologo: userUnico.id_psicologo  // ← AGREGADO
-//     }, process.env.SECRET_KEY || '1£O1T(GL\fx0', { expiresIn: '1h' });
-//     res.json({token});
-// }
-// LOGIN CORREGIDO CON DETECCIÓN DE ROL
+const activarCuenta = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token } = req.params;
+    try {
+        // Buscar el token
+        const tokenRegistro = yield token_1.Token.findOne({
+            where: {
+                token,
+                tipo: 'activacion',
+                usado: false,
+                fecha_expiracion: {
+                    [sequelize_1.Op.gt]: new Date() // Token no expirado
+                }
+            }
+        });
+        if (!tokenRegistro) {
+            res.status(400).json({
+                msg: 'Token inválido o expirado. Por favor solicita un nuevo enlace de activación.'
+            });
+            return;
+        }
+        // Activar la cuenta del psicólogo
+        const tokenData = tokenRegistro;
+        yield psicologo_1.Psicologo.update({ status: 'activo' }, { where: { id_psicologo: tokenData.id_psicologo } });
+        // Marcar el token como usado
+        yield token_1.Token.update({ usado: true }, { where: { id_token: tokenData.id_token } });
+        res.json({
+            msg: '¡Cuenta activada exitosamente! Ya puedes iniciar sesión en la plataforma.'
+        });
+    }
+    catch (error) {
+        console.error('Error al activar cuenta:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor al activar la cuenta'
+        });
+    }
+});
+exports.activarCuenta = activarCuenta;
+const reenviarActivacion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { correo } = req.body;
+    try {
+        const psicologo = yield psicologo_1.Psicologo.findOne({ where: { correo } });
+        if (!psicologo) {
+            res.status(404).json({
+                msg: 'No existe un usuario registrado con ese correo'
+            });
+            return;
+        }
+        const psicologoData = psicologo;
+        if (psicologoData.status === 'activo') {
+            res.status(400).json({
+                msg: 'Esta cuenta ya está activada. Puedes iniciar sesión normalmente.'
+            });
+            return;
+        }
+        // Invalidar tokens anteriores
+        yield token_1.Token.update({ usado: true }, {
+            where: {
+                id_psicologo: psicologoData.id_psicologo,
+                tipo: 'activacion',
+                usado: false
+            }
+        });
+        // Generar nuevo token
+        const tokenActivacion = crypto_1.default.randomBytes(32).toString('hex');
+        const fechaExpiracion = new Date();
+        fechaExpiracion.setHours(fechaExpiracion.getHours() + 48);
+        yield token_1.Token.create({
+            id_psicologo: psicologoData.id_psicologo,
+            token: tokenActivacion,
+            tipo: 'activacion',
+            fecha_expiracion: fechaExpiracion,
+            usado: false
+        });
+        // Reenviar correo
+        yield email_service_1.default.enviarCorreoActivacion(correo, tokenActivacion, psicologoData.nombre);
+        res.json({
+            msg: 'Se ha enviado un nuevo correo de activación. Revisa tu bandeja de entrada.'
+        });
+    }
+    catch (error) {
+        console.error('Error al reenviar activación:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.reenviarActivacion = reenviarActivacion;
 const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { correo, contrasena } = req.body;
-    const userUnico = yield psicologo_1.Psicologo.findOne({ where: { correo: correo } });
-    if (!userUnico) {
-        return res.status(400).json({ msg: `El usuario NO existe ${correo}` });
-    }
-    // VERIFICAR QUE LA CUENTA ESTÉ ACTIVA
-    // if(userUnico.status !== 'activo'){
-    //     return res.status(403).json(
-    //          {msg: `Cuenta inactiva. Contacte al administrador.`}
-    //     )
-    // }
-    const validarContrasena = yield bcrypt_1.default.compare(contrasena, userUnico.contrasena);
-    if (!validarContrasena) {
-        return res.status(400).json({ msg: `Contraseña Incorrecta` });
-    }
-    // INCLUIR INFORMACIÓN COMPLETA EN EL TOKEN
-    const token = jsonwebtoken_1.default.sign({
-        correo: correo,
-        id_psicologo: userUnico.id_psicologo,
-        rol_admin: userUnico.rol_admin, // ← AGREGADO PARA DISTINGUIR ADMIN
-        nombre: userUnico.nombre,
-        apellido: userUnico.apellidoPaterno
-    }, process.env.SECRET_KEY || '1£O1T(GL\fx0', { expiresIn: '8h' });
-    res.json({
-        token,
-        usuario: {
-            id: userUnico.id_psicologo,
-            nombre: userUnico.nombre,
-            correo: userUnico.correo,
-            rol_admin: userUnico.rol_admin,
-            cedula_validada: userUnico.cedula_validada,
-            status: userUnico.status
+    try {
+        // Validar campos
+        if (!correo || !contrasena) {
+            res.status(400).json({
+                msg: 'El correo y la contraseña son obligatorios'
+            });
+            return;
         }
-    });
+        // Buscar usuario
+        const psicologo = yield psicologo_1.Psicologo.findOne({ where: { correo } });
+        if (!psicologo) {
+            res.status(404).json({
+                msg: 'Usuario o contraseña incorrectos'
+            });
+            return;
+        }
+        const psicologoData = psicologo;
+        // Verificar que la cuenta esté activa
+        if (psicologoData.status === 'inactivo') {
+            res.status(403).json({
+                msg: 'No has activado tu cuenta. Por favor revisa tu correo electrónico y activa tu cuenta usando el enlace que te enviamos.',
+                requiereActivacion: true
+            });
+            return;
+        }
+        // Verificar contraseña
+        const passwordValida = yield bcrypt_1.default.compare(contrasena, psicologoData.contrasena);
+        if (!passwordValida) {
+            res.status(401).json({
+                msg: 'Usuario o contraseña incorrectos'
+            });
+            return;
+        }
+        // Verificar validación de cédula (solo si no es admin)
+        if (!psicologoData.rol_admin && !psicologoData.cedula_validada) {
+            const fechaCreacion = new Date(psicologoData.createdAt);
+            const fechaActual = new Date();
+            const diasTranscurridos = Math.floor((fechaActual.getTime() - fechaCreacion.getTime()) / (1000 * 60 * 60 * 24));
+            const diasRestantes = 7 - diasTranscurridos;
+            // Si pasaron más de 7 días sin validación, incluir advertencia en el token
+            if (diasTranscurridos > 7) {
+                const token = jsonwebtoken_1.default.sign({
+                    id_psicologo: psicologoData.id_psicologo,
+                    correo: psicologoData.correo,
+                    nombre: psicologoData.nombre,
+                    apellido: psicologoData.apellidoPaterno,
+                    rol_admin: psicologoData.rol_admin,
+                    cedula_validada: false,
+                    cuenta_limitada: true
+                }, process.env.SECRET_KEY || 'defaultsecretkey', { expiresIn: '24h' });
+                res.json({
+                    msg: 'Inicio de sesión exitoso con acceso limitado',
+                    token,
+                    usuario: {
+                        id_psicologo: psicologoData.id_psicologo,
+                        nombre: psicologoData.nombre,
+                        apellidoPaterno: psicologoData.apellidoPaterno,
+                        correo: psicologoData.correo,
+                        rol_admin: psicologoData.rol_admin,
+                        cedula_validada: false
+                    },
+                    advertencia: 'Tu cédula no ha sido validada. Tu acceso está limitado. Por favor contacta al administrador.',
+                    cuenta_limitada: true
+                });
+                return;
+            }
+            // Si aún está dentro de los 7 días, mostrar advertencia pero permitir acceso completo
+            if (diasRestantes <= 3 && diasRestantes > 0) {
+                // Enviar notificación si quedan 3 días o menos
+                yield email_service_1.default.enviarNotificacionCedulaPendiente(psicologoData.correo, psicologoData.nombre, diasRestantes);
+            }
+        }
+        // Generar token JWT
+        const token = jsonwebtoken_1.default.sign({
+            id_psicologo: psicologoData.id_psicologo,
+            correo: psicologoData.correo,
+            nombre: psicologoData.nombre,
+            apellido: psicologoData.apellidoPaterno,
+            rol_admin: psicologoData.rol_admin,
+            cedula_validada: psicologoData.cedula_validada,
+            cuenta_limitada: false
+        }, process.env.SECRET_KEY || 'defaultsecretkey', { expiresIn: '24h' });
+        // Calcular días restantes para validación (si aplica)
+        let diasRestantesValidacion = null;
+        if (!psicologoData.rol_admin && !psicologoData.cedula_validada) {
+            const fechaCreacion = new Date(psicologoData.createdAt);
+            const fechaActual = new Date();
+            const diasTranscurridos = Math.floor((fechaActual.getTime() - fechaCreacion.getTime()) / (1000 * 60 * 60 * 24));
+            diasRestantesValidacion = Math.max(0, 7 - diasTranscurridos);
+        }
+        res.json({
+            msg: 'Inicio de sesión exitoso',
+            token,
+            usuario: {
+                id_psicologo: psicologoData.id_psicologo,
+                nombre: psicologoData.nombre,
+                apellidoPaterno: psicologoData.apellidoPaterno,
+                correo: psicologoData.correo,
+                rol_admin: psicologoData.rol_admin,
+                cedula_validada: psicologoData.cedula_validada
+            },
+            diasRestantesValidacion,
+            cuenta_limitada: false
+        });
+    }
+    catch (error) {
+        console.error('Error en el login:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor al iniciar sesión'
+        });
+    }
 });
 exports.login = login;
+const solicitarRecuperacion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { correoOTelefono } = req.body;
+    try {
+        if (!correoOTelefono) {
+            res.status(400).json({
+                msg: 'Debes proporcionar un correo electrónico o número de teléfono'
+            });
+            return;
+        }
+        // Buscar por correo o teléfono
+        let psicologo;
+        if (validarEmail(correoOTelefono)) {
+            psicologo = yield psicologo_1.Psicologo.findOne({ where: { correo: correoOTelefono } });
+        }
+        else if (validarTelefono(correoOTelefono)) {
+            psicologo = yield psicologo_1.Psicologo.findOne({ where: { telefono: correoOTelefono } });
+        }
+        else {
+            res.status(400).json({
+                msg: 'Formato inválido. Debes proporcionar un correo electrónico válido o un teléfono de 10 dígitos'
+            });
+            return;
+        }
+        if (!psicologo) {
+            // Por seguridad, no revelar si el usuario existe o no
+            res.json({
+                msg: 'Si existe una cuenta con esa información, recibirás un correo con instrucciones para recuperar tu contraseña.'
+            });
+            return;
+        }
+        const psicologoData = psicologo;
+        // Invalidar tokens de recuperación anteriores
+        yield token_1.Token.update({ usado: true }, {
+            where: {
+                id_psicologo: psicologoData.id_psicologo,
+                tipo: 'recuperacion',
+                usado: false
+            }
+        });
+        // Generar token de recuperación (válido por 1 hora)
+        const tokenRecuperacion = crypto_1.default.randomBytes(32).toString('hex');
+        const fechaExpiracion = new Date();
+        fechaExpiracion.setHours(fechaExpiracion.getHours() + 1);
+        yield token_1.Token.create({
+            id_psicologo: psicologoData.id_psicologo,
+            token: tokenRecuperacion,
+            tipo: 'recuperacion',
+            fecha_expiracion: fechaExpiracion,
+            usado: false
+        });
+        // Enviar correo de recuperación
+        yield email_service_1.default.enviarCorreoRecuperacion(psicologoData.correo, tokenRecuperacion, psicologoData.nombre);
+        res.json({
+            msg: 'Si existe una cuenta con esa información, recibirás un correo con instrucciones para recuperar tu contraseña.',
+            esTelefono: validarTelefono(correoOTelefono)
+        });
+    }
+    catch (error) {
+        console.error('Error al solicitar recuperación:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.solicitarRecuperacion = solicitarRecuperacion;
+const verificarTokenRecuperacion = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token } = req.params;
+    try {
+        const tokenRegistro = yield token_1.Token.findOne({
+            where: {
+                token,
+                tipo: 'recuperacion',
+                usado: false,
+                fecha_expiracion: {
+                    [sequelize_1.Op.gt]: new Date()
+                }
+            }
+        });
+        if (!tokenRegistro) {
+            res.status(400).json({
+                msg: 'Token inválido o expirado',
+                valido: false
+            });
+            return;
+        }
+        res.json({
+            msg: 'Token válido',
+            valido: true
+        });
+    }
+    catch (error) {
+        console.error('Error al verificar token:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.verificarTokenRecuperacion = verificarTokenRecuperacion;
+const restablecerContrasena = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { token } = req.params;
+    const { nuevaContrasena } = req.body;
+    try {
+        if (!nuevaContrasena) {
+            res.status(400).json({
+                msg: 'La nueva contraseña es obligatoria'
+            });
+            return;
+        }
+        // Validar contraseña segura
+        const validacionContrasena = validarContrasenaSegura(nuevaContrasena);
+        if (!validacionContrasena.valida) {
+            res.status(400).json({
+                msg: validacionContrasena.mensaje
+            });
+            return;
+        }
+        // Buscar el token
+        const tokenRegistro = yield token_1.Token.findOne({
+            where: {
+                token,
+                tipo: 'recuperacion',
+                usado: false,
+                fecha_expiracion: {
+                    [sequelize_1.Op.gt]: new Date()
+                }
+            }
+        });
+        if (!tokenRegistro) {
+            res.status(400).json({
+                msg: 'Token inválido o expirado'
+            });
+            return;
+        }
+        const tokenData = tokenRegistro;
+        // Encriptar nueva contraseña
+        const hashedPassword = yield bcrypt_1.default.hash(nuevaContrasena, 10);
+        // Actualizar contraseña
+        yield psicologo_1.Psicologo.update({ contrasena: hashedPassword }, { where: { id_psicologo: tokenData.id_psicologo } });
+        // Marcar token como usado
+        yield token_1.Token.update({ usado: true }, { where: { id_token: tokenData.id_token } });
+        res.json({
+            msg: 'Contraseña restablecida exitosamente. Ya puedes iniciar sesión con tu nueva contraseña.'
+        });
+    }
+    catch (error) {
+        console.error('Error al restablecer contraseña:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.restablecerContrasena = restablecerContrasena;
+const actualizarPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id_psicologo } = req.body.usuario; // Viene del middleware de autenticación
+    const { telefono, correo, direccionConsultorio } = req.body;
+    try {
+        const psicologo = yield psicologo_1.Psicologo.findByPk(id_psicologo);
+        if (!psicologo) {
+            res.status(404).json({
+                msg: 'Psicólogo no encontrado'
+            });
+            return;
+        }
+        const actualizaciones = {};
+        // Validar y actualizar teléfono
+        if (telefono && telefono !== psicologo.telefono) {
+            if (!validarTelefono(telefono)) {
+                res.status(400).json({
+                    msg: 'El teléfono debe contener exactamente 10 dígitos'
+                });
+                return;
+            }
+            actualizaciones.telefono = telefono;
+        }
+        // Validar y actualizar correo
+        if (correo && correo !== psicologo.correo) {
+            if (!validarEmail(correo)) {
+                res.status(400).json({
+                    msg: 'El formato del correo electrónico no es válido'
+                });
+                return;
+            }
+            // Verificar que el correo no esté en uso
+            const existeCorreo = yield psicologo_1.Psicologo.findOne({
+                where: {
+                    correo,
+                    id_psicologo: { [sequelize_1.Op.ne]: id_psicologo }
+                }
+            });
+            if (existeCorreo) {
+                res.status(400).json({
+                    msg: 'Este correo ya está en uso por otro usuario'
+                });
+                return;
+            }
+            actualizaciones.correo = correo;
+        }
+        // Actualizar dirección de consultorio (nuevo campo, agregar a modelo si no existe)
+        if (direccionConsultorio !== undefined) {
+            actualizaciones.direccion_consultorio = direccionConsultorio;
+        }
+        // Aplicar actualizaciones
+        if (Object.keys(actualizaciones).length > 0) {
+            yield psicologo_1.Psicologo.update(actualizaciones, {
+                where: { id_psicologo }
+            });
+        }
+        res.json({
+            msg: 'Perfil actualizado exitosamente',
+            actualizaciones
+        });
+    }
+    catch (error) {
+        console.error('Error al actualizar perfil:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.actualizarPerfil = actualizarPerfil;
+const cambiarContrasena = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { id_psicologo } = req.body.usuario; // Viene del middleware
+    const { contrasenaActual, nuevaContrasena } = req.body;
+    try {
+        if (!contrasenaActual || !nuevaContrasena) {
+            res.status(400).json({
+                msg: 'La contraseña actual y la nueva contraseña son obligatorias'
+            });
+            return;
+        }
+        const psicologo = yield psicologo_1.Psicologo.findByPk(id_psicologo);
+        if (!psicologo) {
+            res.status(404).json({
+                msg: 'Psicólogo no encontrado'
+            });
+            return;
+        }
+        const psicologoData = psicologo;
+        // Verificar contraseña actual
+        const passwordValida = yield bcrypt_1.default.compare(contrasenaActual, psicologoData.contrasena);
+        if (!passwordValida) {
+            res.status(401).json({
+                msg: 'La contraseña actual es incorrecta'
+            });
+            return;
+        }
+        // Validar nueva contraseña
+        const validacionContrasena = validarContrasenaSegura(nuevaContrasena);
+        if (!validacionContrasena.valida) {
+            res.status(400).json({
+                msg: validacionContrasena.mensaje
+            });
+            return;
+        }
+        // Encriptar y actualizar
+        const hashedPassword = yield bcrypt_1.default.hash(nuevaContrasena, 10);
+        yield psicologo_1.Psicologo.update({ contrasena: hashedPassword }, { where: { id_psicologo } });
+        res.json({
+            msg: 'Contraseña actualizada exitosamente'
+        });
+    }
+    catch (error) {
+        console.error('Error al cambiar contraseña:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor'
+        });
+    }
+});
+exports.cambiarContrasena = cambiarContrasena;
