@@ -1,13 +1,18 @@
+
 import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-
-  constructor() { }
-
   private readonly TOKEN_KEY = 'token';
+  private tokenCheckInterval: any;
+
+  constructor(private router: Router) {
+    // Iniciar verificación periódica del token
+    this.iniciarVerificacionToken();
+  }
 
   setToken(token: string) {
     localStorage.setItem(this.TOKEN_KEY, token);
@@ -18,13 +23,33 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.getToken();
+    const token = this.getToken();
+    if (!token) return false;
+    
+    // Verificar si el token ha expirado
+    if (this.isTokenExpired()) {
+      this.logout();
+      return false;
+    }
+    
+    return true;
   }
 
   logout() {
     localStorage.removeItem(this.TOKEN_KEY);
+    
+    // Detener verificación periódica
+    if (this.tokenCheckInterval) {
+      clearInterval(this.tokenCheckInterval);
+    }
+    
+    // ✅ Redirigir al login y recargar para limpiar estado
+    this.router.navigate(['/iniciar-sesion']).then(() => {
+      window.location.reload(); // ✅ Esto forzará el cambio del navbar
+    });
   }
-  //Verificar si el usuario es administrador
+
+  // Verificar si el usuario es administrador
   isAdmin(): boolean {
     const token = this.getToken();
     if (!token) return false;
@@ -38,7 +63,7 @@ export class AuthService {
     }
   }
 
-  //Obtener información del usuario del token
+  // Obtener información del usuario del token
   getUserInfo(): any {
     const token = this.getToken();
     if (!token) return null;
@@ -58,7 +83,7 @@ export class AuthService {
     }
   }
 
-  //Verificar si el token ha expirado
+  // Verificar si el token ha expirado
   isTokenExpired(): boolean {
     const token = this.getToken();
     if (!token) return true;
@@ -66,12 +91,39 @@ export class AuthService {
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       const exp = payload.exp * 1000; // Convertir a milliseconds
-      return Date.now() >= exp;
+      const ahora = Date.now();
+      
+      return ahora >= exp;
     } catch (error) {
       console.error('Error verificando expiración del token:', error);
       return true;
     }
   }
 
-  
+  // ✅ NUEVO: Verificación periódica del token
+  private iniciarVerificacionToken(): void {
+    // Verificar cada minuto si el token ha expirado
+    this.tokenCheckInterval = setInterval(() => {
+      if (this.isTokenExpired() && this.getToken()) {
+        console.warn('⚠️ Token expirado, cerrando sesión automáticamente');
+        this.logout();
+      }
+    }, 60000); // Cada 60 segundos
+  }
+
+  // ✅ NUEVO: Obtener tiempo restante del token
+  getTimeUntilExpiration(): number | null {
+    const token = this.getToken();
+    if (!token) return null;
+
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const exp = payload.exp * 1000;
+      const ahora = Date.now();
+      
+      return Math.max(0, exp - ahora);
+    } catch (error) {
+      return null;
+    }
+  }
 }

@@ -93,39 +93,52 @@ export class AgendaCitasDashboardComponent implements OnInit {
     }
   }
 
-  //  MÉTODO para cargar/crear agenda
   private async cargarAgenda() {
-    try {
-      // Primero intentar obtener agenda existente
-      const response: any = await this.agendaService.getAgenda(this.idPsicologo).toPromise();
-      this.idAgenda = response?.agenda?.id_agenda;
-      console.log('Agenda encontrada:', this.idAgenda);
-    } catch (error) {
-      console.log('No existe agenda, creando nueva...');
-      // Si no existe, crear una nueva agenda para la semana actual
-      const inicioSemana = this.diasSemana[0];
-      const finSemana = this.diasSemana[6];
-      
-      const nuevaAgenda = {
-        id_psicologo: this.idPsicologo,
-        semana_inicio: format(inicioSemana, 'yyyy-MM-dd'),
-        semana_fin: format(finSemana, 'yyyy-MM-dd')
-      };
-      
-      try {
-        const response: any = await this.agendaService.crearAgenda(nuevaAgenda).toPromise();
-        this.idAgenda = response?.agenda?.id_agenda;
-        console.log('Agenda creada:', this.idAgenda);
-      } catch (createError) {
-        console.error('Error al crear agenda:', createError);
-      }
-    }
+  try {
+    const inicioSemana = this.diasSemana[0];
+    const finSemana = this.diasSemana[6];
+    const inicioSemanaStr = format(inicioSemana, 'yyyy-MM-dd');
+    const finSemanaStr = format(finSemana, 'yyyy-MM-dd');
+
+    // ✅ Intentar obtener agenda existente para esta semana específica
+    const response: any = await this.agendaService.getAgendaPorSemana(
+      this.idPsicologo, 
+      inicioSemanaStr
+    ).toPromise();
     
-    // Después cargar las citas
+    this.idAgenda = response?.agenda?.id_agenda;
+    console.log('✅ Agenda encontrada:', this.idAgenda);
+    
+    // Cargar citas
     if (this.idAgenda) {
       this.cargarCitas();
     }
+  } catch (error) {
+    console.log('⚠️ No existe agenda para esta semana, creando nueva...');
+    
+    // ✅ Crear agenda para la semana seleccionada
+    const inicioSemana = this.diasSemana[0];
+    const finSemana = this.diasSemana[6];
+    
+    const nuevaAgenda = {
+      id_psicologo: this.idPsicologo,
+      semana_inicio: format(inicioSemana, 'yyyy-MM-dd'),
+      semana_fin: format(finSemana, 'yyyy-MM-dd')
+    };
+    
+    try {
+      const response: any = await this.agendaService.crearAgenda(nuevaAgenda).toPromise();
+      this.idAgenda = response?.agenda?.id_agenda;
+      console.log('✅ Agenda creada:', this.idAgenda);
+      
+      // Inicializar eventos vacíos
+      this.eventos = [];
+    } catch (createError) {
+      console.error('❌ Error al crear agenda:', createError);
+      alert('Error al crear la agenda para esta semana');
+    }
   }
+}
 
   //  VERIFICAR Y CREAR DISPONIBILIDAD INICIAL
   private verificarDisponibilidadInicial() {
@@ -287,6 +300,17 @@ export class AgendaCitasDashboardComponent implements OnInit {
       return;
     }
 
+    // ✅ FIX: Convertir la fecha correctamente sin problemas de zona horaria
+    // El input type="date" devuelve formato YYYY-MM-DD
+    const fechaInput = this.crearFecha; // Ya viene en formato YYYY-MM-DD
+    
+    // Crear objeto Date local sin conversión UTC
+    const [year, month, day] = fechaInput.split('-').map(Number);
+    const fechaLocal = new Date(year, month - 1, day); // month es 0-indexed
+    
+    // Convertir a formato ISO YYYY-MM-DD
+    const fechaISO = fechaLocal.toISOString().split('T')[0];
+
     const horaInicio = this.crearHora;
     const duracion = this.crearDuracionMin || 60;
     const horaFin = this.calcularHoraFin(horaInicio, duracion);
@@ -294,7 +318,7 @@ export class AgendaCitasDashboardComponent implements OnInit {
     const citaData = {
       id_agenda: this.idAgenda,
       id_paciente: this.crearPacienteId,
-      fecha: this.crearFecha,
+      fecha: fechaISO,
       hora_inicio: horaInicio,
       hora_fin: horaFin,
       modalidad: this.crearModalidad,
@@ -302,16 +326,23 @@ export class AgendaCitasDashboardComponent implements OnInit {
       notas: this.crearNotas
     };
 
-    console.log('Datos de cita a enviar:', citaData);
+    console.log(' Enviando cita:', citaData);
 
     this.agendaService.crearCita(citaData).subscribe({
       next: (response) => {
         console.log('Cita creada exitosamente:', response);
+        alert('Cita creada exitosamente');
         this.cargarCitas();
         this.cerrarModal('crearModal');
+        
+        // Limpiar formulario
+        this.crearFecha = '';
+        this.crearHora = '';
+        this.crearPacienteId = null;
+        this.crearNotas = '';
       },
       error: (error) => {
-        console.error('Error al crear cita:', error);
+        console.error(' Error al crear cita:', error);
         
         // Manejar error de disponibilidad específicamente
         if (error.error?.error?.includes('disponibilidad')) {
@@ -323,6 +354,7 @@ export class AgendaCitasDashboardComponent implements OnInit {
     });
   }
 
+  // ✅ AGREGAR este método si no existe:
   private calcularHoraFin(horaInicio: string, duracionMinutos: number): string {
     const [horas, minutos] = horaInicio.split(':').map(Number);
     const minutosTotal = horas * 60 + minutos + duracionMinutos;
@@ -445,20 +477,22 @@ export class AgendaCitasDashboardComponent implements OnInit {
   }
 
   anteriorSemana() {
-    this.verFecha = addDays(this.verFecha, -7);
-    this.generarSemana();
-  }
+  this.verFecha = addDays(this.verFecha, -7);
+  this.generarSemana();
+  this.cargarAgenda(); 
+}
 
   siguienteSemana() {
-    this.verFecha = addDays(this.verFecha, 7);
-    this.generarSemana();
-  }
+  this.verFecha = addDays(this.verFecha, 7);
+  this.generarSemana();
+  this.cargarAgenda(); // ✅ Agregar esta línea
+}
 
-  hoy() {
-    this.verFecha = new Date();
-    this.generarSemana();
-  }
-
+hoy() {
+  this.verFecha = new Date();
+  this.generarSemana();
+  this.cargarAgenda(); // ✅ Agregar esta línea
+}
   getColorEvento(estado?: string): string {
     switch (estado) {
       case 'Pendiente': return 'bg-warning text-dark';

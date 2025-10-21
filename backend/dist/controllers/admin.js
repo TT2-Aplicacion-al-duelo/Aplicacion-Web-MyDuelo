@@ -17,7 +17,7 @@ const bcrypt_1 = __importDefault(require("bcrypt"));
 const psicologo_1 = require("../models/psicologo");
 const paciente_1 = require("../models/paciente");
 const sequelize_1 = require("sequelize");
-const cedulaValidacion_services_1 = require("../services/cedulaValidacion.services");
+const cedulaValidacion_service_1 = require("../services/cedulaValidacion.service");
 /**
  * Registro especial para administradores (solo para pruebas/setup inicial)
  */
@@ -182,7 +182,7 @@ const cambiarStatusPsicologo = (req, res) => __awaiter(void 0, void 0, void 0, f
 });
 exports.cambiarStatusPsicologo = cambiarStatusPsicologo;
 /**
- * Eliminar un psicólogo (soft delete - cambiar a status inactivo)
+ * Eliminar un psicólogo PERMANENTEMENTE
  */
 const eliminarPsicologo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
@@ -194,26 +194,28 @@ const eliminarPsicologo = (req, res) => __awaiter(void 0, void 0, void 0, functi
                 msg: 'Psicólogo no encontrado'
             });
         }
-        //EVITAR QUE SE ELIMINE A SÍ MISMO
+        // EVITAR QUE SE ELIMINE A SÍ MISMO
         if (psicologo.id_psicologo === ((_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo)) {
             return res.status(400).json({
                 msg: 'No puedes eliminar tu propia cuenta'
             });
         }
-        // SOFT DELETE - Solo cambiar status
-        yield psicologo.update({ status: 'inactivo' });
+        const nombrePsicologo = `${psicologo.nombre} ${psicologo.apellidoPaterno}`;
+        // ELIMINACIÓN PERMANENTE (no soft delete)
+        yield psicologo.destroy();
         res.json({
-            msg: 'Psicólogo eliminado exitosamente',
+            msg: 'Psicólogo eliminado permanentemente',
             psicologo: {
                 id: psicologo.id_psicologo,
-                nombre: psicologo.nombre
+                nombre: nombrePsicologo
             }
         });
     }
     catch (error) {
         console.error('Error eliminando psicólogo:', error);
         res.status(500).json({
-            msg: 'Error interno del servidor'
+            msg: 'Error interno del servidor',
+            error: error instanceof Error ? error.message : 'Error desconocido'
         });
     }
 });
@@ -292,7 +294,7 @@ const validarCedulaConAPI = (req, res) => __awaiter(void 0, void 0, void 0, func
         const psicologoData = psicologo;
         const nombreCompleto = `${psicologoData.nombre} ${psicologoData.apellidoPaterno} ${psicologoData.apellidoMaterno || ''}`;
         // Validar con API
-        const resultadoValidacion = yield cedulaValidacion_services_1.CedulaValidacionService.validarCedula(psicologoData.cedula, nombreCompleto, psicologoData.apellidoPaterno);
+        const resultadoValidacion = yield cedulaValidacion_service_1.CedulaValidacionService.validarCedula(psicologoData.cedula, nombreCompleto, psicologoData.apellidoPaterno);
         // Si hay error en la API pero se fuerza la validación
         if (!resultadoValidacion.valida && forzarValidacion) {
             yield psicologo.update({
@@ -322,7 +324,7 @@ const validarCedulaConAPI = (req, res) => __awaiter(void 0, void 0, void 0, func
         res.json({
             msg: resultadoValidacion.valida ? 'Cédula validada exitosamente' : 'Cédula no pudo ser validada',
             validacion: resultadoValidacion,
-            urlConsultaManual: cedulaValidacion_services_1.CedulaValidacionService.getUrlConsultaOficial(),
+            urlConsultaManual: cedulaValidacion_service_1.CedulaValidacionService.getUrlConsultaOficial(),
             psicologo: {
                 id: psicologoData.id_psicologo,
                 nombre: nombreCompleto,

@@ -46,6 +46,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const cleanup_service_1 = __importDefault(require("../services/cleanup.service"));
 const connection_1 = __importDefault(require("../database/connection"));
 const psicologo_1 = __importDefault(require("../routes/psicologo"));
 const paciente_1 = __importDefault(require("../routes/paciente"));
@@ -195,6 +196,7 @@ class Server {
             console.log(`Servidor ejecutándose en el puerto: ${this.port}`);
             console.log(`Entorno: ${process.env.NODE_ENV || 'development'}`);
             console.log(`Iniciado: ${new Date().toISOString()}`);
+            this.configurarCronJobs();
         });
     }
     // Método para conectar a la base de datos
@@ -240,6 +242,17 @@ class Server {
                 throw new Error('No se pudo conectar a la base de datos');
             }
         });
+    }
+    /**
+   * Configurar tareas programadas (Cron Jobs)
+   */
+    configurarCronJobs() {
+        // Ejecutar limpieza diaria a las 2:00 AM
+        node_cron_1.default.schedule('0 2 * * *', () => __awaiter(this, void 0, void 0, function* () {
+            console.log('🕐 Ejecutando limpieza programada - ' + new Date().toLocaleString());
+            yield cleanup_service_1.default.ejecutarLimpieza();
+        }));
+        console.log('⏰ Cron jobs configurados correctamente');
     }
 }
 exports.default = Server;

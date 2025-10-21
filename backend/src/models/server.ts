@@ -1,4 +1,5 @@
 import express, { Application, Request, Response } from 'express';
+import cleanupService from '../services/cleanup.service';
 import sequelize from '../database/connection';
 import routerPsico from '../routes/psicologo';
 import pacienteRouter from '../routes/paciente';
@@ -163,6 +164,7 @@ class Server {
             console.log(`Servidor ejecutándose en el puerto: ${this.port}`);
             console.log(`Entorno: ${process.env.NODE_ENV || 'development'}`);
             console.log(`Iniciado: ${new Date().toISOString()}`);
+            this.configurarCronJobs();
         });
     }
 
@@ -217,6 +219,22 @@ class Server {
             throw new Error('No se pudo conectar a la base de datos');
         }
     }
+
+    /**
+   * Configurar tareas programadas (Cron Jobs)
+   */
+  configurarCronJobs(): void {
+    // Ejecutar limpieza diaria a las 2:00 AM
+    cron.schedule('0 2 * * *', async () => {
+      console.log('🕐 Ejecutando limpieza programada - ' + new Date().toLocaleString());
+      await cleanupService.ejecutarLimpieza();
+    });
+
+    console.log('⏰ Cron jobs configurados correctamente');
+  }
+
+  
 }
+
 
 export default Server;

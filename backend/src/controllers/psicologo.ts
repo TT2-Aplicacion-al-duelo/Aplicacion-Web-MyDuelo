@@ -1,4 +1,3 @@
-// backend/src/controllers/psicologo.ts
 import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
@@ -132,20 +131,32 @@ export const registro = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Validación 8: Usuario existente por correo
+    // ✅ Validación 8: Usuario existente por CORREO
     const existeCorreo = await Psicologo.findOne({ where: { correo } });
     if (existeCorreo) {
       res.status(400).json({ 
-        msg: 'Ya existe un usuario registrado con ese correo electrónico' 
+        msg: 'Ya existe un usuario registrado con ese correo electrónico',
+        campo: 'correo'
       });
       return;
     }
 
-    // Validación 9: Usuario existente por cédula
+    // ✅ Validación 9: Usuario existente por CÉDULA
     const existeCedula = await Psicologo.findOne({ where: { cedula } });
     if (existeCedula) {
       res.status(400).json({ 
-        msg: 'Ya existe un usuario registrado con esa cédula profesional' 
+        msg: 'Ya existe un usuario registrado con esa cédula profesional',
+        campo: 'cedula'
+      });
+      return;
+    }
+
+    // ✅ Validación 10: Usuario existente por TELÉFONO
+    const existeTelefono = await Psicologo.findOne({ where: { telefono } });
+    if (existeTelefono) {
+      res.status(400).json({ 
+        msg: 'Ya existe un usuario registrado con ese número telefónico',
+        campo: 'telefono'
       });
       return;
     }
@@ -164,7 +175,7 @@ export const registro = async (req: Request, res: Response): Promise<void> => {
       telefono,
       correo,
       contrasena: hashedPassword,
-      status: 'inactivo', // La cuenta inicia inactiva hasta que se active
+      status: 'inactivo', // ✅ La cuenta inicia INACTIVA hasta que se active
       cedula_validada: false,
       rol_admin: false
     });

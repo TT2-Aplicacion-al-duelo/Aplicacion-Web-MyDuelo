@@ -54,7 +54,15 @@ export class AgendaService {
   getDisponibilidad(id_psicologo: number): Observable<any[]> {
     return this.http.get<any[]>(`${this.AppUrl}${this.APIUrl}/disponibilidad/${id_psicologo}`, this.getHeaders());
   }
-
+  /**
+  * Obtener agenda por semana específica
+  */
+  getAgendaPorSemana(id_psicologo: number, semana_inicio: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.AppUrl}${this.APIUrl}/agenda/${id_psicologo}?semana_inicio=${semana_inicio}`,
+      this.getHeaders()
+    );
+  }
   /**
    * Crear nueva disponibilidad
    */

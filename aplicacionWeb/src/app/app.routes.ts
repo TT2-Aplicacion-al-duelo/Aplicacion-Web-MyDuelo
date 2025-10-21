@@ -110,7 +110,7 @@ export const routes: Routes = [
     component: ChatAdminComponent, 
     canActivate: [canActivateAdmin] 
   },
-
+  { path: 'activar-cuenta/:token', component: ActivarCuentaComponent },
   // Ruta 404 - Redireccionar al inicio
   { path: '**', redirectTo: '' }
 ];

@@ -5,7 +5,7 @@ import { Psicologo } from '../models/psicologo';
 import { Paciente } from '../models/paciente';
 import { Op } from 'sequelize';
 import jwt from 'jsonwebtoken';
-import { CedulaValidacionService } from '../services/cedulaValidacion.services';
+import { CedulaValidacionService } from '../services/cedulaValidacion.service';
 
 // INTERFACE PARA REQUEST CON USER INFO
 interface AuthRequest extends Request {
@@ -200,7 +200,7 @@ export const cambiarStatusPsicologo = async (req: AuthRequest, res: Response) =>
 };
 
 /**
- * Eliminar un psicólogo (soft delete - cambiar a status inactivo)
+ * Eliminar un psicólogo PERMANENTEMENTE
  */
 export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
     try {
@@ -214,28 +214,31 @@ export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
             });
         }
 
-        //EVITAR QUE SE ELIMINE A SÍ MISMO
+        // EVITAR QUE SE ELIMINE A SÍ MISMO
         if ((psicologo as any).id_psicologo === req.user?.id_psicologo) {
             return res.status(400).json({
                 msg: 'No puedes eliminar tu propia cuenta'
             });
         }
 
-        // SOFT DELETE - Solo cambiar status
-        await psicologo.update({ status: 'inactivo' });
+        const nombrePsicologo = `${(psicologo as any).nombre} ${(psicologo as any).apellidoPaterno}`;
+
+        // ELIMINACIÓN PERMANENTE (no soft delete)
+        await psicologo.destroy();
 
         res.json({
-            msg: 'Psicólogo eliminado exitosamente',
+            msg: 'Psicólogo eliminado permanentemente',
             psicologo: {
                 id: (psicologo as any).id_psicologo,
-                nombre: (psicologo as any).nombre
+                nombre: nombrePsicologo
             }
         });
 
     } catch (error) {
         console.error('Error eliminando psicólogo:', error);
         res.status(500).json({
-            msg: 'Error interno del servidor'
+            msg: 'Error interno del servidor',
+            error: error instanceof Error ? error.message : 'Error desconocido'
         });
     }
 };
