@@ -93,52 +93,115 @@ export class AgendaCitasDashboardComponent implements OnInit {
     }
   }
 
-  private async cargarAgenda() {
-  try {
-    const inicioSemana = this.diasSemana[0];
-    const finSemana = this.diasSemana[6];
-    const inicioSemanaStr = format(inicioSemana, 'yyyy-MM-dd');
-    const finSemanaStr = format(finSemana, 'yyyy-MM-dd');
+//   private async cargarAgenda() {
+//   try {
+//     const inicioSemana = this.diasSemana[0];
+//     const finSemana = this.diasSemana[6];
+//     const inicioSemanaStr = format(inicioSemana, 'yyyy-MM-dd');
+//     const finSemanaStr = format(finSemana, 'yyyy-MM-dd');
 
-    // ✅ Intentar obtener agenda existente para esta semana específica
-    const response: any = await this.agendaService.getAgendaPorSemana(
-      this.idPsicologo, 
-      inicioSemanaStr
-    ).toPromise();
+//     // ✅ Intentar obtener agenda existente para esta semana específica
+//     const response: any = await this.agendaService.getAgendaPorSemana(
+//       this.idPsicologo, 
+//       inicioSemanaStr
+//     ).toPromise();
     
-    this.idAgenda = response?.agenda?.id_agenda;
-    console.log('✅ Agenda encontrada:', this.idAgenda);
+//     this.idAgenda = response?.agenda?.id_agenda;
+//     console.log('✅ Agenda encontrada:', this.idAgenda);
     
-    // Cargar citas
-    if (this.idAgenda) {
-      this.cargarCitas();
-    }
-  } catch (error) {
-    console.log('⚠️ No existe agenda para esta semana, creando nueva...');
+//     // Cargar citas
+//     if (this.idAgenda) {
+//       this.cargarCitas();
+//     }
+//   } catch (error) {
+//     console.log('⚠️ No existe agenda para esta semana, creando nueva...');
     
-    // ✅ Crear agenda para la semana seleccionada
-    const inicioSemana = this.diasSemana[0];
-    const finSemana = this.diasSemana[6];
+//     // ✅ Crear agenda para la semana seleccionada
+//     const inicioSemana = this.diasSemana[0];
+//     const finSemana = this.diasSemana[6];
     
-    const nuevaAgenda = {
-      id_psicologo: this.idPsicologo,
-      semana_inicio: format(inicioSemana, 'yyyy-MM-dd'),
-      semana_fin: format(finSemana, 'yyyy-MM-dd')
-    };
+//     const nuevaAgenda = {
+//       id_psicologo: this.idPsicologo,
+//       semana_inicio: format(inicioSemana, 'yyyy-MM-dd'),
+//       semana_fin: format(finSemana, 'yyyy-MM-dd')
+//     };
     
-    try {
-      const response: any = await this.agendaService.crearAgenda(nuevaAgenda).toPromise();
-      this.idAgenda = response?.agenda?.id_agenda;
-      console.log('✅ Agenda creada:', this.idAgenda);
+//     try {
+//       const response: any = await this.agendaService.crearAgenda(nuevaAgenda).toPromise();
+//       this.idAgenda = response?.agenda?.id_agenda;
+//       console.log('✅ Agenda creada:', this.idAgenda);
       
-      // Inicializar eventos vacíos
-      this.eventos = [];
-    } catch (createError) {
-      console.error('❌ Error al crear agenda:', createError);
-      alert('Error al crear la agenda para esta semana');
+//       // Inicializar eventos vacíos
+//       this.eventos = [];
+//     } catch (createError) {
+//       console.error('❌ Error al crear agenda:', createError);
+//       alert('Error al crear la agenda para esta semana');
+//     }
+//   }
+// }
+
+  private async cargarAgenda() {
+    try {
+      const inicioSemana = this.diasSemana[0];
+      const finSemana = this.diasSemana[6];
+      const inicioSemanaStr = format(inicioSemana, 'yyyy-MM-dd');
+      const finSemanaStr = format(finSemana, 'yyyy-MM-dd');
+
+      // ✅ Intentar obtener agenda existente para esta semana específica
+      const response: any = await this.agendaService.getAgendaPorSemana(
+        this.idPsicologo, 
+        inicioSemanaStr
+      ).toPromise();
+      
+      this.idAgenda = response?.agenda?.id_agenda;
+      console.log('✅ Agenda encontrada:', this.idAgenda);
+      
+      // Cargar citas
+      if (this.idAgenda) {
+        this.cargarCitas();
+      }
+    } catch (error) {
+      console.log('⚠️ No existe agenda para esta semana, creando nueva...');
+      
+      // ✅ VALIDACIÓN: Verificar que no exista antes de crear
+      try {
+        const verificacion: any = await this.agendaService.getAgendaPorSemana(
+          this.idPsicologo, 
+          format(this.diasSemana[0], 'yyyy-MM-dd')
+        ).toPromise();
+        
+        if (verificacion?.agenda) {
+          this.idAgenda = verificacion.agenda.id_agenda;
+          this.cargarCitas();
+          return;
+        }
+      } catch (e) {
+        // No existe, proceder a crear
+      }
+      
+      // ✅ Crear agenda para la semana seleccionada
+      const inicioSemana = this.diasSemana[0];
+      const finSemana = this.diasSemana[6];
+      
+      const nuevaAgenda = {
+        id_psicologo: this.idPsicologo,
+        semana_inicio: format(inicioSemana, 'yyyy-MM-dd'),
+        semana_fin: format(finSemana, 'yyyy-MM-dd')
+      };
+      
+      try {
+        const response: any = await this.agendaService.crearAgenda(nuevaAgenda).toPromise();
+        this.idAgenda = response?.agenda?.id_agenda;
+        console.log('✅ Agenda creada:', this.idAgenda);
+        
+        // Inicializar eventos vacíos
+        this.eventos = [];
+      } catch (createError) {
+        console.error('❌ Error al crear agenda:', createError);
+        alert('Error al crear la agenda para esta semana');
+      }
     }
   }
-}
 
   //  VERIFICAR Y CREAR DISPONIBILIDAD INICIAL
   private verificarDisponibilidadInicial() {
@@ -257,19 +320,34 @@ export class AgendaCitasDashboardComponent implements OnInit {
       next: (response: any) => {
         const citas = response.citas || response;
         if (Array.isArray(citas)) {
-          this.eventos = citas.map((c: any) => ({
-            title: `Cita con ${c.paciente?.nombre || 'Paciente'}`,
-            dia: new Date(c.fecha),
-            hora: c.hora_inicio,
-            meta: {
-              paciente: c.paciente?.nombre || 'Paciente',
-              estado: c.estado,
-              modalidad: c.modalidad,
-              notas: c.notas,
-              duracionMin: c.duracion || 60,
-              id: c.id_cita
-            }
-          }));
+          this.eventos = citas.map((c: any) => {
+            // ✅ FIX: Crear fecha correctamente sin conversión UTC
+            const [year, month, day] = c.fecha.split('-').map(Number);
+            const fechaLocal = new Date(year, month - 1, day);
+            
+            // Obtener el nombre completo del paciente
+            const nombreCompleto = c.paciente ? 
+              `${c.paciente.nombre} ${c.paciente.apellido_paterno} ${c.paciente.apellido_materno || ''}`.trim() 
+              : 'Paciente';
+            
+            return {
+              title: `Cita con ${nombreCompleto}`,
+              dia: fechaLocal,
+              hora: c.hora_inicio,
+              meta: {
+                paciente: nombreCompleto,
+                estado: c.estado,
+                modalidad: c.modalidad,
+                notas: c.notas,
+                duracionMin: c.duracion || 60,
+                id: c.id_cita
+              }
+            };
+          });
+          
+          // ✅ Forzar detección de cambios para que Angular renderice correctamente
+          this.eventos = [...this.eventos];
+          console.log('✅ Citas cargadas:', this.eventos.length, this.eventos);
         } else {
           console.log('No hay citas disponibles');
           this.eventos = [];
@@ -300,12 +378,37 @@ export class AgendaCitasDashboardComponent implements OnInit {
       return;
     }
 
+    // ✅ VALIDACIÓN: No permitir crear citas en fechas pasadas
+  const [year, month, day] = this.crearFecha.split('-').map(Number);
+  const fechaSeleccionada = new Date(year, month - 1, day);
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0); // Resetear hora para comparar solo fechas
+  
+  if (fechaSeleccionada < hoy) {
+    alert('No puedes crear citas en fechas pasadas.');
+    return;
+  }
+
+  // ✅ VALIDACIÓN: Si es hoy, verificar que la hora no haya pasado
+  if (fechaSeleccionada.toDateString() === hoy.toDateString()) {
+    const [horaSeleccionada, minutosSeleccionados] = this.crearHora.split(':').map(Number);
+    const ahora = new Date();
+    const horaActual = ahora.getHours();
+    const minutosActuales = ahora.getMinutes();
+    
+    if (horaSeleccionada < horaActual || 
+        (horaSeleccionada === horaActual && minutosSeleccionados <= minutosActuales)) {
+      alert('No puedes crear citas en horas que ya pasaron.');
+      return;
+    }
+  }
+
     // ✅ FIX: Convertir la fecha correctamente sin problemas de zona horaria
     // El input type="date" devuelve formato YYYY-MM-DD
     const fechaInput = this.crearFecha; // Ya viene en formato YYYY-MM-DD
     
     // Crear objeto Date local sin conversión UTC
-    const [year, month, day] = fechaInput.split('-').map(Number);
+    //const [year, month, day] = fechaInput.split('-').map(Number);
     const fechaLocal = new Date(year, month - 1, day); // month es 0-indexed
     
     // Convertir a formato ISO YYYY-MM-DD
@@ -363,7 +466,38 @@ export class AgendaCitasDashboardComponent implements OnInit {
     
     return `${horasFin.toString().padStart(2, '0')}:${minutosFin.toString().padStart(2, '0')}`;
   }
+  // ✅ NUEVO: Cambiar estado de la cita
+  cambiarEstadoCita(nuevoEstado: 'Pendiente' | 'Confirmada' | 'Cancelada') {
+    if (!this.selecionarEvent) return;
+    
+    const idCita = this.selecionarEvent.meta?.id;
+    if (!idCita) {
+      console.error('No hay id de cita para actualizar');
+      return;
+    }
 
+    const datos = {
+      estado: nuevoEstado.toLowerCase()
+    };
+
+    this.agendaService.actualizarCita(idCita, datos).subscribe({
+      next: () => {
+        // Actualizar el evento localmente
+        if (this.selecionarEvent && this.selecionarEvent.meta) {
+          this.selecionarEvent.meta.estado = nuevoEstado;
+        }
+        
+        // Recargar todas las citas para reflejar el cambio
+        this.cargarCitas();
+        
+        alert(`Estado cambiado a: ${nuevoEstado}`);
+      },
+      error: (error) => {
+        console.error('Error al cambiar estado:', error);
+        alert('Error al cambiar el estado de la cita');
+      }
+    });
+  }
   eliminarCita() {
     if (!this.selecionarEvent) return;
     const idCita = this.selecionarEvent.meta?.id;
@@ -378,15 +512,42 @@ export class AgendaCitasDashboardComponent implements OnInit {
   reagendar() {
     if (!this.selecionarEvent || !this.fechaReagendar || !this.horaReagendar) return;
 
+    // ✅ VALIDACIÓN: No permitir reagendar a fechas pasadas
+    const [year, month, day] = this.fechaReagendar.split('-').map(Number);
+    const fechaSeleccionada = new Date(year, month - 1, day);
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    if (fechaSeleccionada < hoy) {
+      alert('No puedes reagendar citas a fechas pasadas.');
+      return;
+    }
+
+    // ✅ VALIDACIÓN: Si es hoy, verificar hora
+    if (fechaSeleccionada.toDateString() === hoy.toDateString()) {
+      const [horaSeleccionada, minutosSeleccionados] = this.horaReagendar.split(':').map(Number);
+      const ahora = new Date();
+      
+      if (horaSeleccionada < ahora.getHours() || 
+          (horaSeleccionada === ahora.getHours() && minutosSeleccionados <= ahora.getMinutes())) {
+        alert('No puedes reagendar a una hora que ya pasó.');
+        return;
+      }
+    }
+
     const idCita = this.selecionarEvent.meta?.id;
+    const fechaISO = fechaSeleccionada.toISOString().split('T')[0];
+    
     const datos = {
-      fecha: this.fechaReagendar,
+      fecha: fechaISO,
       hora_inicio: this.horaReagendar
     };
+    
     if (!idCita) {
       console.error('No hay id de cita para actualizar');
       return;
     }
+    
     this.agendaService.actualizarCita(idCita, datos).subscribe(() => {
       this.cargarCitas();
       this.cerrarModal('reagendarModal');

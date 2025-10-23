@@ -16,6 +16,8 @@
   cursor: default;
   background-color: #fff;
   position: relative;
+  vertical-align: top !important;
+  min-height: 60px;
 }
 
 .celda-horario:not(.ocupado):hover {
@@ -29,6 +31,12 @@
   font-weight: 500;
   cursor: pointer;
   margin-bottom: 3px;
+  margin-bottom: 3px;
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  min-height: 24px;
+  line-height: 1.2;
 }
 
 /* sombreado para slots ocupados por la duración de otra cita */

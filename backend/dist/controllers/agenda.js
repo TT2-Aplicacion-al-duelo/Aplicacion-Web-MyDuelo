@@ -1,8 +1,4 @@
 "use strict";
-// // controllers/agenda.ts
-// import { Request, Response } from "express";
-// import { Agenda } from "../models/agenda/agenda";
-// import { Cita } from "../models/agenda/cita";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -84,8 +80,14 @@ const getCitas = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         const id_agenda = Number(req.params.id_agenda);
         if (!id_agenda)
             return res.status(400).json({ msg: "id_agenda requerido" });
+        // ✅ FIX: Incluir información del paciente con JOIN
         const citas = yield cita_1.Cita.findAll({
             where: { id_agenda },
+            include: [{
+                    model: paciente_1.Paciente,
+                    as: 'paciente',
+                    attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno']
+                }],
             order: [["fecha", "ASC"], ["hora_inicio", "ASC"]]
         });
         res.json({ citas });

@@ -146,11 +146,35 @@
         </p>
       </div>
       <div class="modal-footer flex-wrap gap-2">
-        <button class="btn btn-danger" (click)="eliminarCita()">Eliminar</button>
-        <button class="btn btn-outline-danger" (click)="eliminarDuplicadas()">Eliminar duplicadas</button>
-        <button class="btn btn-warning" (click)="abrirModalReagendar()">Reagendar</button>
-        <button class="btn btn-secondary" (click)="abrirModalDuplicar()">Duplicar</button>
-        <button class="btn btn-light ms-auto" data-bs-dismiss="modal">Cerrar</button>
+        <div class="dropdown">
+    <button class="btn btn-info dropdown-toggle" type="button" id="dropdownEstado" 
+            data-bs-toggle="dropdown" aria-expanded="false">
+      <i class="bi bi-arrow-repeat"></i> Cambiar Estado
+    </button>
+    <ul class="dropdown-menu" aria-labelledby="dropdownEstado">
+      <li>
+        <a class="dropdown-item" (click)="cambiarEstadoCita('Pendiente')">
+          <i class="bi bi-clock text-warning"></i> Pendiente
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" (click)="cambiarEstadoCita('Confirmada')">
+          <i class="bi bi-check-circle text-success"></i> Confirmada
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item" (click)="cambiarEstadoCita('Cancelada')">
+          <i class="bi bi-x-circle text-danger"></i> Cancelada
+        </a>
+      </li>
+    </ul>
+  </div>
+  
+  <button class="btn btn-danger" (click)="eliminarCita()">Eliminar</button>
+  <button class="btn btn-outline-danger" (click)="eliminarDuplicadas()">Eliminar duplicadas</button>
+  <button class="btn btn-warning" (click)="abrirModalReagendar()">Reagendar</button>
+  <button class="btn btn-secondary" (click)="abrirModalDuplicar()">Duplicar</button>
+  <button class="btn btn-light ms-auto" data-bs-dismiss="modal">Cerrar</button>
       </div>
     </div>
   </div>
