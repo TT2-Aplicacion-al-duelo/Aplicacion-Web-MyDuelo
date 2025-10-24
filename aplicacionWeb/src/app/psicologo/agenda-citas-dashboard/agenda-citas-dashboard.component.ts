@@ -379,17 +379,18 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       return;
     }
 
-    // ✅ NUEVO: Asegurar que la agenda existe antes de crear la cita
+    // ✅ SOLUCIÓN: SIEMPRE asegurar que la agenda corresponde a la fecha de la cita
+    // No importa si this.idAgenda tiene valor, porque podría ser de otra semana
     try {
+      console.log('🔍 Calculando agenda correcta para la fecha de la cita...');
+      await this.asegurarAgenda();
+      
       if (!this.idAgenda || this.idAgenda === 0) {
-        console.warn('⚠️ No hay agenda cargada, asegurando agenda...');
-        await this.asegurarAgenda();
-        
-        if (!this.idAgenda || this.idAgenda === 0) {
-          alert('Error: No se pudo obtener o crear la agenda. Por favor, intenta nuevamente.');
-          return;
-        }
+        alert('Error: No se pudo obtener o crear la agenda. Por favor, intenta nuevamente.');
+        return;
       }
+      
+      console.log(`✅ Usando agenda: ${this.idAgenda} para la fecha: ${this.crearFecha}`);
     } catch (error) {
       console.error('❌ Error al asegurar agenda:', error);
       alert('Error al verificar la agenda. Por favor, intenta nuevamente.');
@@ -446,7 +447,9 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       next: (response) => {
         console.log('✅ Cita creada exitosamente:', response);
         alert('Cita creada exitosamente');
-        this.cargarCitas();
+        
+        // ✅ IMPORTANTE: Recargar la vista para mostrar la cita en la semana correcta
+        this.cargarAgenda();
         this.cerrarModal('crearModal');
         
         // Limpiar formulario
@@ -466,7 +469,6 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       }
     });
   }
-
 
   private calcularHoraFin(horaInicio: string, duracionMinutos: number): string {
     const [horas, minutos] = horaInicio.split(':').map(Number);

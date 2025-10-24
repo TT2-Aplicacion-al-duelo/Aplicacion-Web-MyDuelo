@@ -178,6 +178,28 @@ export const crearCita = async (req: Request, res: Response) => {
       });
     }
 
+    // ✅ NUEVA VALIDACIÓN: Verificar que la fecha de la cita está dentro del rango de la agenda
+    const agendaData = agenda as any;
+    const fechaCita = new Date(fecha + 'T00:00:00');
+    const semanaInicio = new Date(agendaData.semana_inicio + 'T00:00:00');
+    const semanaFin = new Date(agendaData.semana_fin + 'T00:00:00');
+    
+    console.log(`📅 Validando cita:
+      - Fecha cita: ${fecha}
+      - Semana agenda: ${agendaData.semana_inicio} a ${agendaData.semana_fin}
+      - ID Agenda: ${id_agenda}`);
+
+    if (fechaCita < semanaInicio || fechaCita > semanaFin) {
+      console.error(`❌ Fecha de cita fuera del rango de la agenda`);
+      return res.status(400).json({ 
+        msg: "La fecha de la cita no corresponde al rango de la agenda seleccionada",
+        fecha_cita: fecha,
+        agenda_semana_inicio: agendaData.semana_inicio,
+        agenda_semana_fin: agendaData.semana_fin,
+        solucion: "El sistema debe calcular la agenda correcta según la fecha de la cita"
+      });
+    }
+
     // ✅ VALIDAR FORMATO DE TIEMPO
     const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
     if (!timeRegex.test(hora_inicio) || !timeRegex.test(hora_fin)) {
@@ -198,7 +220,7 @@ export const crearCita = async (req: Request, res: Response) => {
       return res.status(400).json({ msg: "Paciente no encontrado" });
     }
 
-    const id_psicologo = (agenda as any).id_psicologo;
+    const id_psicologo = agendaData.id_psicologo;
 
     // Crear la cita
     const nueva = await Cita.create({ 
@@ -212,8 +234,10 @@ export const crearCita = async (req: Request, res: Response) => {
       notas 
     });
 
+    console.log(`✅ Cita creada exitosamente en agenda ${id_agenda} para fecha ${fecha}`);
     res.json({ msg: "Cita creada exitosamente", cita: nueva });
-  } catch (error: any) { // ✅ TIPADO CORREGIDO
+    
+  } catch (error: any) {
     console.error('Error detallado en crearCita:', error);
     res.status(500).json({ 
       msg: "Error interno del servidor", 
