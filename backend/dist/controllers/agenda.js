@@ -64,14 +64,70 @@ exports.getAgenda = getAgenda;
 const crearAgenda = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id_psicologo, semana_inicio, semana_fin } = req.body;
-        if (!id_psicologo || !semana_inicio || !semana_fin)
-            return res.status(400).json({ msg: "Faltan campos" });
-        const nueva = yield agenda_1.Agenda.create({ id_psicologo, semana_inicio, semana_fin });
-        res.json({ msg: "Agenda creada", agenda: nueva });
+        // Validar campos requeridos
+        if (!id_psicologo || !semana_inicio || !semana_fin) {
+            return res.status(400).json({ msg: "Faltan campos requeridos" });
+        }
+        console.log(`🔍 Verificando agenda para psicólogo ${id_psicologo}, semana ${semana_inicio}`);
+        // ✅ VERIFICAR SI YA EXISTE UNA AGENDA PARA ESA SEMANA
+        let agenda = yield agenda_1.Agenda.findOne({
+            where: {
+                id_psicologo,
+                semana_inicio
+            }
+        });
+        // Si ya existe, devolver la existente
+        if (agenda) {
+            console.log(`✅ Agenda ya existe (ID: ${agenda.id_agenda}) para semana ${semana_inicio}`);
+            return res.json({
+                msg: "Agenda ya existe para esta semana",
+                agenda,
+                existente: true
+            });
+        }
+        // ✅ Si no existe, crear nueva agenda
+        try {
+            agenda = yield agenda_1.Agenda.create({
+                id_psicologo,
+                semana_inicio,
+                semana_fin
+            });
+            console.log(`✅ Agenda nueva creada (ID: ${agenda.id_agenda}) para semana ${semana_inicio}`);
+            return res.json({
+                msg: "Agenda creada exitosamente",
+                agenda,
+                existente: false
+            });
+        }
+        catch (createError) {
+            // ✅ Manejar error de duplicado por constraint (race condition)
+            if (createError.name === 'SequelizeUniqueConstraintError') {
+                console.warn('⚠️ Race condition detectada, buscando agenda existente...');
+                // Buscar la agenda que se acaba de crear en otra petición
+                agenda = yield agenda_1.Agenda.findOne({
+                    where: {
+                        id_psicologo,
+                        semana_inicio
+                    }
+                });
+                if (agenda) {
+                    console.log(`✅ Agenda encontrada después de race condition (ID: ${agenda.id_agenda})`);
+                    return res.json({
+                        msg: "Agenda ya existe para esta semana",
+                        agenda,
+                        existente: true
+                    });
+                }
+            }
+            throw createError; // Si no es error de duplicado, relanzar
+        }
     }
     catch (error) {
-        console.error(error);
-        res.status(500).json({ msg: "Error creando agenda", error });
+        console.error('❌ Error al crear/obtener agenda:', error);
+        res.status(500).json({
+            msg: "Error interno del servidor",
+            error: error.message
+        });
     }
 });
 exports.crearAgenda = crearAgenda;
