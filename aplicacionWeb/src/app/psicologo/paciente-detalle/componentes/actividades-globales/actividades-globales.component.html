@@ -1,179 +1,179 @@
-<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/actividades-globales/actividades-globales.component.html -->
-<div class="container-fluid py-4">
-  <div class="row">
-    <div class="col-12">
-      <!-- Encabezado -->
-      <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 class="mb-1">
-            <i class="bi bi-file-earmark-text me-2 text-primary"></i>
-            Plantillas de Actividades
-          </h2>
-          <p class="text-muted mb-0">
-            Crea y gestiona plantillas reutilizables para tus pacientes
-          </p>
-        </div>
-        <button class="btn btn-primary btn-lg shadow-sm" (click)="crearActividad()">
-          <i class="bi bi-plus-circle me-2"></i>
-          Nueva Plantilla
-        </button>
-      </div>
-
-      <!-- Loader -->
-      <div *ngIf="cargando" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
-          <span class="visually-hidden">Cargando...</span>
-        </div>
-        <p class="mt-3 text-muted">Cargando plantillas...</p>
-      </div>
-
-      <!-- Sin actividades -->
-      <div *ngIf="!cargando && actividades.length === 0" class="empty-state">
-        <div class="text-center py-5">
-          <div class="empty-icon mb-4">
-            <i class="bi bi-inbox display-1 text-muted"></i>
-          </div>
-          <h4 class="mb-2">No hay plantillas creadas</h4>
-          <p class="text-muted mb-4">
-            Las plantillas te permiten crear actividades una vez<br>
-            y asignarlas fácilmente a múltiples pacientes
-          </p>
-          <button class="btn btn-primary btn-lg" (click)="crearActividad()">
-            <i class="bi bi-plus-circle me-2"></i>
-            Crear Primera Plantilla
-          </button>
-        </div>
-      </div>
-
-      <!-- Grid de actividades (DISEÑO COMPACTO) -->
-      <div *ngIf="!cargando && actividades.length > 0">
-        <!-- Tabla responsive -->
-        <div class="card shadow-sm">
-          <div class="table-responsive">
-            <table class="table table-hover mb-0">
-              <thead class="table-light">
-                <tr>
-                  <th class="ps-4" style="width: 35%;">
-                    <i class="bi bi-type me-1"></i> Actividad
-                  </th>
-                  <th style="width: 15%;">
-                    <i class="bi bi-tag me-1"></i> Tipo
-                  </th>
-                  <th style="width: 20%;" class="text-center">
-                    <i class="bi bi-gear me-1"></i> Configuración
-                  </th>
-                  <th style="width: 15%;" class="text-center">
-                    <i class="bi bi-paperclip me-1"></i> Recursos
-                  </th>
-                  <th style="width: 15%;" class="text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let actividad of actividades" class="align-middle">
-                  <!-- Título y Descripción -->
-                  <td class="ps-4">
-                    <div class="d-flex align-items-start">
-                      <div class="activity-icon me-3">
-                        <i class="bi bi-file-earmark-text-fill text-primary fs-4"></i>
-                      </div>
-                      <div class="flex-grow-1">
-                        <h6 class="mb-1 fw-bold">{{ actividad.titulo }}</h6>
-                        <p class="mb-0 text-muted small text-truncate" style="max-width: 350px;">
-                          {{ actividad.descripcion }}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-
-                  <!-- Tipo -->
-                  <td>
-                    <span 
-                      *ngIf="actividad.tipo" 
-                      class="badge bg-light text-dark border">
-                      <i class="bi bi-tag-fill me-1"></i>
-                      {{ actividad.tipo }}
-                    </span>
-                    <span *ngIf="!actividad.tipo" class="text-muted small">
-                      Sin tipo
-                    </span>
-                  </td>
-
-                  <!-- Configuración -->
-                  <td class="text-center">
-                    <div class="d-flex flex-column gap-1 align-items-center">
-                      <span 
-                        *ngIf="actividad.obligatoria" 
-                        class="badge bg-warning text-dark">
-                        <i class="bi bi-exclamation-circle-fill me-1"></i>
-                        Obligatoria
-                      </span>
-                      <span 
-                        *ngIf="actividad.repetitiva" 
-                        class="badge bg-info text-dark">
-                        <i class="bi bi-arrow-repeat me-1"></i>
-                        Cada {{ actividad.periodo }} días
-                      </span>
-                      <span 
-                        *ngIf="!actividad.obligatoria && !actividad.repetitiva" 
-                        class="text-muted small">
-                        Opcional
-                      </span>
-                    </div>
-                  </td>
-
-                  <!-- Recursos -->
-                  <td class="text-center">
-                    <a 
-                      *ngIf="actividad.archivo_url" 
-                      [href]="actividad.archivo_url" 
-                      target="_blank"
-                      class="btn btn-sm btn-outline-primary"
-                      title="Ver recurso">
-                      <i class="bi bi-link-45deg"></i>
-                      Ver archivo
-                    </a>
-                    <span *ngIf="!actividad.archivo_url" class="text-muted small">
-                      Sin archivo
-                    </span>
-                  </td>
-
-                  <!-- Acciones -->
-                  <td class="text-center">
-                    <div class="btn-group" role="group">
-                      <button 
-                        class="btn btn-sm btn-success"
-                        (click)="asignarActividad(actividad)"
-                        title="Asignar a pacientes">
-                        <i class="bi bi-person-plus"></i>
-                      </button>
-                      <button 
-                        class="btn btn-sm btn-primary"
-                        (click)="editarActividad(actividad)"
-                        title="Editar">
-                        <i class="bi bi-pencil"></i>
-                      </button>
-                      <button 
-                        class="btn btn-sm btn-danger"
-                        (click)="eliminarActividad(actividad)"
-                        title="Eliminar">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Contador -->
-        <div class="mt-3 text-muted text-center">
-          <small>
-            <i class="bi bi-info-circle me-1"></i>
-            Total de plantillas: <strong>{{ actividades.length }}</strong>
-          </small>
-        </div>
-      </div>
+<!-- actividades-globales.component.html -->
+<div class="actividades-globales-container">
+  <!-- Header con título y botón de crear -->
+  <div class="header-section">
+    <div class="header-content">
+      <h2 class="section-title">
+        <mat-icon>assignment</mat-icon>
+        Actividades Globales
+      </h2>
+      <button mat-raised-button color="primary" (click)="crearNuevaActividad()" class="btn-crear">
+        <mat-icon>add</mat-icon>
+        Nueva Actividad
+      </button>
     </div>
+  </div>
+
+  <!-- Barra de filtros -->
+  <div class="filters-section">
+    <mat-card class="filters-card">
+      <div class="filters-row">
+        <!-- Búsqueda -->
+        <mat-form-field appearance="outline" class="search-field">
+          <mat-label>Buscar actividad</mat-label>
+          <input matInput 
+                 [(ngModel)]="searchTerm"
+                 (ngModelChange)="onSearchChange()"
+                 placeholder="Título, descripción o tipo">
+          <mat-icon matPrefix>search</mat-icon>
+          <button mat-icon-button matSuffix 
+                  *ngIf="searchTerm" 
+                  (click)="searchTerm = ''; onSearchChange()">
+            <mat-icon>clear</mat-icon>
+          </button>
+        </mat-form-field>
+
+        <!-- Filtro por tipo -->
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Filtrar por</mat-label>
+          <mat-select [(ngModel)]="tipoFiltro" (selectionChange)="onTipoFiltroChange()">
+            <mat-option value="todas">Todas las actividades</mat-option>
+            <mat-option value="obligatorias">
+              <mat-icon class="option-icon">priority_high</mat-icon>
+              Obligatorias
+            </mat-option>
+            <mat-option value="personalizadas">
+              <mat-icon class="option-icon">person</mat-icon>
+              Personalizadas
+            </mat-option>
+            <mat-option value="modulo">
+              <mat-icon class="option-icon">folder</mat-icon>
+              De módulo
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Contador de resultados -->
+        <div class="results-counter">
+          <span class="counter-text">
+            {{ actividadesFiltradas.length }} 
+            {{ actividadesFiltradas.length === 1 ? 'actividad' : 'actividades' }}
+            encontrada{{ actividadesFiltradas.length !== 1 ? 's' : '' }}
+          </span>
+        </div>
+      </div>
+    </mat-card>
+  </div>
+
+  <!-- Loader -->
+  <div *ngIf="isLoading" class="loading-container">
+    <mat-spinner diameter="50"></mat-spinner>
+    <p>Cargando actividades...</p>
+  </div>
+
+  <!-- Grid de actividades -->
+  <div class="actividades-grid" *ngIf="!isLoading">
+    <!-- Mensaje cuando no hay actividades -->
+    <div *ngIf="actividadesFiltradas.length === 0" class="no-results">
+      <mat-icon class="no-results-icon">assignment_turned_in</mat-icon>
+      <h3>No se encontraron actividades</h3>
+      <p *ngIf="searchTerm || tipoFiltro !== 'todas'">
+        Intenta ajustar los filtros de búsqueda
+      </p>
+      <p *ngIf="!searchTerm && tipoFiltro === 'todas'">
+        Crea tu primera actividad para comenzar
+      </p>
+    </div>
+
+    <!-- Cards de actividades -->
+    <mat-card *ngFor="let actividad of actividadesFiltradas" 
+              class="actividad-card"
+              (click)="verDetalleActividad(actividad)">
+      
+      <!-- Header del card -->
+      <div class="card-header">
+        <div class="card-title-section">
+          <h3 class="actividad-titulo">{{ actividad.titulo }}</h3>
+          <div class="actividad-badges">
+            <mat-chip-list aria-label="Propiedades">
+              <mat-chip [color]="actividad.obligatoria ? 'warn' : ''" 
+                       [selected]="actividad.obligatoria"
+                       class="small-chip">
+                <mat-icon class="chip-icon" *ngIf="actividad.obligatoria">priority_high</mat-icon>
+                {{ actividad.obligatoria ? 'Obligatoria' : 'Opcional' }}
+              </mat-chip>
+              <mat-chip class="small-chip origen-chip" 
+                       [class.personalizada]="actividad.origen === 'personalizada'"
+                       [class.modulo]="actividad.origen === 'modulo'">
+                <mat-icon class="chip-icon">
+                  {{ actividad.origen === 'personalizada' ? 'person' : 'folder' }}
+                </mat-icon>
+                {{ actividad.origen === 'personalizada' ? 'Personalizada' : 'Módulo' }}
+              </mat-chip>
+            </mat-chip-list>
+          </div>
+        </div>
+      </div>
+
+      <!-- Contenido del card -->
+      <mat-card-content class="card-content">
+        <!-- Tipo de actividad -->
+        <div class="info-row" *ngIf="actividad.tipo">
+          <mat-icon class="info-icon">category</mat-icon>
+          <span class="info-label">Tipo:</span>
+          <span class="info-value">{{ actividad.tipo }}</span>
+        </div>
+
+        <!-- Descripción -->
+        <div class="descripcion-section">
+          <p class="actividad-descripcion">
+            {{ actividad.descripcion || 'Sin descripción disponible' }}
+          </p>
+        </div>
+
+        <!-- Información adicional -->
+        <div class="info-adicional">
+          <div class="info-row" *ngIf="actividad.repetitiva">
+            <mat-icon class="info-icon">repeat</mat-icon>
+            <span class="info-text">
+              Actividad repetitiva
+              <span *ngIf="actividad.periodo"> - Cada {{ actividad.periodo }} días</span>
+            </span>
+          </div>
+          <div class="info-row" *ngIf="actividad.archivo_url">
+            <mat-icon class="info-icon">attachment</mat-icon>
+            <span class="info-text">Contiene archivo adjunto</span>
+          </div>
+        </div>
+      </mat-card-content>
+
+      <!-- Acciones del card -->
+      <mat-card-actions class="card-actions">
+        <button mat-button color="primary" 
+                (click)="verDetalleActividad(actividad); $event.stopPropagation()"
+                class="action-btn">
+          <mat-icon>visibility</mat-icon>
+          Ver Detalle
+        </button>
+        <button mat-button color="accent"
+                (click)="asignarActividad(actividad); $event.stopPropagation()"
+                class="action-btn">
+          <mat-icon>person_add</mat-icon>
+          Asignar
+        </button>
+        <button mat-button 
+                (click)="editarActividad(actividad); $event.stopPropagation()"
+                class="action-btn">
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+        <button mat-button color="warn"
+                (click)="eliminarActividad(actividad); $event.stopPropagation()"
+                class="action-btn">
+          <mat-icon>delete</mat-icon>
+          Eliminar
+        </button>
+      </mat-card-actions>
+    </mat-card>
   </div>
 </div>

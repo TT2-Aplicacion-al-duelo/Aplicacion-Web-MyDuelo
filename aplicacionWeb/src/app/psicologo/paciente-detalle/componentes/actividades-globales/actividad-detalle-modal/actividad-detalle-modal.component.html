@@ -1,0 +1,217 @@
+<!-- actividad-detalle-modal.component.html -->
+<div class="modal-container">
+  <!-- Header del Modal -->
+  <div mat-dialog-title class="modal-header">
+    <div class="header-content">
+      <h2 class="modal-title">
+        <mat-icon class="title-icon">
+          {{ esNueva ? 'add_circle' : (modoEdicion ? 'edit' : 'visibility') }}
+        </mat-icon>
+        {{ esNueva ? 'Nueva Actividad' : (modoEdicion ? 'Editar Actividad' : 'Detalle de Actividad') }}
+      </h2>
+      <button mat-icon-button (click)="cerrar()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- Contenido del Modal -->
+  <div mat-dialog-content class="modal-content">
+    <form [formGroup]="actividadForm" class="actividad-form">
+      
+      <!-- Título -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Título</mat-label>
+        <input matInput formControlName="titulo" placeholder="Ingrese el título de la actividad">
+        <mat-icon matPrefix>title</mat-icon>
+        <mat-error *ngIf="actividadForm.get('titulo')?.hasError('required')">
+          El título es requerido
+        </mat-error>
+        <mat-error *ngIf="actividadForm.get('titulo')?.hasError('minlength')">
+          Mínimo 3 caracteres
+        </mat-error>
+        <mat-error *ngIf="actividadForm.get('titulo')?.hasError('maxlength')">
+          Máximo 255 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Tipo de Actividad -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Tipo de Actividad</mat-label>
+        <mat-select formControlName="tipo">
+          <mat-option *ngFor="let tipo of tiposActividad" [value]="tipo">
+            {{ tipo }}
+          </mat-option>
+        </mat-select>
+        <mat-icon matPrefix>category</mat-icon>
+        <mat-error *ngIf="actividadForm.get('tipo')?.hasError('required')">
+          El tipo es requerido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Descripción -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>Descripción</mat-label>
+        <textarea matInput 
+                  formControlName="descripcion"
+                  rows="4"
+                  placeholder="Describa la actividad en detalle"></textarea>
+        <mat-icon matPrefix>description</mat-icon>
+        <mat-hint align="end" *ngIf="modoEdicion">
+          {{ actividadForm.get('descripcion')?.value?.length || 0 }}/1000
+        </mat-hint>
+        <mat-error *ngIf="actividadForm.get('descripcion')?.hasError('maxlength')">
+          Máximo 1000 caracteres
+        </mat-error>
+      </mat-form-field>
+
+      <!-- URL del Archivo -->
+      <mat-form-field appearance="outline" class="full-width">
+        <mat-label>URL del Archivo (Opcional)</mat-label>
+        <input matInput 
+               formControlName="archivo_url"
+               placeholder="https://ejemplo.com/archivo">
+        <mat-icon matPrefix>attach_file</mat-icon>
+        <mat-error *ngIf="actividadForm.get('archivo_url')?.hasError('pattern')">
+          Formato de URL inválido
+        </mat-error>
+      </mat-form-field>
+
+      <!-- Sección de Opciones -->
+      <div class="options-section">
+        <h3 class="section-title">
+          <mat-icon>settings</mat-icon>
+          Configuración
+        </h3>
+        
+        <div class="options-row">
+          <!-- Obligatoria -->
+          <mat-checkbox formControlName="obligatoria" class="option-checkbox">
+            <span class="checkbox-label">
+              <mat-icon class="checkbox-icon" color="warn">priority_high</mat-icon>
+              Actividad Obligatoria
+            </span>
+          </mat-checkbox>
+
+          <!-- Repetitiva -->
+          <mat-checkbox formControlName="repetitiva" class="option-checkbox">
+            <span class="checkbox-label">
+              <mat-icon class="checkbox-icon" color="primary">repeat</mat-icon>
+              Actividad Repetitiva
+            </span>
+          </mat-checkbox>
+        </div>
+
+        <!-- Periodo (solo si es repetitiva) -->
+        <mat-form-field appearance="outline" 
+                        class="periodo-field" 
+                        *ngIf="actividadForm.get('repetitiva')?.value">
+          <mat-label>Periodo de repetición (días)</mat-label>
+          <input matInput 
+                 type="number" 
+                 formControlName="periodo"
+                 placeholder="Ej: 7">
+          <mat-icon matPrefix>event_repeat</mat-icon>
+          <mat-error *ngIf="actividadForm.get('periodo')?.hasError('required')">
+            El periodo es requerido para actividades repetitivas
+          </mat-error>
+          <mat-error *ngIf="actividadForm.get('periodo')?.hasError('min')">
+            El periodo mínimo es 1 día
+          </mat-error>
+          <mat-error *ngIf="actividadForm.get('periodo')?.hasError('max')">
+            El periodo máximo es 365 días
+          </mat-error>
+        </mat-form-field>
+
+        <!-- Origen -->
+        <mat-form-field appearance="outline" class="origen-field">
+          <mat-label>Origen</mat-label>
+          <mat-select formControlName="origen">
+            <mat-option value="personalizada">
+              <mat-icon class="option-icon">person</mat-icon>
+              Personalizada
+            </mat-option>
+            <mat-option value="modulo">
+              <mat-icon class="option-icon">folder</mat-icon>
+              Módulo
+            </mat-option>
+          </mat-select>
+          <mat-icon matPrefix>source</mat-icon>
+        </mat-form-field>
+      </div>
+
+      <!-- Vista de solo lectura - Información adicional -->
+      <div *ngIf="!modoEdicion && !esNueva" class="readonly-info">
+        <div class="info-card">
+          <h3 class="info-title">
+            <mat-icon>info</mat-icon>
+            Información Adicional
+          </h3>
+          
+          <div class="info-grid">
+            <div class="info-item">
+              <span class="info-label">ID:</span>
+              <span class="info-value">{{ data.actividad.id_actividad || 'N/A' }}</span>
+            </div>
+            
+            <div class="info-item" *ngIf="data.actividad.id_psicologo_creador">
+              <span class="info-label">Creador:</span>
+              <span class="info-value">Psicólogo ID {{ data.actividad.id_psicologo_creador }}</span>
+            </div>
+            
+            <div class="info-item" *ngIf="data.actividad.fecha_creacion">
+              <span class="info-label">Fecha de Creación:</span>
+              <span class="info-value">{{ data.actividad.fecha_creacion | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- Acciones del Modal -->
+  <div mat-dialog-actions class="modal-actions">
+    <!-- Modo Vista -->
+    <ng-container *ngIf="!modoEdicion && !esNueva">
+      <button mat-button (click)="cerrar()" class="btn-secondary">
+        <mat-icon>close</mat-icon>
+        Cerrar
+      </button>
+      
+      <div class="actions-right">
+        <button mat-raised-button color="accent" (click)="asignarActividad()" class="btn-action">
+          <mat-icon>person_add</mat-icon>
+          Asignar a Pacientes
+        </button>
+        
+        <button mat-raised-button color="primary" (click)="editarActividad()" class="btn-action">
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+        
+        <button mat-raised-button color="warn" (click)="eliminarActividad()" class="btn-action">
+          <mat-icon>delete</mat-icon>
+          Eliminar
+        </button>
+      </div>
+    </ng-container>
+
+    <!-- Modo Edición -->
+    <ng-container *ngIf="modoEdicion">
+      <button mat-button (click)="cancelarEdicion()" class="btn-secondary">
+        <mat-icon>cancel</mat-icon>
+        Cancelar
+      </button>
+      
+      <button mat-raised-button 
+              color="primary" 
+              (click)="guardarCambios()"
+              [disabled]="!actividadForm.valid"
+              class="btn-save">
+        <mat-icon>save</mat-icon>
+        {{ esNueva ? 'Crear Actividad' : 'Guardar Cambios' }}
+      </button>
+    </ng-container>
+  </div>
+</div>

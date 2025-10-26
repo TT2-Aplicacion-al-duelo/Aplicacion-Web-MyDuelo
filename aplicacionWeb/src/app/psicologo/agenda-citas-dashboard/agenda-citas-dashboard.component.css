@@ -21,7 +21,7 @@
 }
 
 .celda-horario:not(.ocupado):hover {
-  background-color: #f8f9fa;
+  background-color: #f8faf8;
 }
 
 .evento {

@@ -1,0 +1,203 @@
+<!-- asignar-actividad-modal.component.html -->
+<div class="asignar-modal-container">
+  <!-- Header del Modal -->
+  <div mat-dialog-title class="modal-header">
+    <div class="header-content">
+      <h2 class="modal-title">
+        <mat-icon class="title-icon">person_add</mat-icon>
+        Asignar Actividad a Pacientes
+      </h2>
+      <button mat-icon-button (click)="cancelar()" class="close-button">
+        <mat-icon>close</mat-icon>
+      </button>
+    </div>
+    <div class="actividad-info">
+      <mat-icon>assignment</mat-icon>
+      <span class="actividad-nombre">{{ data.actividad.titulo }}</span>
+    </div>
+  </div>
+
+  <!-- Contenido del Modal -->
+  <div mat-dialog-content class="modal-content">
+    <!-- Formulario de configuración -->
+    <mat-card class="config-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>settings</mat-icon>
+          Configuración de Asignación
+        </mat-card-title>
+      </mat-card-header>
+      
+      <mat-card-content>
+        <form [formGroup]="asignacionForm" class="config-form">
+          <div class="form-row">
+            <!-- Fecha límite -->
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Fecha límite</mat-label>
+              <input matInput 
+                     [matDatepicker]="picker" 
+                     formControlName="fechaLimite"
+                     [min]="getMinDate()">
+              <mat-datepicker-toggle matSuffix [for]="picker"></mat-datepicker-toggle>
+              <mat-datepicker #picker></mat-datepicker>
+              <mat-icon matPrefix>event</mat-icon>
+              <mat-error *ngIf="asignacionForm.get('fechaLimite')?.hasError('required')">
+                La fecha límite es requerida
+              </mat-error>
+            </mat-form-field>
+
+            <!-- Prioridad -->
+            <mat-form-field appearance="outline" class="form-field">
+              <mat-label>Prioridad</mat-label>
+              <mat-select formControlName="prioridad">
+                <mat-option *ngFor="let prioridad of prioridades" 
+                            [value]="prioridad.value">
+                  <mat-icon [color]="prioridad.color" class="prioridad-icon">
+                    {{ prioridad.icon }}
+                  </mat-icon>
+                  <span>{{ prioridad.label }}</span>
+                </mat-option>
+              </mat-select>
+              <mat-icon matPrefix>flag</mat-icon>
+            </mat-form-field>
+          </div>
+
+          <!-- Instrucciones personalizadas -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Instrucciones personalizadas (opcional)</mat-label>
+            <textarea matInput 
+                      formControlName="instrucciones"
+                      rows="3"
+                      placeholder="Agregue instrucciones específicas para esta asignación"></textarea>
+            <mat-icon matPrefix>notes</mat-icon>
+            <mat-hint align="end">
+              {{ asignacionForm.get('instrucciones')?.value?.length || 0 }}/500
+            </mat-hint>
+            <mat-error *ngIf="asignacionForm.get('instrucciones')?.hasError('maxlength')">
+              Máximo 500 caracteres
+            </mat-error>
+          </mat-form-field>
+        </form>
+      </mat-card-content>
+    </mat-card>
+
+    <!-- Selección de pacientes -->
+    <mat-card class="pacientes-card">
+      <mat-card-header>
+        <mat-card-title>
+          <mat-icon>group</mat-icon>
+          Seleccionar Pacientes
+        </mat-card-title>
+        <div class="header-actions">
+          <mat-chip class="selected-count">
+            <mat-icon>check_circle</mat-icon>
+            {{ pacientesSeleccionados.size }} seleccionado{{ pacientesSeleccionados.size !== 1 ? 's' : '' }}
+          </mat-chip>
+        </div>
+      </mat-card-header>
+
+      <mat-card-content>
+        <!-- Barra de búsqueda -->
+        <div class="search-section">
+          <mat-form-field appearance="outline" class="search-field">
+            <mat-label>Buscar pacientes</mat-label>
+            <input matInput 
+                   [(ngModel)]="searchTerm"
+                   (ngModelChange)="buscarPacientes()"
+                   placeholder="Nombre, apellidos o email">
+            <mat-icon matPrefix>search</mat-icon>
+            <button mat-icon-button matSuffix 
+                    *ngIf="searchTerm"
+                    (click)="searchTerm = ''; buscarPacientes()">
+              <mat-icon>clear</mat-icon>
+            </button>
+          </mat-form-field>
+
+          <button mat-stroked-button 
+                  (click)="toggleTodos()"
+                  class="select-all-btn"
+                  [color]="todosSeleccionados ? 'primary' : ''">
+            <mat-icon>{{ todosSeleccionados ? 'check_box' : 'check_box_outline_blank' }}</mat-icon>
+            {{ todosSeleccionados ? 'Deseleccionar todos' : 'Seleccionar todos' }}
+          </button>
+        </div>
+
+        <!-- Loader -->
+        <div *ngIf="isLoading" class="loading-container">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>Cargando pacientes...</p>
+        </div>
+
+        <!-- Lista de pacientes -->
+        <div class="pacientes-list" *ngIf="!isLoading">
+          <!-- Sin resultados -->
+          <div *ngIf="pacientesFiltrados.length === 0" class="no-results">
+            <mat-icon>person_search</mat-icon>
+            <p>No se encontraron pacientes</p>
+          </div>
+
+          <!-- Pacientes -->
+          <div *ngFor="let paciente of pacientesFiltrados" 
+               class="paciente-item"
+               [class.selected]="pacientesSeleccionados.has(paciente.id_paciente)"
+               (click)="togglePaciente(paciente)">
+            
+            <mat-checkbox [checked]="pacientesSeleccionados.has(paciente.id_paciente)"
+                          (click)="$event.stopPropagation()"
+                          (change)="togglePaciente(paciente)"
+                          class="paciente-checkbox">
+            </mat-checkbox>
+
+            <div class="paciente-avatar">
+              <img *ngIf="paciente.foto_url" 
+                   [src]="paciente.foto_url" 
+                   [alt]="getNombreCompleto(paciente)"
+                   class="avatar-img">
+              <div *ngIf="!paciente.foto_url" class="avatar-initials">
+                {{ getIniciales(paciente) }}
+              </div>
+            </div>
+
+            <div class="paciente-info">
+              <div class="paciente-nombre">
+                {{ getNombreCompleto(paciente) }}
+              </div>
+              <div class="paciente-email">
+                <mat-icon class="small-icon">email</mat-icon>
+                {{ paciente.email }}
+              </div>
+              <div class="paciente-telefono" *ngIf="paciente.telefono">
+                <mat-icon class="small-icon">phone</mat-icon>
+                {{ paciente.telefono }}
+              </div>
+            </div>
+
+            <div class="paciente-actions">
+              <mat-icon class="check-icon" *ngIf="pacientesSeleccionados.has(paciente.id_paciente)">
+                check_circle
+              </mat-icon>
+            </div>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <!-- Acciones del Modal -->
+  <div mat-dialog-actions class="modal-actions">
+    <button mat-button (click)="cancelar()" class="btn-cancel">
+      <mat-icon>close</mat-icon>
+      Cancelar
+    </button>
+    
+    <button mat-raised-button 
+            color="primary"
+            (click)="asignar()"
+            [disabled]="!asignacionForm.valid || pacientesSeleccionados.size === 0"
+            class="btn-assign">
+      <mat-icon>assignment_turned_in</mat-icon>
+      Asignar a {{ pacientesSeleccionados.size }} 
+      {{ pacientesSeleccionados.size === 1 ? 'paciente' : 'pacientes' }}
+    </button>
+  </div>
+</div>

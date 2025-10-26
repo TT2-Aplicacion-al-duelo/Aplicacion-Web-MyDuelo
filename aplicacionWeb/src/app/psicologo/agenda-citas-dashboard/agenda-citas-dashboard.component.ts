@@ -275,12 +275,14 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
             const fechaLocal = new Date(year, month - 1, day);
             
             // Obtener el nombre completo del paciente
+            // const nombreCompleto = c.paciente ? 
+            //   `${c.paciente.nombre} ${c.paciente.apellido_paterno} ${c.paciente.apellido_materno || ''}`.trim() 
+            //   : 'Paciente';
             const nombreCompleto = c.paciente ? 
               `${c.paciente.nombre} ${c.paciente.apellido_paterno} ${c.paciente.apellido_materno || ''}`.trim() 
               : 'Paciente';
-            
             return {
-              title: `Cita con ${nombreCompleto}`,
+              title: `Cita con ${c.paciente.nombre} `,
               dia: fechaLocal,
               hora: c.hora_inicio,
               meta: {
@@ -658,13 +660,13 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
   siguienteSemana() {
   this.verFecha = addDays(this.verFecha, 7);
   this.generarSemana();
-  this.cargarAgenda(); // ✅ Agregar esta línea
+  this.cargarAgenda(); 
 }
 
 hoy() {
   this.verFecha = new Date();
   this.generarSemana();
-  this.cargarAgenda(); // ✅ Agregar esta línea
+  this.cargarAgenda(); 
 }
   getColorEvento(estado?: string): string {
     switch (estado) {
@@ -713,7 +715,7 @@ hoy() {
     this.horaReagendar = '';
     this.abrirModal('reagendarModal');
   }
-  // ✅ ABRIR MODAL DE DISPONIBILIDAD
+
   abrirModalDisponibilidad() {
     this.cargarDisponibilidad();
     this.abrirModal('disponibilidadModal');

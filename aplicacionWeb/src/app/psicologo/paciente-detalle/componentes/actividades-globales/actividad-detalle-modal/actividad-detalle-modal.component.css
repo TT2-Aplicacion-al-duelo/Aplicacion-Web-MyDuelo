@@ -1,0 +1,394 @@
+.modal-container {
+  position: relative;
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+}
+/* 
+// Header del Modal */
+.modal-header {
+  padding: 0;
+  margin: 0;
+  background: linear-gradient(135deg, #3f51b5 0%, #5a67d8 100%);
+  color: white;
+  border-radius: 4px 4px 0 0;
+  
+  .header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 24px;
+  }
+  
+  .modal-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    font-size: 24px;
+    font-weight: 400;
+    color: white;
+    
+    .title-icon {
+      font-size: 28px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+  
+  .close-button {
+    color: white;
+    transition: background 0.3s ease;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+  }
+}
+
+/* // Contenido del Modal */
+.modal-content {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+  
+  .actividad-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  
+  .full-width {
+    width: 100%;
+  }
+  
+  /* // Sección de opciones */
+  .options-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 20px;
+    margin-top: 8px;
+    
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 16px 0;
+      font-size: 18px;
+      font-weight: 500;
+      color: #333;
+      
+      mat-icon {
+        font-size: 22px;
+        width: 22px;
+        height: 22px;
+        color: #666;
+      }
+    }
+    
+    .options-row {
+      display: flex;
+      gap: 32px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      
+      .option-checkbox {
+        .checkbox-label {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          
+          .checkbox-icon {
+            font-size: 20px;
+            width: 20px;
+            height: 20px;
+          }
+        }
+      }
+    }
+    
+    .periodo-field {
+      max-width: 250px;
+      animation: slideIn 0.3s ease;
+    }
+    
+    .origen-field {
+      max-width: 250px;
+      
+      .option-icon {
+        margin-right: 8px;
+        vertical-align: middle;
+        font-size: 18px;
+      }
+    }
+  }
+/*   
+  // Vista de solo lectura */
+  .readonly-info {
+    margin-top: 20px;
+    
+    .info-card {
+      background: #e3f2fd;
+      border-radius: 8px;
+      padding: 20px;
+      border-left: 4px solid #1976d2;
+      
+      .info-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin: 0 0 16px 0;
+        font-size: 18px;
+        font-weight: 500;
+        color: #1976d2;
+        
+        mat-icon {
+          font-size: 22px;
+          width: 22px;
+          height: 22px;
+        }
+      }
+      
+      .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        
+        .info-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+          
+          .info-label {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #666;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+          }
+          
+          .info-value {
+            font-size: 15px;
+            color: #333;
+            font-weight: 400;
+          }
+        }
+      }
+    }
+  }
+}
+/* 
+// Acciones del Modal */
+.modal-actions {
+  padding: 16px 24px;
+  border-top: 1px solid #e0e0e0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #fafafa;
+  border-radius: 0 0 4px 4px;
+  gap: 12px;
+  flex-wrap: wrap;
+  
+  .btn-secondary {
+    color: #666;
+    
+    mat-icon {
+      margin-right: 8px;
+    }
+  }
+  
+  .actions-right {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .btn-action,
+  .btn-save {
+    mat-icon {
+      margin-right: 8px;
+      font-size: 20px;
+      width: 20px;
+      height: 20px;
+    }
+  }
+  
+  .btn-save {
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+}
+
+/* // Animaciones */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* // Estilos de Material Form Field personalizados */
+::ng-deep {
+  .mat-form-field-appearance-outline {
+    .mat-form-field-outline {
+      color: #e0e0e0;
+    }
+    
+    &.mat-focused {
+      .mat-form-field-outline {
+        color: #3f51b5;
+      }
+    }
+    
+    &.mat-form-field-disabled {
+      .mat-form-field-outline {
+        background: #f5f5f5;
+      }
+      
+      .mat-form-field-label {
+        color: #999;
+      }
+    }
+  }
+  
+  .mat-select-disabled {
+    .mat-select-value {
+      color: #666;
+    }
+  }
+  
+  .mat-input-element:disabled {
+    color: #666;
+  }
+  
+  textarea.mat-input-element {
+    resize: vertical;
+    min-height: 100px;
+  }
+}
+
+/* // Responsive Design */
+@media (max-width: 600px) {
+  .modal-header {
+    .header-content {
+      padding: 16px 20px;
+    }
+    
+    .modal-title {
+      font-size: 20px;
+      
+      .title-icon {
+        font-size: 24px;
+        width: 24px;
+        height: 24px;
+      }
+    }
+  }
+  
+  .modal-content {
+    padding: 16px;
+    
+    .options-section {
+      padding: 16px;
+      
+      .options-row {
+        flex-direction: column;
+        gap: 16px;
+      }
+      
+      .periodo-field,
+      .origen-field {
+        max-width: 100%;
+        width: 100%;
+      }
+    }
+    
+    .readonly-info {
+      .info-card {
+        padding: 16px;
+        
+        .info-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    }
+  }
+  
+  .modal-actions {
+    padding: 12px 16px;
+    flex-direction: column;
+    align-items: stretch;
+    
+    .btn-secondary,
+    .btn-save {
+      width: 100%;
+    }
+    
+    .actions-right {
+      width: 100%;
+      flex-direction: column;
+      
+      button {
+        width: 100%;
+      }
+    }
+  }
+}
+
+/* // Modo oscuro (opcional) */
+@media (prefers-color-scheme: dark) {
+  .modal-container {
+    background: #1e1e1e;
+    color: #e0e0e0;
+  }
+  
+  .modal-header {
+    background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+  }
+  
+  .modal-content {
+    .options-section {
+      background: #2a2a2a;
+      
+      .section-title {
+        color: #e0e0e0;
+      }
+    }
+    
+    .readonly-info {
+      .info-card {
+        background: #1a237e20;
+        border-left-color: #536dfe;
+        
+        .info-title {
+          color: #536dfe;
+        }
+        
+        .info-item {
+          .info-label {
+            color: #999;
+          }
+          
+          .info-value {
+            color: #e0e0e0;
+          }
+        }
+      }
+    }
+  }
+  
+  .modal-actions {
+    background: #252525;
+    border-top-color: #333;
+    
+    .btn-secondary {
+      color: #999;
+    }
+  }
+}
