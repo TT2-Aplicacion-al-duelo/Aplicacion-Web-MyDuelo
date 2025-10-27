@@ -36,10 +36,11 @@
                   </label>
                   <input 
                     type="date" 
-                    class="form-control" 
+                    class="form-control"
                     formControlName="fechaLimite"
-                    [min]="getMinDate()">
-                  <div class="invalid-feedback" *ngIf="asignacionForm.get('fechaLimite')?.invalid && asignacionForm.get('fechaLimite')?.touched">
+                    [min]="getMinDate()"
+                    [class.is-invalid]="asignacionForm.get('fechaLimite')?.invalid && asignacionForm.get('fechaLimite')?.touched">
+                  <div class="invalid-feedback">
                     La fecha límite es requerida
                   </div>
                 </div>
@@ -50,25 +51,34 @@
                     <i class="bi bi-flag me-1"></i>
                     Prioridad <span class="text-danger">*</span>
                   </label>
-                  <select class="form-select" formControlName="prioridad">
+                  <select 
+                    class="form-select" 
+                    formControlName="prioridad"
+                    [class.is-invalid]="asignacionForm.get('prioridad')?.invalid && asignacionForm.get('prioridad')?.touched">
                     <option *ngFor="let prioridad of prioridades" [value]="prioridad.value">
+                      <i class="bi" [ngClass]="prioridad.icon"></i>
                       {{ prioridad.label }}
                     </option>
                   </select>
+                  <div class="invalid-feedback">
+                    La prioridad es requerida
+                  </div>
                 </div>
 
-                <!-- Instrucciones -->
+                <!-- Instrucciones personalizadas -->
                 <div class="col-12">
                   <label class="form-label">
                     <i class="bi bi-card-text me-1"></i>
-                    Instrucciones personalizadas (opcional)
+                    Instrucciones adicionales (opcional)
                   </label>
                   <textarea 
                     class="form-control" 
-                    formControlName="instrucciones"
                     rows="3"
-                    placeholder="Agregue instrucciones específicas para esta asignación"></textarea>
-                  <small class="form-text text-muted">
+                    formControlName="instrucciones"
+                    placeholder="Agrega instrucciones específicas para esta asignación..."
+                    [class.is-invalid]="asignacionForm.get('instrucciones')?.invalid && asignacionForm.get('instrucciones')?.touched">
+                  </textarea>
+                  <small class="text-muted">
                     {{ asignacionForm.get('instrucciones')?.value?.length || 0 }}/500 caracteres
                   </small>
                 </div>
@@ -135,7 +145,7 @@
               <div 
                 *ngFor="let paciente of pacientesFiltrados" 
                 class="paciente-item border rounded p-2 mb-2"
-                [class.bg-light]="pacientesSeleccionados.has(paciente.id_paciente)"
+                [class.bg-light]="isPacienteSeleccionado(paciente)"
                 (click)="togglePaciente(paciente)"
                 style="cursor: pointer;">
                 
@@ -144,12 +154,12 @@
                     <input 
                       class="form-check-input" 
                       type="checkbox"
-                      [checked]="pacientesSeleccionados.has(paciente.id_paciente)"
+                      [checked]="isPacienteSeleccionado(paciente)"
                       (click)="$event.stopPropagation()"
                       (change)="togglePaciente(paciente)">
                   </div>
 
-                  <div class="paciente-avatar me-3">
+                  <!-- <div class="paciente-avatar me-3">
                     <img 
                       *ngIf="paciente.foto_url" 
                       [src]="paciente.foto_url" 
@@ -162,7 +172,7 @@
                       style="width: 40px; height: 40px;">
                       {{ getIniciales(paciente) }}
                     </div>
-                  </div>
+                  </div> -->
 
                   <div class="flex-grow-1">
                     <div class="fw-bold">
@@ -178,7 +188,7 @@
                     </small>
                   </div>
 
-                  <div *ngIf="pacientesSeleccionados.has(paciente.id_paciente)">
+                  <div *ngIf="isPacienteSeleccionado(paciente)">
                     <i class="bi bi-check-circle-fill text-success fs-4"></i>
                   </div>
                 </div>
