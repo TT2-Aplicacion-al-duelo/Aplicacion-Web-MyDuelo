@@ -1,0 +1,74 @@
+<div class="container-fluid py-4" *ngIf="foro">
+  <div class="card mb-3">
+    <div class="card-body">
+      <button class="btn btn-sm btn-outline-secondary mb-3" routerLink="/foros">
+        <i class="bi bi-arrow-left"></i> Volver
+      </button>
+      
+      <div class="d-flex justify-content-between align-items-start">
+        <div>
+          <h2>{{foro.titulo}}</h2>
+          <p class="text-muted" *ngIf="foro.descripcion">{{foro.descripcion}}</p>
+          <div class="d-flex gap-3 small text-muted">
+            <span><i class="bi bi-people"></i> {{foro.total_participantes}} participantes</span>
+            <span><i class="bi bi-chat"></i> {{foro.total_temas}} temas</span>
+            <span [class]="getBadgeRol(foro.rol_usuario!)">{{getTextoRol(foro.rol_usuario!)}}</span>
+          </div>
+        </div>
+        <div *ngIf="esAdmin">
+          <button class="btn btn-danger btn-sm" (click)="eliminarForo()">
+            <i class="bi bi-trash"></i> Eliminar Foro
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="tabActiva==='temas'" 
+         (click)="tabActiva='temas'" style="cursor:pointer">
+        Temas
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="tabActiva==='participantes'"
+         (click)="tabActiva='participantes'" style="cursor:pointer">
+        Participantes
+      </a>
+    </li>
+  </ul>
+
+  <div *ngIf="tabActiva==='temas'">
+    <button class="btn btn-primary mb-3" (click)="crearTema()">
+      <i class="bi bi-plus"></i> Nuevo Tema
+    </button>
+    
+    <div class="list-group">
+      <a *ngFor="let tema of temas" 
+         class="list-group-item list-group-item-action"
+         (click)="verTema(tema)" style="cursor:pointer">
+        <div class="d-flex justify-content-between">
+          <h6 class="mb-1">{{tema.titulo}}</h6>
+          <small>{{tema.total_mensajes || 0}} mensajes</small>
+        </div>
+        <small class="text-muted">{{tema.fecha_creacion | date:'dd/MM/yyyy'}}</small>
+      </a>
+      <div *ngIf="temas.length===0" class="alert alert-info">No hay temas aún</div>
+    </div>
+  </div>
+
+  <div *ngIf="tabActiva==='participantes'">
+    <div class="list-group">
+      <div *ngFor="let p of participantes" class="list-group-item">
+        <div class="d-flex justify-content-between">
+          <strong>{{p.usuario.nombre}} {{p.usuario.apellido}}</strong>
+          <span [class]="getBadgeRol(p.rol)">{{getTextoRol(p.rol)}}</span>
+        </div>
+        <small class="text-muted">
+          {{p.tipo_usuario}} - Unido {{p.fecha_union | date:'dd/MM/yyyy'}}
+        </small>
+      </div>
+    </div>
+  </div>
+</div>

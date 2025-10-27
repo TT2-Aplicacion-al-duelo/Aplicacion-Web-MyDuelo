@@ -240,17 +240,7 @@ function determinarTipoArchivo(url: string): 'imagen' | 'video' | 'audio' | 'doc
   return 'otro';
 }
 
-/**
- * POST /api/psicologo/actividades/asignar
- * Asignar una o varias actividades a uno o varios pacientes
- * Body: {
- *   id_actividad: number,
- *   pacientes: number[],
- *   fecha_limite?: string,
- *   instrucciones_personalizadas?: string,
- *   prioridad?: 'baja' | 'media' | 'alta'
- * }
- */
+
 export const asignarActividad = async (req: Request, res: Response) => {
   try {
     const id_psicologo = (req as any).user?.id_psicologo;

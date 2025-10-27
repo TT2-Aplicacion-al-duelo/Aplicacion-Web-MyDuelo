@@ -1,0 +1,98 @@
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h2><i class="bi bi-chat-dots"></i> Foros de la Comunidad</h2>
+      <p class="text-muted">Explora y participa en discusiones sobre temas de duelo</p>
+    </div>
+    <div class="col-md-4 text-end" *ngIf="esPsicologo">
+      <button class="btn btn-primary" (click)="irACrearForo()">
+        <i class="bi bi-plus-circle"></i> Crear Foro
+      </button>
+    </div>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
+        <div class="col-md-5">
+          <input type="text" class="form-control" [(ngModel)]="filtros.buscar" 
+                 (keyup.enter)="aplicarFiltros()" placeholder="Buscar...">
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="filtros.publico" (change)="aplicarFiltros()">
+            <option [ngValue]="true">Públicos</option>
+            <option [ngValue]="false">Privados</option>
+          </select>
+        </div>
+        <div class="col-md-3">
+          <select class="form-select" [(ngModel)]="filtros.ordenar" (change)="aplicarFiltros()">
+            <option value="recientes">Más recientes</option>
+            <option value="antiguos">Más antiguos</option>
+          </select>
+        </div>
+        <div class="col-md-1">
+          <button class="btn btn-outline-secondary w-100" (click)="filtros = {buscar:'',publico:true,ordenar:'recientes'}; aplicarFiltros()">
+            <i class="bi bi-arrow-clockwise"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="forosCargando" class="text-center py-5">
+    <div class="spinner-border"></div>
+    <p class="mt-3">Cargando...</p>
+  </div>
+
+  <div *ngIf="errorCarga" class="alert alert-danger">{{errorCarga}}</div>
+
+  <div *ngIf="!forosCargando && !errorCarga" class="row g-4">
+    <div *ngFor="let foro of foros" class="col-md-6 col-lg-4" 
+         (click)="verDetalles(foro)" style="cursor:pointer">
+      <div class="card h-100 hover-shadow">
+        <div class="card-body">
+          <div class="d-flex justify-content-between mb-2">
+            <h5 class="card-title">{{foro.titulo}}</h5>
+            <span class="badge" [ngClass]="foro.publico ? 'bg-success' : 'bg-warning'">
+              {{foro.publico ? 'Público' : 'Privado'}}
+            </span>
+          </div>
+          <p class="text-muted small" *ngIf="foro.descripcion">
+            {{foro.descripcion | slice:0:100}}{{foro.descripcion.length > 100 ? '...' : ''}}
+          </p>
+          <div class="d-flex gap-3 small text-muted mb-2">
+            <span><i class="bi bi-people"></i> {{foro.total_participantes || 0}}</span>
+            <span><i class="bi bi-chat"></i> {{foro.total_temas || 0}}</span>
+          </div>
+          <div *ngIf="foro.es_participante" class="mt-2">
+            <span [class]="getBadgeRol(foro.rol_usuario!)">{{getTextoRol(foro.rol_usuario!)}}</span>
+          </div>
+          <button *ngIf="!foro.es_participante && foro.publico && !esPsicologo"
+                  class="btn btn-sm btn-outline-primary w-100 mt-2"
+                  (click)="unirseAForo(foro, $event)">
+            Unirse
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div *ngIf="foros.length === 0" class="col-12">
+      <div class="alert alert-info text-center">No hay foros disponibles</div>
+    </div>
+  </div>
+
+  <nav *ngIf="paginacion.totalPages > 1" class="mt-4">
+    <ul class="pagination justify-content-center">
+      <li class="page-item" [class.disabled]="paginacion.page===1">
+        <a class="page-link" (click)="cambiarPagina(paginacion.page-1)">&laquo;</a>
+      </li>
+      <li *ngFor="let p of [].constructor(paginacion.totalPages); let i=index"
+          class="page-item" [class.active]="paginacion.page===i+1">
+        <a class="page-link" (click)="cambiarPagina(i+1)">{{i+1}}</a>
+      </li>
+      <li class="page-item" [class.disabled]="paginacion.page===paginacion.totalPages">
+        <a class="page-link" (click)="cambiarPagina(paginacion.page+1)">&raquo;</a>
+      </li>
+    </ul>
+  </nav>
+</div>

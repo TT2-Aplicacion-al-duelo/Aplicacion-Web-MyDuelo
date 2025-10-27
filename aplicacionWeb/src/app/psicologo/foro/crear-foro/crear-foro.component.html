@@ -1,0 +1,57 @@
+<div class="container py-4">
+  <div class="row justify-content-center">
+    <div class="col-lg-8">
+      <div class="card">
+        <div class="card-header bg-primary text-white">
+          <h4 class="mb-0"><i class="bi bi-plus-circle"></i> Crear Nuevo Foro</h4>
+        </div>
+        <div class="card-body">
+          <form [formGroup]="foroForm" (ngSubmit)="crearForo()">
+            <div class="mb-3">
+              <label class="form-label">Título *</label>
+              <input type="text" class="form-control" formControlName="titulo"
+                     [class.is-invalid]="titulo?.invalid && titulo?.touched">
+              <div class="invalid-feedback" *ngIf="titulo?.invalid && titulo?.touched">
+                <span *ngIf="titulo?.errors?.['required']">Requerido</span>
+                <span *ngIf="titulo?.errors?.['minlength']">Mínimo 3 caracteres</span>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label">Descripción</label>
+              <textarea class="form-control" formControlName="descripcion" rows="4"></textarea>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label">Tipo</label>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" [value]="true" 
+                       formControlName="publico" id="publico">
+                <label class="form-check-label" for="publico">
+                  <strong>Público</strong> - Todos pueden unirse
+                </label>
+              </div>
+              <div class="form-check">
+                <input class="form-check-input" type="radio" [value]="false" 
+                       formControlName="publico" id="privado">
+                <label class="form-check-label" for="privado">
+                  <strong>Privado</strong> - Solo por invitación
+                </label>
+              </div>
+            </div>
+
+            <div *ngIf="error" class="alert alert-danger">{{error}}</div>
+
+            <div class="d-flex gap-2">
+              <button type="submit" class="btn btn-primary" [disabled]="guardando">
+                <span *ngIf="!guardando"><i class="bi bi-save"></i> Crear</span>
+                <span *ngIf="guardando">Creando...</span>
+              </button>
+              <a routerLink="/foros" class="btn btn-outline-secondary">Cancelar</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
