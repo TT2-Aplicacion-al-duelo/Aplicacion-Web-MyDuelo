@@ -4,6 +4,7 @@ import { Actividad } from "../models/actividad/actividad";
 import { ActividadAsignada } from "../models/actividad/actividad-asignada";
 import { Paciente } from "../models/paciente";
 import { Op } from "sequelize";
+import { Evidencia } from "../models/evidencia";
 
 // ==================== PLANTILLAS GLOBALES ====================
 
@@ -150,7 +151,7 @@ export const eliminarActividadGlobal = async (req: Request, res: Response) => {
 
 /**
  * GET /api/psicologo/paciente/:id_paciente/actividades
- * Obtener actividades asignadas a un paciente específico
+ * Obtener actividades asignadas a un paciente específico CON EVIDENCIAS
  */
 export const getActividadesPaciente = async (req: Request, res: Response) => {
   try {
@@ -173,6 +174,7 @@ export const getActividadesPaciente = async (req: Request, res: Response) => {
       return res.status(404).json({ msg: "Paciente no encontrado" });
     }
 
+    // ⭐ ACTUALIZADO: Incluir evidencias en la consulta
     const actividades = await ActividadAsignada.findAll({
       where: { id_paciente },
       include: [
@@ -180,17 +182,63 @@ export const getActividadesPaciente = async (req: Request, res: Response) => {
           model: Actividad,
           as: 'actividad',
           attributes: ['id_actividad', 'titulo', 'descripcion', 'tipo', 'archivo_url']
+        },
+        {
+          model: Evidencia,
+          as: 'evidencias',  // ⭐ INCLUIR EVIDENCIAS
+          attributes: ['id_evidencia', 'archivo_url', 'comentario', 'fecha_subida', 'visible_para_psicologo'],
+          required: false  // LEFT JOIN
         }
       ],
       order: [['fecha_asignacion', 'DESC']]
     });
 
-    res.json(actividades);
+    // ⭐ FORMATEAR: Agregar tipo_archivo a cada evidencia
+    const actividadesFormateadas = actividades.map((act: any) => {
+      const actividadJson = act.toJSON();
+      
+      if (actividadJson.evidencias && Array.isArray(actividadJson.evidencias)) {
+        actividadJson.evidencias = actividadJson.evidencias.map((ev: any) => ({
+          ...ev,
+          tipo_archivo: determinarTipoArchivo(ev.archivo_url)
+        }));
+      }
+
+      return actividadJson;
+    });
+
+    res.json(actividadesFormateadas);
   } catch (error) {
     console.error("Error al obtener actividades del paciente:", error);
     res.status(500).json({ msg: "Error al obtener actividades" });
   }
 };
+
+// ⭐ AGREGAR esta función auxiliar si no la tienes
+function determinarTipoArchivo(url: string): 'imagen' | 'video' | 'audio' | 'documento' | 'otro' {
+  const urlLower = url.toLowerCase();
+
+  if (/\.(jpg|jpeg|png|gif|bmp|webp|svg)$/i.test(urlLower)) {
+    return 'imagen';
+  }
+
+  if (/\.(mp4|webm|ogg|mov|avi|mkv)$/i.test(urlLower) || 
+      urlLower.includes('youtube.com') || 
+      urlLower.includes('youtu.be') || 
+      urlLower.includes('vimeo.com')) {
+    return 'video';
+  }
+
+  if (/\.(mp3|wav|ogg|m4a|aac|flac)$/i.test(urlLower)) {
+    return 'audio';
+  }
+
+  if (/\.(pdf|doc|docx|xls|xlsx|ppt|pptx|txt)$/i.test(urlLower)) {
+    return 'documento';
+  }
+
+  return 'otro';
+}
 
 /**
  * POST /api/psicologo/actividades/asignar

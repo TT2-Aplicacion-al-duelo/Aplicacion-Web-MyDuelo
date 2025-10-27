@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { Actividad, ActividadAsignada, AsignarActividadRequest, CrearActividadRequest, ActualizarActividadRequest } from '../interfaces/actividad';
 import { environment } from '../../environments/environment';
 
@@ -224,42 +224,42 @@ export class ActividadService {
     );
   }
 
-  /**
-   * Actualizar el estado de una actividad asignada
-   */
-  actualizarEstadoActividad(idAsignacion: number, estado: 'en_proceso' | 'finalizada'): Observable<any> {
-    return this.http.patch(
-      `${this.AppUrl}${this.APIUrl}/actividades/asignadas/${idAsignacion}/estado`,
-      { estado },
-      { headers: this.getHeaders() }
-    ).pipe(
-      catchError(this.handleError)
-    );
-  }
+//   /**
+//    * Actualizar el estado de una actividad asignada
+//    */
+//   actualizarEstadoActividad(idAsignacion: number, estado: 'en_proceso' | 'finalizada'): Observable<any> {
+//     return this.http.patch(
+//       `${this.AppUrl}${this.APIUrl}/actividades/asignadas/${idAsignacion}/estado`,
+//       { estado },
+//       { headers: this.getHeaders() }
+//     ).pipe(
+//       catchError(this.handleError)
+//     );
+//   }
 
-  /**
- * Actualizar instrucciones personalizadas de una actividad
- */
-  actualizarInstruccionesActividad(idAsignacion: number, instrucciones: string): Observable<any> {
-    return this.http.put(
-      `${this.AppUrl}${this.APIUrl}/actividades/asignadas/${idAsignacion}/instrucciones`,
-      { instrucciones_personalizadas: instrucciones },
-      { headers: this.getHeaders() }
-    ).pipe(
-      catchError(this.handleError)
-    );
-  }
+//   /**
+//  * Actualizar instrucciones personalizadas de una actividad
+//  */
+//   actualizarInstruccionesActividad(idAsignacion: number, instrucciones: string): Observable<any> {
+//     return this.http.put(
+//       `${this.AppUrl}${this.APIUrl}/actividades/asignadas/${idAsignacion}/instrucciones`,
+//       { instrucciones_personalizadas: instrucciones },
+//       { headers: this.getHeaders() }
+//     ).pipe(
+//       catchError(this.handleError)
+//     );
+//   }
 
   /**
    * Eliminar una actividad asignada
    */
-  eliminarActividadAsignada(id: number): Observable<any> {
-    return this.http.delete(`${this.AppUrl}${this.APIUrl}/actividades/asignadas/${id}`, {
-      headers: this.getHeaders()
-    }).pipe(
-      catchError(this.handleError)
-    );
-  }
+  // eliminarActividadAsignada(id: number): Observable<any> {
+  //   return this.http.delete(`${this.AppUrl}${this.APIUrl}/actividades/asignadas/${id}`, {
+  //     headers: this.getHeaders()
+  //   }).pipe(
+  //     catchError(this.handleError)
+  //   );
+  // }
 
   /**
    * Alias para compatibilidad
@@ -412,4 +412,90 @@ export class ActividadService {
     console.error('Error en ActividadService:', errorMessage, error);
     return throwError(() => new Error(errorMessage));
   }
+    /**
+   * Actualizar el estado de una actividad asignada
+   * NOTA: Usa PATCH en lugar de PUT para actualizar solo el estado
+   */
+  actualizarEstadoActividad(idAsignacion: number, estado: 'en_proceso' | 'finalizada'): Observable<any> {
+    return this.http.patch(
+      `${this.AppUrl}${this.APIUrl}/actividades/asignadas/${idAsignacion}`,
+      { estado, fecha_completada: estado === 'finalizada' ? new Date().toISOString() : null },
+      { headers: this.getHeaders() }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Actualizar instrucciones personalizadas de una actividad
+   */
+  actualizarInstruccionesActividad(idAsignacion: number, instrucciones: string): Observable<any> {
+    return this.http.patch(
+      `${this.AppUrl}${this.APIUrl}/actividades/asignadas/${idAsignacion}`,
+      { instrucciones_personalizadas: instrucciones },
+      { headers: this.getHeaders() }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Eliminar una actividad asignada a un paciente
+   */
+  eliminarActividadAsignada(idAsignacion: number): Observable<any> {
+    return this.http.delete(
+      `${this.AppUrl}${this.APIUrl}/actividades/asignadas/${idAsignacion}`,
+      { headers: this.getHeaders() }
+    ).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  /**
+   * Asignar una actividad existente a un paciente específico
+   */
+  asignarActividadAPaciente(idPaciente: number, idActividad: number, opciones?: {
+    fecha_limite?: string;
+    instrucciones_personalizadas?: string;
+    prioridad?: 'baja' | 'media' | 'alta';
+  }): Observable<any> {
+    return this.asignarActividad({
+      id_actividad: idActividad,
+      pacientes: [idPaciente],
+      fecha_limite: opciones?.fecha_limite,
+      instrucciones_personalizadas: opciones?.instrucciones_personalizadas,
+      prioridad: opciones?.prioridad || 'media'
+    });
+  }
+
+  /**
+   * Crear una actividad personalizada directamente asignada a un paciente
+   */
+  crearActividadPersonalizada(data: {
+    titulo: string;
+    descripcion: string;
+    tipo?: string;
+    id_paciente: number;
+    prioridad?: 'baja' | 'media' | 'alta';
+    fecha_limite?: string;
+  }): Observable<any> {
+    // Primero crear la actividad global
+    return this.crearActividadGlobal({
+      titulo: data.titulo,
+      descripcion: data.descripcion,
+      tipo: data.tipo || 'personalizada',
+      obligatoria: false,
+      repetitiva: false
+    }).pipe(
+      // Luego asignarla al paciente
+      switchMap((actividad: Actividad) => 
+        this.asignarActividadAPaciente(data.id_paciente, actividad.id_actividad, {
+          prioridad: data.prioridad,
+          fecha_limite: data.fecha_limite
+        })
+      ),
+      catchError(this.handleError)
+    );
+  }
+
 }

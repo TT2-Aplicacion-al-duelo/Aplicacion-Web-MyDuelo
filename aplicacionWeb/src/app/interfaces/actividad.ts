@@ -1,3 +1,4 @@
+// interfaces/actividad.ts
 export interface Actividad {
   id_actividad: number;
   titulo: string;
@@ -9,6 +10,15 @@ export interface Actividad {
   archivo_url?: string;
   origen: 'personalizada' | 'modulo';
   id_psicologo_creador?: number;
+}
+
+export interface Evidencia {
+  id_evidencia: number;
+  archivo_url: string;
+  tipo_archivo: 'imagen' | 'video' | 'audio' | 'documento' | 'otro';
+  comentario?: string;
+  fecha_subida: Date;
+  visible_para_psicologo: boolean;
 }
 
 export interface ActividadAsignada {
@@ -23,6 +33,7 @@ export interface ActividadAsignada {
   prioridad?: 'baja' | 'media' | 'alta';
   notas?: string;
   actividad?: Actividad;
+  evidencias?: Evidencia[];  // ⭐ AGREGADO: array de evidencias
 }
 
 export interface AsignarActividadRequest {
@@ -52,13 +63,4 @@ export interface ActualizarActividadRequest {
   repetitiva?: boolean;
   periodo?: number;
   archivo_url?: string;
-}
-
-export interface Evidencia {
-  id_evidencia: number;
-  archivo_url: string;
-  tipo_archivo: 'imagen' | 'video' | 'audio' | 'documento' | 'otro';
-  comentario?: string;
-  fecha_subida: Date;
-  visible_para_psicologo: boolean;
 }

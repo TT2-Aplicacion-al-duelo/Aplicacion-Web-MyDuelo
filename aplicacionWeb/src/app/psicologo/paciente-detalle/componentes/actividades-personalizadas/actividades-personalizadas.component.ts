@@ -1,12 +1,10 @@
-// actividades-personalizadas.component.ts
+// actividades-personalizadas.component.ts - VERSIÓN CORREGIDA
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActividadService } from '../../../../services/actividad.service';
-import { PacientesService } from '../../../../services/pacientes.service';
 import Swal from 'sweetalert2';
 import { ActividadAsignada, Actividad } from '../../../../interfaces/actividad';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 interface FiltrosActividad {
   estado: string;
@@ -54,9 +52,7 @@ export class ActividadesPersonalizadasComponent implements OnInit {
   };
 
   constructor(
-    private actividadService: ActividadService,
-    private pacienteService: PacientesService,
-    private sanitizer: DomSanitizer
+    private actividadService: ActividadService
   ) {}
 
   ngOnInit(): void {
@@ -100,8 +96,9 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     this.estadisticas.total = this.actividades.length;
     this.estadisticas.enProceso = this.actividades.filter(a => a.estado === 'en_proceso').length;
     this.estadisticas.finalizadas = this.actividades.filter(a => a.estado === 'finalizada').length;
+    // ⭐ CORREGIDO: Verificar que evidencias existe y tiene elementos
     this.estadisticas.conEvidencia = this.actividades.filter(a => 
-      a.evidencias && a.evidencias.length > 0
+      a.evidencias && Array.isArray(a.evidencias) && a.evidencias.length > 0
     ).length;
   }
 
@@ -128,9 +125,11 @@ export class ActividadesPersonalizadasComponent implements OnInit {
       );
     }
 
-    // Filtro por evidencia
+    // ⭐ CORREGIDO: Filtro por evidencia con verificación segura
     if (this.filtros.mostrarSoloConEvidencia) {
-      resultado = resultado.filter(a => a.evidencias && a.evidencias.length > 0);
+      resultado = resultado.filter(a => 
+        a.evidencias && Array.isArray(a.evidencias) && a.evidencias.length > 0
+      );
     }
 
     // Ordenamiento
@@ -148,7 +147,7 @@ export class ActividadesPersonalizadasComponent implements OnInit {
           return fechaB - fechaA;
         
         case 'prioridad':
-          const prioridadOrden = { 'alta': 3, 'media': 2, 'baja': 1 };
+          const prioridadOrden: Record<string, number> = { 'alta': 3, 'media': 2, 'baja': 1 };
           return (prioridadOrden[b.prioridad || 'baja'] || 0) - (prioridadOrden[a.prioridad || 'baja'] || 0);
         
         case 'titulo':
@@ -209,6 +208,9 @@ export class ActividadesPersonalizadasComponent implements OnInit {
         this.actividadService.actualizarEstadoActividad(actividad.id_asignacion, nuevoEstado).subscribe({
           next: () => {
             actividad.estado = nuevoEstado;
+            if (nuevoEstado === 'finalizada') {
+              actividad.fecha_completada = new Date().toISOString();
+            }
             this.calcularEstadisticas();
             this.aplicarFiltros();
             Swal.fire('¡Actualizado!', 'El estado ha sido cambiado', 'success');
@@ -297,15 +299,15 @@ export class ActividadesPersonalizadasComponent implements OnInit {
       return;
     }
 
-    const opcionesActividades = this.actividadesGlobales.map(a => ({
-      value: a.id_actividad.toString(),
-      text: a.titulo
-    }));
+    const opcionesActividades = this.actividadesGlobales.reduce((acc, a) => {
+      acc[a.id_actividad.toString()] = a.titulo;
+      return acc;
+    }, {} as Record<string, string>);
 
     Swal.fire({
       title: 'Asignar Actividad Existente',
       input: 'select',
-      inputOptions: Object.fromEntries(opcionesActividades.map(o => [o.value, o.text])),
+      inputOptions: opcionesActividades,
       inputPlaceholder: 'Selecciona una actividad',
       showCancelButton: true,
       confirmButtonText: 'Asignar',
@@ -313,7 +315,7 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed && result.value) {
         const idActividad = parseInt(result.value);
-        this.actividadService.asignarActividad(this.idPaciente, idActividad).subscribe({
+        this.actividadService.asignarActividadAPaciente(this.idPaciente, idActividad).subscribe({
           next: () => {
             this.cargarActividades();
             Swal.fire('¡Asignada!', 'La actividad ha sido asignada al paciente', 'success');
@@ -345,7 +347,7 @@ export class ActividadesPersonalizadasComponent implements OnInit {
       preConfirm: () => {
         const titulo = (document.getElementById('titulo') as HTMLInputElement).value;
         const descripcion = (document.getElementById('descripcion') as HTMLTextAreaElement).value;
-        const prioridad = (document.getElementById('prioridad') as HTMLSelectElement).value;
+        const prioridad = (document.getElementById('prioridad') as HTMLSelectElement).value as 'baja' | 'media' | 'alta';
 
         if (!titulo) {
           Swal.showValidationMessage('El título es requerido');
@@ -364,7 +366,7 @@ export class ActividadesPersonalizadasComponent implements OnInit {
           prioridad: result.value.prioridad
         };
 
-        this.actividadService.crearActividad(nuevaActividad).subscribe({
+        this.actividadService.crearActividadPersonalizada(nuevaActividad).subscribe({
           next: () => {
             this.cargarActividades();
             Swal.fire('¡Creada!', 'La actividad ha sido creada', 'success');
@@ -419,5 +421,15 @@ export class ActividadesPersonalizadasComponent implements OnInit {
       'otro': 'secondary'
     };
     return colores[tipoArchivo] || 'secondary';
+  }
+
+  // ⭐ MÉTODO AUXILIAR: Verificar si una actividad tiene evidencias
+  tieneEvidencias(actividad: ActividadAsignada): boolean {
+    return !!(actividad.evidencias && Array.isArray(actividad.evidencias) && actividad.evidencias.length > 0);
+  }
+
+  // ⭐ MÉTODO AUXILIAR: Obtener cantidad de evidencias
+  cantidadEvidencias(actividad: ActividadAsignada): number {
+    return this.tieneEvidencias(actividad) ? (actividad.evidencias?.length || 0) : 0;
   }
 }
