@@ -26,14 +26,12 @@ import { PacientesAdminComponent } from './admin/pacientes-admin/pacientes-admin
 import { ChatAdminComponent } from './admin/chat-admin/chat-admin.component';
 
 // Importar componentes de foros
-
 import { foroAuthGuard, psicologoGuard } from './utils/foro.guard';
 import { ListaForosComponent } from './psicologo/foro/lista-foro/lista-foro.component';
 import { CrearForoComponent } from './psicologo/foro/crear-foro/crear-foro.component';
 import { InvitacionesComponent } from './psicologo/foro/invitaciones/invitaciones.component';
 import { DetalleForoComponent } from './psicologo/foro/detalle-foro/detalle-foro.component';
 import { TemaForoComponent } from './psicologo/foro/tema-foro/tema-foro.component';
-
 
 // Guard de Autenticación
 const canActivate: CanActivateFn = (route, state) => {
@@ -104,6 +102,37 @@ export const routes: Routes = [
     canActivate: [canActivate] 
   },
 
+  // ⚠️ IMPORTANTE: Rutas de Foros ANTES del wildcard
+  {
+    path: 'foros',
+    children: [
+      { 
+        path: '', 
+        component: ListaForosComponent 
+      },
+      { 
+        path: 'crear', 
+        component: CrearForoComponent, 
+        canActivate: [psicologoGuard] 
+      },
+      { 
+        path: 'invitaciones', 
+        component: InvitacionesComponent, 
+        canActivate: [psicologoGuard] 
+      },
+      { 
+        path: ':idForo', 
+        component: DetalleForoComponent, 
+        canActivate: [foroAuthGuard] 
+      },
+      { 
+        path: ':idForo/temas/:idTema', 
+        component: TemaForoComponent, 
+        canActivate: [foroAuthGuard] 
+      },
+    ]
+  },
+
   // Rutas de Admin (Protegidas y requieren rol admin)
   { 
     path: 'admin/psicologos', 
@@ -120,19 +149,7 @@ export const routes: Routes = [
     component: ChatAdminComponent, 
     canActivate: [canActivateAdmin] 
   },
-  { path: 'activar-cuenta/:token', component: ActivarCuentaComponent },
-  // Ruta 404 - Redireccionar al inicio
-  { path: '**', redirectTo: '' },
 
-  {
-  path: 'foros',
-    children: [
-      { path: '', component: ListaForosComponent },
-      { path: 'crear', component: CrearForoComponent, canActivate: [psicologoGuard] },
-      { path: 'invitaciones', component: InvitacionesComponent, canActivate: [psicologoGuard] },
-      { path: ':idForo', component: DetalleForoComponent, canActivate: [foroAuthGuard] },
-      { path: ':idForo/temas/:idTema', component: TemaForoComponent, canActivate: [foroAuthGuard] },
-    ]
-  },
-
+  // ⚠️ Ruta 404 - DEBE SER LA ÚLTIMA
+  { path: '**', redirectTo: '' }
 ];

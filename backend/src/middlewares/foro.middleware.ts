@@ -1,7 +1,10 @@
+// backend/src/middlewares/foro.middleware.ts
 import { Response, NextFunction } from 'express';
-import { RequestWithUser } from '../types/foro';
-import ForoParticipante from '../models/foro/foro-participante';
-import Foro from '../models/foro/foro';
+import { RequestWithUser } from './auth.middlewares';
+
+// Importar los modelos necesarios
+const ForoParticipante = require('../models/foro/foro-participante');
+const Foro = require('../models/foro/foro');
 
 /**
  * Verifica que el usuario es participante del foro
@@ -13,17 +16,30 @@ export const esParticipanteForo = async (
 ): Promise<void> => {
   try {
     const idForo = parseInt(req.params.idForo || req.body.id_foro);
-    const user = req.user!;
+    const user = req.user;
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'Usuario no autenticado',
+      });
+      return;
+    }
+
+    // Construir la consulta según el tipo de usuario
+    const whereClause: any = {
+      id_foro: idForo,
+      tipo_usuario: user.tipo,
+    };
+
+    if (user.tipo === 'psicologo') {
+      whereClause.id_psicologo = user.id_psicologo || user.id;
+    } else {
+      whereClause.id_paciente = user.id_paciente || user.id;
+    }
 
     const participante = await ForoParticipante.findOne({
-      where: {
-        id_foro: idForo,
-        tipo_usuario: user.tipo,
-        ...(user.tipo === 'psicologo' 
-          ? { id_psicologo: user.id }
-          : { id_paciente: user.id }
-        ),
-      },
+      where: whereClause,
     });
 
     if (!participante) {
@@ -38,6 +54,7 @@ export const esParticipanteForo = async (
     (req as any).participante = participante;
     next();
   } catch (error) {
+    console.error('Error en esParticipanteForo:', error);
     res.status(500).json({
       success: false,
       error: 'Error al verificar participación en el foro',
@@ -55,18 +72,31 @@ export const esAdminForo = async (
 ): Promise<void> => {
   try {
     const idForo = parseInt(req.params.idForo || req.body.id_foro);
-    const user = req.user!;
+    const user = req.user;
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'Usuario no autenticado',
+      });
+      return;
+    }
+
+    // Construir la consulta según el tipo de usuario
+    const whereClause: any = {
+      id_foro: idForo,
+      tipo_usuario: user.tipo,
+      rol: 'admin',
+    };
+
+    if (user.tipo === 'psicologo') {
+      whereClause.id_psicologo = user.id_psicologo || user.id;
+    } else {
+      whereClause.id_paciente = user.id_paciente || user.id;
+    }
 
     const participante = await ForoParticipante.findOne({
-      where: {
-        id_foro: idForo,
-        tipo_usuario: user.tipo,
-        rol: 'admin',
-        ...(user.tipo === 'psicologo' 
-          ? { id_psicologo: user.id }
-          : { id_paciente: user.id }
-        ),
-      },
+      where: whereClause,
     });
 
     if (!participante) {
@@ -77,8 +107,10 @@ export const esAdminForo = async (
       return;
     }
 
+    (req as any).participante = participante;
     next();
   } catch (error) {
+    console.error('Error en esAdminForo:', error);
     res.status(500).json({
       success: false,
       error: 'Error al verificar permisos de administrador',
@@ -96,18 +128,36 @@ export const esModeradorOAdmin = async (
 ): Promise<void> => {
   try {
     const idForo = parseInt(req.params.idForo || req.body.id_foro);
-    const user = req.user!;
+    const user = req.user;
+
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        error: 'Usuario no autenticado',
+      });
+      return;
+    }
+
+    // Construir la consulta según el tipo de usuario  
+    const whereClause: any = {
+      id_foro: idForo,
+      tipo_usuario: user.tipo,
+    };
+
+    if (user.tipo === 'psicologo') {
+      whereClause.id_psicologo = user.id_psicologo || user.id;
+    } else {
+      whereClause.id_paciente = user.id_paciente || user.id;
+    }
+
+    // Usar Sequelize Op.or para buscar admin o moderador
+    const { Op } = require('sequelize');
+    whereClause.rol = {
+      [Op.or]: ['admin', 'moderador']
+    };
 
     const participante = await ForoParticipante.findOne({
-      where: {
-        id_foro: idForo,
-        tipo_usuario: user.tipo,
-        rol: ['admin', 'moderador'],
-        ...(user.tipo === 'psicologo' 
-          ? { id_psicologo: user.id }
-          : { id_paciente: user.id }
-        ),
-      },
+      where: whereClause,
     });
 
     if (!participante) {
@@ -118,8 +168,10 @@ export const esModeradorOAdmin = async (
       return;
     }
 
+    (req as any).participante = participante;
     next();
   } catch (error) {
+    console.error('Error en esModeradorOAdmin:', error);
     res.status(500).json({
       success: false,
       error: 'Error al verificar permisos de moderación',
@@ -157,6 +209,7 @@ export const foroExiste = async (
     (req as any).foro = foro;
     next();
   } catch (error) {
+    console.error('Error en foroExiste:', error);
     res.status(500).json({
       success: false,
       error: 'Error al verificar existencia del foro',

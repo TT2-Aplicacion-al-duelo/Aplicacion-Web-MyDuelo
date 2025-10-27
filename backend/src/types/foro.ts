@@ -1,5 +1,5 @@
 // backend/src/types/foro.types.ts
-import { Request } from 'express';
+
 // ============================================================================
 // REQUEST BODY TYPES
 // ============================================================================
@@ -8,16 +8,7 @@ export interface CreateForoRequest {
   titulo: string;
   descripcion?: string;
   publico: boolean;
-  id_psicologo_creador: number;
-}
-
-export interface RequestWithUser extends Request {
-  user?: {
-    id_usuario: number;
-    role: 'psicologo' | 'paciente';
-    id_psicologo?: number;
-    id_paciente?: number;
-  };
+  id_psicologo_creador?: number;
 }
 
 export interface UpdateForoRequest {
@@ -35,7 +26,7 @@ export interface CreateTemaRequest {
 export interface CreateMensajeRequest {
   id_tema: number;
   contenido: string;
-  tipo_usuario: 'psicologo' | 'paciente';
+  tipo_usuario?: 'psicologo' | 'paciente';
   id_psicologo?: number;
   id_paciente?: number;
 }
@@ -53,7 +44,7 @@ export interface ResponderInvitacionRequest {
 
 export interface UnirseForoRequest {
   id_foro: number;
-  id_paciente: number;
+  id_paciente?: number;
 }
 
 // ============================================================================
@@ -139,18 +130,6 @@ export interface InvitacionResponse {
     apellidoPaterno: string;
   };
 }
-
-// ============================================================================
-// AUTH TYPES
-// ============================================================================
-
-export interface UserAuth {
-  id: number;
-  tipo: 'psicologo' | 'paciente';
-  nombre: string;
-  correo: string;
-}
-
 
 // ============================================================================
 // QUERY PARAMS
