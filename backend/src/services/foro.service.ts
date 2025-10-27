@@ -1,10 +1,10 @@
 // backend/src/services/foro.service.ts
 import { Op } from 'sequelize';
-import Foro from '../models//foro/foro';
-import ForoParticipante from '../models//foro/foro-participante';
-import Tema from '../models//foro/tema';
-import MensajeForo from '../models//foro/mensaje-foro';
-import InvitacionForo from '../models//foro/inivitacion';
+import Foro from '../models/foro/foro';
+import ForoParticipante from '../models/foro/foro-participante';
+import Tema from '../models/foro/tema';
+import MensajeForo from '../models/foro/mensaje-foro';
+import InvitacionForo from '../models/foro/inivitacion';
 import {
   CreateForoRequest,
   ForoResponse,

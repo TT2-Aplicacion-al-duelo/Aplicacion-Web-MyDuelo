@@ -59,6 +59,7 @@ const actividad_1 = __importDefault(require("../routes/actividad"));
 const modulos_1 = __importDefault(require("../routes/modulos"));
 const tests_1 = __importDefault(require("../routes/tests"));
 const notas_1 = __importDefault(require("../routes/notas"));
+const foro_1 = __importDefault(require("../routes/foro"));
 const associations_1 = require("./associations");
 const actividad_2 = require("./actividad/actividad");
 const actividad_asignada_1 = require("./actividad/actividad-asignada");
@@ -189,6 +190,7 @@ class Server {
         this.app.use(modulos_1.default);
         this.app.use(tests_1.default);
         this.app.use(notas_1.default);
+        this.app.use('/api/foros', foro_1.default);
     }
     // Método para iniciar el servidor
     listen() {

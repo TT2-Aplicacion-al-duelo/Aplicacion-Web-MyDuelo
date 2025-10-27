@@ -1,5 +1,5 @@
 // backend/src/types/foro.types.ts
-
+import { Request } from 'express';
 // ============================================================================
 // REQUEST BODY TYPES
 // ============================================================================
@@ -9,6 +9,15 @@ export interface CreateForoRequest {
   descripcion?: string;
   publico: boolean;
   id_psicologo_creador: number;
+}
+
+export interface RequestWithUser extends Request {
+  user?: {
+    id_usuario: number;
+    role: 'psicologo' | 'paciente';
+    id_psicologo?: number;
+    id_paciente?: number;
+  };
 }
 
 export interface UpdateForoRequest {
@@ -142,9 +151,6 @@ export interface UserAuth {
   correo: string;
 }
 
-export interface RequestWithUser extends Request {
-  user?: UserAuth;
-}
 
 // ============================================================================
 // QUERY PARAMS

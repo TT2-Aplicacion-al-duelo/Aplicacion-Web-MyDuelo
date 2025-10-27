@@ -1,10 +1,11 @@
+// backend/src/routes/foro.routes.ts
 import { Router } from 'express';
 import foroController from '../controllers/foro';
 import {
   verificarToken,
   esPsicologo,
   esPaciente,
-} from '../middlewares/auth.middlewares';
+} from '../middlewares/auth';
 import {
   esParticipanteForo,
   esAdminForo,
@@ -194,3 +195,33 @@ router.post(
 );
 
 export default router;
+
+// ============================================================================
+// DOCUMENTACIÓN DE ENDPOINTS
+// ============================================================================
+
+/**
+ * RESUMEN DE ENDPOINTS DISPONIBLES EN FASE 1:
+ * 
+ * FOROS:
+ * - GET    /api/foros                      → Listar foros
+ * - GET    /api/foros/:idForo              → Ver detalles de un foro
+ * - POST   /api/foros                      → Crear foro (psicólogo)
+ * - PUT    /api/foros/:idForo              → Actualizar foro (admin)
+ * - DELETE /api/foros/:idForo              → Eliminar foro (admin)
+ * - POST   /api/foros/:idForo/unirse       → Unirse a foro (paciente)
+ * - GET    /api/foros/:idForo/participantes → Ver participantes
+ * 
+ * INVITACIONES:
+ * - POST   /api/foros/:idForo/invitar      → Invitar moderador (admin)
+ * - GET    /api/invitaciones/mis-invitaciones → Ver mis invitaciones (psicólogo)
+ * - POST   /api/invitaciones/:id/responder → Aceptar/rechazar invitación
+ * 
+ * TEMAS:
+ * - GET    /api/foros/:idForo/temas        → Listar temas del foro
+ * - POST   /api/foros/:idForo/temas        → Crear tema (participante)
+ * 
+ * MENSAJES:
+ * - GET    /api/temas/:idTema/mensajes     → Listar mensajes del tema
+ * - POST   /api/temas/:idTema/mensajes     → Enviar mensaje (participante)
+ */

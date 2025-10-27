@@ -127,7 +127,7 @@ export const routes: Routes = [
   {
   path: 'foros',
     children: [
-      { path: 'lista', component: ListaForosComponent },
+      { path: '', component: ListaForosComponent },
       { path: 'crear', component: CrearForoComponent, canActivate: [psicologoGuard] },
       { path: 'invitaciones', component: InvitacionesComponent, canActivate: [psicologoGuard] },
       { path: ':idForo', component: DetalleForoComponent, canActivate: [foroAuthGuard] },
