@@ -1,3 +1,5 @@
+// actividades-globales.component.ts
+
 import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -10,8 +12,6 @@ import Swal from 'sweetalert2';
 import { Actividad } from '../../../../interfaces/actividad';
 
 declare var bootstrap: any;
-
-
 
 @Component({
   selector: 'app-actividades-globales',
@@ -108,15 +108,6 @@ export class ActividadesGlobalesComponent implements OnInit {
     this.modoEdicion = false;
     this.esNueva = false;
     this.mostrarModalDetalle = true;
-    
-    // Abrir modal de Bootstrap
-    setTimeout(() => {
-      const modalElement = document.getElementById('modalDetalleActividad');
-      if (modalElement) {
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-      }
-    }, 100);
   }
 
   editarActividad(actividad: Actividad): void {
@@ -124,27 +115,11 @@ export class ActividadesGlobalesComponent implements OnInit {
     this.modoEdicion = true;
     this.esNueva = false;
     this.mostrarModalDetalle = true;
-    
-    setTimeout(() => {
-      const modalElement = document.getElementById('modalDetalleActividad');
-      if (modalElement) {
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-      }
-    }, 100);
   }
 
   asignarActividad(actividad: Actividad): void {
     this.actividadSeleccionada = actividad;
     this.mostrarModalAsignar = true;
-    
-    setTimeout(() => {
-      const modalElement = document.getElementById('modalAsignarActividad');
-      if (modalElement) {
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-      }
-    }, 100);
   }
 
   eliminarActividad(actividad: Actividad): void {
@@ -188,28 +163,23 @@ export class ActividadesGlobalesComponent implements OnInit {
     this.modoEdicion = true;
     this.esNueva = true;
     this.mostrarModalDetalle = true;
-    
-    setTimeout(() => {
-      const modalElement = document.getElementById('modalDetalleActividad');
-      if (modalElement) {
-        const modal = new bootstrap.Modal(modalElement);
-        modal.show();
-      }
-    }, 100);
   }
 
+  /**
+   * CORRECCIÓN: Manejo mejorado del cierre del modal de detalle
+   * Este método se ejecuta cuando el modal de detalle emite el evento 'cerrar'
+   */
   onModalDetalleClose(result: any): void {
+    // Limpiar el estado del modal
     this.mostrarModalDetalle = false;
+    this.actividadSeleccionada = null;
+    this.modoEdicion = false;
+    this.esNueva = false;
     
-    // Cerrar modal de Bootstrap
-    const modalElement = document.getElementById('modalDetalleActividad');
-    if (modalElement) {
-      const modal = bootstrap.Modal.getInstance(modalElement);
-      if (modal) {
-        modal.hide();
-      }
-    }
+    // Limpiar cualquier backdrop residual de Bootstrap
+    this.limpiarBackdrops();
     
+    // Procesar la acción si hay resultado
     if (result) {
       if (result.accion === 'guardar') {
         if (this.esNueva) {
@@ -218,6 +188,7 @@ export class ActividadesGlobalesComponent implements OnInit {
           this.actualizarActividad(result.actividad);
         }
       } else if (result.accion === 'editar') {
+        // El modal interno maneja la edición, no necesitamos reabrir
         this.editarActividad(result.actividad);
       } else if (result.accion === 'asignar') {
         this.asignarActividad(result.actividad);
@@ -227,20 +198,37 @@ export class ActividadesGlobalesComponent implements OnInit {
     }
   }
 
+  /**
+   * CORRECCIÓN: Manejo mejorado del cierre del modal de asignar
+   */
   onModalAsignarClose(result: any): void {
+    // Limpiar el estado del modal
     this.mostrarModalAsignar = false;
+    this.actividadSeleccionada = null;
     
-    // Cerrar modal de Bootstrap
-    const modalElement = document.getElementById('modalAsignarActividad');
-    if (modalElement) {
-      const modal = bootstrap.Modal.getInstance(modalElement);
-      if (modal) {
-        modal.hide();
-      }
-    }
+    // Limpiar cualquier backdrop residual de Bootstrap
+    this.limpiarBackdrops();
     
+    // Procesar la asignación si hay pacientes seleccionados
     if (result && result.pacientesSeleccionados && result.pacientesSeleccionados.length > 0) {
       this.asignarAPacientes(result.pacientesSeleccionados, result.configuracion);
+    }
+  }
+
+  /**
+   * CORRECCIÓN: Método para limpiar backdrops residuales de Bootstrap
+   * Esto soluciona el problema de bloqueo al cerrar el modal
+   */
+  private limpiarBackdrops(): void {
+    // Remover la clase 'modal-open' del body
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+    
+    // Eliminar cualquier backdrop residual
+    const backdrops = document.getElementsByClassName('modal-backdrop');
+    while (backdrops.length > 0) {
+      backdrops[0].parentNode?.removeChild(backdrops[0]);
     }
   }
 
@@ -259,7 +247,7 @@ export class ActividadesGlobalesComponent implements OnInit {
     });
   }
 
-  private guardarNuevaActividad(actividad: Partial<Actividad>): void {
+  private guardarNuevaActividad(actividad: Actividad): void {
     this.isLoading = true;
     this.actividadService.crearActividad(actividad).subscribe({
       next: () => {
@@ -274,22 +262,20 @@ export class ActividadesGlobalesComponent implements OnInit {
     });
   }
 
-  private asignarAPacientes(pacientes: number[], configuracion: any): void {
-    if (!this.actividadSeleccionada) return;
-    
+  private asignarAPacientes(pacientesIds: number[], configuracion: any): void {
     this.isLoading = true;
-    
-    const asignaciones = pacientes.map(idPaciente => ({
-      id_actividad: this.actividadSeleccionada!.id_actividad,
+
+    const asignaciones = pacientesIds.map(idPaciente => ({
       id_paciente: idPaciente,
+      id_actividad: this.actividadSeleccionada!.id_actividad,
       fecha_limite: configuracion.fechaLimite,
-      instrucciones_personalizadas: configuracion.instrucciones,
-      prioridad: configuracion.prioridad || 'media'
+      instrucciones_adicionales: configuracion.instrucciones || null,
+      prioridad: configuracion.prioridad
     }));
 
     this.actividadService.asignarActividadMultiple(asignaciones).subscribe({
       next: () => {
-        this.toastr.success(`Actividad asignada a ${pacientes.length} paciente(s) correctamente`);
+        this.toastr.success(`Actividad asignada a ${pacientesIds.length} paciente(s) correctamente`);
         this.isLoading = false;
       },
       error: (error: any) => {

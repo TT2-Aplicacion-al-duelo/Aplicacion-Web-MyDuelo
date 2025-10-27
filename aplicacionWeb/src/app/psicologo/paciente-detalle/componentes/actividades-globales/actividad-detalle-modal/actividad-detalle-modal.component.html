@@ -1,23 +1,43 @@
 <!-- actividad-detalle-modal.component.html -->
-<div class="modal fade show d-block" id="modalDetalleActividad" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+
+<!-- Backdrop del modal - CORRECCIÓN: stopPropagation para evitar propagación de eventos -->
+<div class="modal-backdrop fade show" (click)="cerrarModal()" style="z-index: 1040;"></div>
+
+<!-- Modal -->
+<div class="modal fade show d-block" 
+     id="modalDetalleActividad" 
+     tabindex="-1" 
+     role="dialog"
+     aria-labelledby="modalDetalleActividadLabel"
+     aria-modal="true"
+     style="z-index: 1050;">
+  
+  <!-- CORRECCIÓN: stopPropagation en el dialog para evitar que se cierre al hacer clic dentro -->
+  <div class="modal-dialog modal-lg modal-dialog-scrollable" 
+       role="document"
+       (click)="$event.stopPropagation()">
     <div class="modal-content">
+      
       <!-- Header -->
       <div class="modal-header bg-primary text-white">
-        <h5 class="modal-title">
+        <h5 class="modal-title" id="modalDetalleActividadLabel">
           <i class="bi" [ngClass]="{
             'bi-plus-circle': esNueva,
             'bi-pencil': modoEdicion && !esNueva,
-            'bi-eye': !modoEdicion
+            'bi-eye': !modoEdicion && !esNueva
           }"></i>
           {{ esNueva ? 'Nueva Actividad' : (modoEdicion ? 'Editar Actividad' : 'Detalle de Actividad') }}
         </h5>
-        <button type="button" class="btn-close btn-close-white" (click)="cerrarModal()"></button>
+        <button type="button" 
+                class="btn-close btn-close-white" 
+                (click)="cerrarModal()"
+                aria-label="Cerrar"></button>
       </div>
 
       <!-- Body -->
       <div class="modal-body">
         <form [formGroup]="actividadForm">
+          
           <!-- Título -->
           <div class="mb-3">
             <label class="form-label">
@@ -30,7 +50,8 @@
               formControlName="titulo"
               [class.is-invalid]="actividadForm.get('titulo')?.invalid && actividadForm.get('titulo')?.touched"
               placeholder="Ingrese el título de la actividad">
-            <div class="invalid-feedback" *ngIf="actividadForm.get('titulo')?.invalid && actividadForm.get('titulo')?.touched">
+            <div class="invalid-feedback" 
+                 *ngIf="actividadForm.get('titulo')?.invalid && actividadForm.get('titulo')?.touched">
               {{ getErrorMessage('titulo') }}
             </div>
           </div>
@@ -50,7 +71,8 @@
                 {{ tipo }}
               </option>
             </select>
-            <div class="invalid-feedback" *ngIf="actividadForm.get('tipo')?.invalid && actividadForm.get('tipo')?.touched">
+            <div class="invalid-feedback" 
+                 *ngIf="actividadForm.get('tipo')?.invalid && actividadForm.get('tipo')?.touched">
               {{ getErrorMessage('tipo') }}
             </div>
           </div>
@@ -66,163 +88,179 @@
               formControlName="descripcion"
               rows="4"
               [class.is-invalid]="actividadForm.get('descripcion')?.invalid && actividadForm.get('descripcion')?.touched"
-              placeholder="Describa la actividad en detalle"></textarea>
-            <small class="form-text text-muted">
-              {{ actividadForm.get('descripcion')?.value?.length || 0 }}/1000 caracteres
-            </small>
-            <div class="invalid-feedback" *ngIf="actividadForm.get('descripcion')?.invalid && actividadForm.get('descripcion')?.touched">
+              placeholder="Describa la actividad..."></textarea>
+            <small class="text-muted">Máximo 1000 caracteres</small>
+            <div class="invalid-feedback" 
+                 *ngIf="actividadForm.get('descripcion')?.invalid && actividadForm.get('descripcion')?.touched">
               {{ getErrorMessage('descripcion') }}
             </div>
           </div>
 
-          <!-- URL del Archivo -->
+          <!-- Opciones -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <i class="bi bi-gear me-1"></i>
+              Opciones de la Actividad
+            </div>
+            <div class="card-body">
+              <div class="row">
+                
+                <!-- Obligatoria -->
+                <div class="col-md-6 mb-3">
+                  <div class="form-check form-switch">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      id="switchObligatoria"
+                      formControlName="obligatoria">
+                    <label class="form-check-label" for="switchObligatoria">
+                      <i class="bi bi-exclamation-circle me-1"></i>
+                      Actividad Obligatoria
+                    </label>
+                  </div>
+                  <small class="text-muted d-block ms-4">
+                    El paciente debe completarla obligatoriamente
+                  </small>
+                </div>
+
+                <!-- Repetitiva -->
+                <div class="col-md-6 mb-3">
+                  <div class="form-check form-switch">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      id="switchRepetitiva"
+                      formControlName="repetitiva">
+                    <label class="form-check-label" for="switchRepetitiva">
+                      <i class="bi bi-repeat me-1"></i>
+                      Actividad Repetitiva
+                    </label>
+                  </div>
+                  <small class="text-muted d-block ms-4">
+                    Se repite cada cierto periodo de tiempo
+                  </small>
+                </div>
+
+                <!-- Periodo (solo si es repetitiva) -->
+                <div class="col-12" *ngIf="actividadForm.get('repetitiva')?.value">
+                  <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    <strong>Periodo de repetición</strong>
+                  </div>
+                  <label class="form-label">
+                    <i class="bi bi-calendar-range me-1"></i>
+                    Repetir cada (días) <span class="text-danger">*</span>
+                  </label>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    formControlName="periodo"
+                    min="1"
+                    max="365"
+                    [class.is-invalid]="actividadForm.get('periodo')?.invalid && actividadForm.get('periodo')?.touched"
+                    placeholder="Ej: 7 para repetir cada semana">
+                  <div class="invalid-feedback" 
+                       *ngIf="actividadForm.get('periodo')?.invalid && actividadForm.get('periodo')?.touched">
+                    {{ getErrorMessage('periodo') }}
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- URL del archivo (opcional) -->
           <div class="mb-3">
             <label class="form-label">
-              <i class="bi bi-link-45deg me-1"></i>
-              URL del Archivo (Opcional)
+              <i class="bi bi-paperclip me-1"></i>
+              URL del Archivo Adjunto (opcional)
             </label>
             <input 
               type="url" 
               class="form-control" 
               formControlName="archivo_url"
               [class.is-invalid]="actividadForm.get('archivo_url')?.invalid && actividadForm.get('archivo_url')?.touched"
-              placeholder="https://ejemplo.com/archivo">
-            <div class="invalid-feedback" *ngIf="actividadForm.get('archivo_url')?.invalid && actividadForm.get('archivo_url')?.touched">
+              placeholder="https://ejemplo.com/archivo.pdf">
+            <small class="text-muted">
+              Puede adjuntar un enlace a un archivo externo (Google Drive, Dropbox, etc.)
+            </small>
+            <div class="invalid-feedback" 
+                 *ngIf="actividadForm.get('archivo_url')?.invalid && actividadForm.get('archivo_url')?.touched">
               {{ getErrorMessage('archivo_url') }}
             </div>
           </div>
 
-          <!-- Configuración -->
-          <div class="card mb-3">
-            <div class="card-header">
-              <i class="bi bi-gear me-1"></i>
-              Configuración
+          <!-- Información adicional (solo en modo vista) -->
+          <div class="card" *ngIf="!modoEdicion && !esNueva && actividad">
+            <div class="card-header bg-light">
+              <i class="bi bi-info-circle me-1"></i>
+              Información Adicional
             </div>
             <div class="card-body">
               <div class="row">
-                <!-- Obligatoria -->
-                <div class="col-md-6 mb-3">
-                  <div class="form-check">
-                    <input 
-                      class="form-check-input" 
-                      type="checkbox" 
-                      formControlName="obligatoria"
-                      id="checkObligatoria">
-                    <label class="form-check-label" for="checkObligatoria">
-                      <i class="bi bi-exclamation-triangle text-warning me-1"></i>
-                      Actividad Obligatoria
-                    </label>
-                  </div>
+                <div class="col-md-6" *ngIf="actividad.id_psicologo_creador">
+                  <small class="d-block">
+                    <strong>Creador:</strong> Psicólogo ID {{ actividad.id_psicologo_creador }}
+                  </small>
                 </div>
-
-                <!-- Repetitiva -->
-                <div class="col-md-6 mb-3">
-                  <div class="form-check">
-                    <input 
-                      class="form-check-input" 
-                      type="checkbox" 
-                      formControlName="repetitiva"
-                      id="checkRepetitiva">
-                    <label class="form-check-label" for="checkRepetitiva">
-                      <i class="bi bi-repeat text-info me-1"></i>
-                      Actividad Repetitiva
-                    </label>
-                  </div>
+                <div class="col-md-6" *ngIf="actividad.fecha_creacion">
+                  <small class="d-block">
+                    <strong>Fecha de Creación:</strong> 
+                    {{ actividad.fecha_creacion | date:'dd/MM/yyyy HH:mm' }}
+                  </small>
                 </div>
-
-                <!-- Periodo (solo si es repetitiva) -->
-                <div class="col-12" *ngIf="actividadForm.get('repetitiva')?.value">
-                  <label class="form-label">
-                    <i class="bi bi-calendar-range me-1"></i>
-                    Periodo de repetición (días)
-                  </label>
-                  <input 
-                    type="number" 
-                    class="form-control" 
-                    formControlName="periodo"
-                    [class.is-invalid]="actividadForm.get('periodo')?.invalid && actividadForm.get('periodo')?.touched"
-                    placeholder="Ej: 7"
-                    min="1"
-                    max="365">
-                  <div class="invalid-feedback" *ngIf="actividadForm.get('periodo')?.invalid && actividadForm.get('periodo')?.touched">
-                    {{ getErrorMessage('periodo') }}
-                  </div>
-                </div>
-
-                <!-- Origen -->
-                <div class="col-12 mt-3">
-                  <label class="form-label">
-                    <i class="bi bi-folder me-1"></i>
-                    Origen
-                  </label>
-                  <select class="form-select" formControlName="origen">
-                    <option value="personalizada">
-                      <i class="bi bi-person"></i>
-                      Personalizada
-                    </option>
-                    <option value="modulo">
-                      <i class="bi bi-folder"></i>
-                      Módulo
-                    </option>
-                  </select>
+                <div class="col-md-6 mt-2" *ngIf="actividad.origen">
+                  <small class="d-block">
+                    <strong>Origen:</strong> 
+                    <span class="badge" [ngClass]="actividad.origen === 'personalizada' ? 'bg-success' : 'bg-warning'">
+                      {{ actividad.origen === 'personalizada' ? 'Personalizada' : 'Módulo' }}
+                    </span>
+                  </small>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Vista de solo lectura - Información adicional -->
-          <div *ngIf="!modoEdicion && !esNueva && actividad" class="alert alert-info">
-            <h6 class="alert-heading">
-              <i class="bi bi-info-circle"></i>
-              Información Adicional
-            </h6>
-            <div class="row">
-              <div class="col-md-6">
-                <small class="d-block">
-                  <strong>ID:</strong> {{ actividad.id_actividad || 'N/A' }}
-                </small>
-              </div>
-              <div class="col-md-6" *ngIf="actividad.id_psicologo_creador">
-                <small class="d-block">
-                  <strong>Creador:</strong> Psicólogo ID {{ actividad.id_psicologo_creador }}
-                </small>
-              </div>
-              <div class="col-12 mt-2" *ngIf="actividad.fecha_creacion">
-                <small class="d-block">
-                  <strong>Fecha de Creación:</strong> 
-                  {{ actividad.fecha_creacion | date:'dd/MM/yyyy HH:mm' }}
-                </small>
-              </div>
-            </div>
-          </div>
         </form>
       </div>
 
       <!-- Footer -->
       <div class="modal-footer">
-        <!-- Modo Vista -->
+        
+        <!-- Modo Vista (sin editar) -->
         <ng-container *ngIf="!modoEdicion && !esNueva">
-          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+          <button type="button" 
+                  class="btn btn-secondary" 
+                  (click)="cerrarModal()">
             <i class="bi bi-x-circle me-1"></i>
             Cerrar
           </button>
-          <button type="button" class="btn btn-success" (click)="asignarActividad()">
+          <button type="button" 
+                  class="btn btn-success" 
+                  (click)="asignarActividad()">
             <i class="bi bi-person-plus me-1"></i>
             Asignar a Pacientes
           </button>
-          <button type="button" class="btn btn-primary" (click)="editarActividad()">
+          <!-- CORRECCIÓN: Botón de editar que activa el modo edición localmente -->
+          <button type="button" 
+                  class="btn btn-primary" 
+                  (click)="editarActividad()">
             <i class="bi bi-pencil me-1"></i>
             Editar
           </button>
-          <button type="button" class="btn btn-danger" (click)="eliminarActividad()">
+          <button type="button" 
+                  class="btn btn-danger" 
+                  (click)="eliminarActividad()">
             <i class="bi bi-trash me-1"></i>
             Eliminar
           </button>
         </ng-container>
 
-        <!-- Modo Edición -->
-        <ng-container *ngIf="modoEdicion">
-          <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()">
+        <!-- Modo Edición o Nueva -->
+        <ng-container *ngIf="modoEdicion || esNueva">
+          <button type="button" 
+                  class="btn btn-secondary" 
+                  (click)="cancelarEdicion()">
             <i class="bi bi-x-circle me-1"></i>
             Cancelar
           </button>
@@ -235,6 +273,7 @@
             {{ esNueva ? 'Crear Actividad' : 'Guardar Cambios' }}
           </button>
         </ng-container>
+        
       </div>
     </div>
   </div>

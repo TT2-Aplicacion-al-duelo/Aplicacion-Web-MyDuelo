@@ -1,6 +1,4 @@
-// actividad-detalle-modal.component.ts
-
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
@@ -12,7 +10,7 @@ import { ToastrService } from 'ngx-toastr';
   templateUrl: './actividad-detalle-modal.component.html',
   styleUrls: ['./actividad-detalle-modal.component.css']
 })
-export class ActividadDetalleModalComponent implements OnInit {
+export class ActividadDetalleModalComponent implements OnInit, OnChanges {
   @Input() actividad: any = null;
   @Input() modoEdicion: boolean = false;
   @Input() esNueva: boolean = false;
@@ -39,6 +37,13 @@ export class ActividadDetalleModalComponent implements OnInit {
 
   ngOnInit(): void {
     this.inicializarFormulario();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    // Detectar cambios en modoEdicion para reinicializar el formulario
+    if (changes['modoEdicion'] && !changes['modoEdicion'].firstChange) {
+      this.inicializarFormulario();
+    }
   }
 
   inicializarFormulario(): void {
@@ -92,7 +97,11 @@ export class ActividadDetalleModalComponent implements OnInit {
     });
   }
 
-  activarEdicion(): void {
+  /**
+   * CORRECCIÓN: Este método debe activar la edición localmente sin cerrar el modal
+   */
+  editarActividad(): void {
+    // Activar modo edición localmente
     this.modoEdicion = true;
     this.actividadForm.enable();
     
@@ -139,13 +148,6 @@ export class ActividadDetalleModalComponent implements OnInit {
     });
   }
 
-  editarActividad(): void {
-    this.cerrar.emit({
-      accion: 'editar',
-      actividad: this.actividad
-    });
-  }
-
   eliminarActividad(): void {
     this.cerrar.emit({
       accion: 'eliminar',
@@ -153,6 +155,9 @@ export class ActividadDetalleModalComponent implements OnInit {
     });
   }
 
+  /**
+   * CORRECCIÓN: Cerrar modal correctamente sin emitir eventos adicionales
+   */
   cerrarModal(): void {
     this.cerrar.emit(null);
   }
@@ -170,7 +175,13 @@ export class ActividadDetalleModalComponent implements OnInit {
           errores.push(`${this.obtenerNombreCampo(key)} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`);
         }
         if (control.errors['maxlength']) {
-          errores.push(`${this.obtenerNombreCampo(key)} no debe exceder ${control.errors['maxlength'].requiredLength} caracteres`);
+          errores.push(`${this.obtenerNombreCampo(key)} no puede exceder ${control.errors['maxlength'].requiredLength} caracteres`);
+        }
+        if (control.errors['min']) {
+          errores.push(`${this.obtenerNombreCampo(key)} debe ser mayor a ${control.errors['min'].min}`);
+        }
+        if (control.errors['max']) {
+          errores.push(`${this.obtenerNombreCampo(key)} no puede ser mayor a ${control.errors['max'].max}`);
         }
         if (control.errors['pattern']) {
           errores.push(`${this.obtenerNombreCampo(key)} tiene un formato inválido`);
@@ -178,46 +189,55 @@ export class ActividadDetalleModalComponent implements OnInit {
       }
     });
 
-    errores.forEach(error => {
-      this.toastr.error(error);
-    });
+    if (errores.length > 0) {
+      this.toastr.warning(errores.join('\n'), 'Formulario incompleto', {
+        timeOut: 5000,
+        enableHtml: true
+      });
+      
+      // Marcar todos los campos como tocados para mostrar errores
+      Object.keys(this.actividadForm.controls).forEach(key => {
+        this.actividadForm.get(key)?.markAsTouched();
+      });
+    }
   }
 
   private obtenerNombreCampo(key: string): string {
     const nombres: { [key: string]: string } = {
       titulo: 'Título',
       descripcion: 'Descripción',
-      tipo: 'Tipo',
+      tipo: 'Tipo de actividad',
+      obligatoria: 'Obligatoria',
+      repetitiva: 'Repetitiva',
       periodo: 'Periodo',
-      archivo_url: 'URL del archivo'
+      archivo_url: 'URL del archivo',
+      origen: 'Origen'
     };
     return nombres[key] || key;
   }
 
-  getErrorMessage(fieldName: string): string {
-    const control = this.actividadForm.get(fieldName);
-    
-    if (control?.hasError('required')) {
-      return `${this.obtenerNombreCampo(fieldName)} es requerido`;
+  getErrorMessage(controlName: string): string {
+    const control = this.actividadForm.get(controlName);
+    if (!control || !control.errors) return '';
+
+    if (control.errors['required']) {
+      return `${this.obtenerNombreCampo(controlName)} es requerido`;
     }
-    if (control?.hasError('minlength')) {
-      const minLength = control.errors?.['minlength'].requiredLength;
-      return `Mínimo ${minLength} caracteres`;
+    if (control.errors['minlength']) {
+      return `Debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`;
     }
-    if (control?.hasError('maxlength')) {
-      const maxLength = control.errors?.['maxlength'].requiredLength;
-      return `Máximo ${maxLength} caracteres`;
+    if (control.errors['maxlength']) {
+      return `No puede exceder ${control.errors['maxlength'].requiredLength} caracteres`;
     }
-    if (control?.hasError('min')) {
-      return `El valor mínimo es ${control.errors?.['min'].min}`;
+    if (control.errors['min']) {
+      return `Debe ser mayor a ${control.errors['min'].min}`;
     }
-    if (control?.hasError('max')) {
-      return `El valor máximo es ${control.errors?.['max'].max}`;
+    if (control.errors['max']) {
+      return `No puede ser mayor a ${control.errors['max'].max}`;
     }
-    if (control?.hasError('pattern')) {
-      return 'Formato de URL inválido';
+    if (control.errors['pattern']) {
+      return 'Formato inválido';
     }
-    
-    return '';
+    return 'Error de validación';
   }
 }
