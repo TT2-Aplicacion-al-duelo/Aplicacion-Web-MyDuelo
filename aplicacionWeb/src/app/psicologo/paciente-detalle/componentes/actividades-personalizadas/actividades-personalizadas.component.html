@@ -1,12 +1,22 @@
-<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/actividades-personalizadas/actividades-personalizadas.component.html -->
+<!-- actividades-personalizadas.component.html -->
 <div class="card">
   <div class="card-header d-flex justify-content-between align-items-center">
     <h5 class="mb-0">
       <i class="bi bi-clipboard-check me-2"></i>
       Actividades Asignadas
+      @if (estadisticas.total > 0) {
+        <span class="badge bg-primary ms-2">{{ estadisticas.total }}</span>
+      }
     </h5>
-    <div>
-      <button class="btn btn-sm btn-outline-primary me-2" (click)="asignarActividad()">
+    <div class="d-flex gap-2">
+      <button 
+        class="btn btn-sm btn-outline-secondary" 
+        (click)="toggleFiltros()"
+        [class.active]="mostrarFiltros">
+        <i class="bi bi-funnel me-1"></i>
+        Filtros
+      </button>
+      <button class="btn btn-sm btn-outline-primary" (click)="asignarActividad()">
         <i class="bi bi-link-45deg me-1"></i>
         Asignar Existente
       </button>
@@ -16,6 +26,145 @@
       </button>
     </div>
   </div>
+
+  <!-- Panel de Estadísticas Rápidas -->
+  <div class="card-body bg-light border-bottom">
+    <div class="row g-3">
+      <div class="col-md-3 col-6">
+        <div class="stat-card text-center">
+          <div class="stat-icon text-primary">
+            <i class="bi bi-list-check fs-3"></i>
+          </div>
+          <div class="stat-value">{{ estadisticas.total }}</div>
+          <div class="stat-label">Total</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card text-center">
+          <div class="stat-icon text-warning">
+            <i class="bi bi-hourglass-split fs-3"></i>
+          </div>
+          <div class="stat-value">{{ estadisticas.enProceso }}</div>
+          <div class="stat-label">En Proceso</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card text-center">
+          <div class="stat-icon text-success">
+            <i class="bi bi-check-circle fs-3"></i>
+          </div>
+          <div class="stat-value">{{ estadisticas.finalizadas }}</div>
+          <div class="stat-label">Finalizadas</div>
+        </div>
+      </div>
+      <div class="col-md-3 col-6">
+        <div class="stat-card text-center">
+          <div class="stat-icon text-info">
+            <i class="bi bi-paperclip fs-3"></i>
+          </div>
+          <div class="stat-value">{{ estadisticas.conEvidencia }}</div>
+          <div class="stat-label">Con Evidencia</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel de Filtros Expandible -->
+  @if (mostrarFiltros) {
+    <div class="card-body border-bottom bg-light filtros-panel">
+      <div class="row g-3">
+        <!-- Búsqueda -->
+        <div class="col-md-4">
+          <label class="form-label small fw-bold">
+            <i class="bi bi-search me-1"></i>
+            Buscar
+          </label>
+          <input 
+            type="text" 
+            class="form-control form-control-sm" 
+            [(ngModel)]="filtros.busqueda"
+            (ngModelChange)="aplicarFiltros()"
+            placeholder="Título o descripción...">
+        </div>
+
+        <!-- Filtro por Estado -->
+        <div class="col-md-2">
+          <label class="form-label small fw-bold">
+            <i class="bi bi-filter-circle me-1"></i>
+            Estado
+          </label>
+          <select 
+            class="form-select form-select-sm" 
+            [(ngModel)]="filtros.estado"
+            (ngModelChange)="aplicarFiltros()">
+            <option value="todos">Todos</option>
+            <option value="en_proceso">En Proceso</option>
+            <option value="finalizada">Finalizadas</option>
+          </select>
+        </div>
+
+        <!-- Filtro por Prioridad -->
+        <div class="col-md-2">
+          <label class="form-label small fw-bold">
+            <i class="bi bi-flag me-1"></i>
+            Prioridad
+          </label>
+          <select 
+            class="form-select form-select-sm" 
+            [(ngModel)]="filtros.prioridad"
+            (ngModelChange)="aplicarFiltros()">
+            <option value="todos">Todas</option>
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
+
+        <!-- Ordenar por -->
+        <div class="col-md-2">
+          <label class="form-label small fw-bold">
+            <i class="bi bi-sort-down me-1"></i>
+            Ordenar por
+          </label>
+          <select 
+            class="form-select form-select-sm" 
+            [(ngModel)]="filtros.ordenarPor"
+            (ngModelChange)="aplicarFiltros()">
+            <option value="fecha">Fecha límite</option>
+            <option value="prioridad">Prioridad</option>
+            <option value="titulo">Título</option>
+          </select>
+        </div>
+
+        <!-- Opciones adicionales -->
+        <div class="col-md-2 d-flex align-items-end">
+          <div class="form-check form-switch">
+            <input 
+              class="form-check-input" 
+              type="checkbox" 
+              id="soloEvidencia"
+              [(ngModel)]="filtros.mostrarSoloConEvidencia"
+              (ngModelChange)="aplicarFiltros()">
+            <label class="form-check-label small" for="soloEvidencia">
+              Solo con evidencia
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-3 d-flex justify-content-between align-items-center">
+        <small class="text-muted">
+          Mostrando {{ actividadesFiltradas.length }} de {{ estadisticas.total }} actividades
+        </small>
+        <button 
+          class="btn btn-sm btn-outline-secondary" 
+          (click)="limpiarFiltros()">
+          <i class="bi bi-x-circle me-1"></i>
+          Limpiar filtros
+        </button>
+      </div>
+    </div>
+  }
   
   <div class="card-body">
     <!-- Loader -->
@@ -26,35 +175,83 @@
         </div>
       </div>
     }
+
+    <!-- Sin actividades -->
+    @if (!cargando && actividades.length === 0) {
+      <div class="text-center py-5">
+        <i class="bi bi-inbox fs-1 text-muted"></i>
+        <h5 class="mt-3 text-muted">No hay actividades asignadas</h5>
+        <p class="text-muted">Comienza asignando una actividad existente o crea una nueva</p>
+        <div class="mt-3">
+          <button class="btn btn-outline-primary me-2" (click)="asignarActividad()">
+            <i class="bi bi-link-45deg me-1"></i>
+            Asignar Existente
+          </button>
+          <button class="btn btn-primary" (click)="crearActividad()">
+            <i class="bi bi-plus-lg me-1"></i>
+            Nueva Actividad
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Sin resultados de filtrado -->
+    @if (!cargando && actividades.length > 0 && actividadesFiltradas.length === 0) {
+      <div class="text-center py-5">
+        <i class="bi bi-search fs-1 text-muted"></i>
+        <h5 class="mt-3 text-muted">No se encontraron actividades</h5>
+        <p class="text-muted">Intenta ajustar los filtros de búsqueda</p>
+        <button class="btn btn-outline-secondary mt-2" (click)="limpiarFiltros()">
+          <i class="bi bi-arrow-counterclockwise me-1"></i>
+          Restablecer filtros
+        </button>
+      </div>
+    }
     
     <!-- Lista de actividades -->
-    @if (!cargando && actividades.length > 0) {
-      <div class="list-group">
-        @for (actividad of actividades; track actividad.id_asignacion) {
-          <div class="list-group-item">
+    @if (!cargando && actividadesFiltradas.length > 0) {
+      <div class="list-group list-group-flush">
+        @for (actividad of actividadesFiltradas; track actividad.id_asignacion) {
+          <div class="list-group-item list-group-item-action hover-card" 
+               (click)="verDetalleActividad(actividad)">
             <div class="d-flex justify-content-between align-items-start">
               <div class="flex-grow-1">
-                <h6 class="mb-1">{{ actividad.actividad?.titulo || 'Sin título' }}</h6>
-                <div class="d-flex gap-2 mb-2">
+                <!-- Título y badges -->
+                <div class="d-flex align-items-center mb-2">
+                  <h6 class="mb-0 me-2">{{ actividad.actividad?.titulo || 'Sin título' }}</h6>
                   <span [class]="getEstadoClass(actividad.estado)">
+                    <i class="bi" 
+                       [class.bi-hourglass-split]="actividad.estado === 'en_proceso'"
+                       [class.bi-check-circle]="actividad.estado === 'finalizada'"></i>
                     {{ actividad.estado === 'en_proceso' ? 'En Proceso' : 'Finalizada' }}
                   </span>
                   @if (actividad.prioridad) {
                     <span [class]="getPrioridadClass(actividad.prioridad)" class="ms-2">
-                      {{ actividad.prioridad === 'alta' ? '🔴 Alta' : 
-                         actividad.prioridad === 'media' ? '🟡 Media' : 
-                         '🟢 Baja' }}
+                      <i class="bi bi-flag-fill"></i>
+                      {{ actividad.prioridad === 'alta' ? 'Alta' : 
+                         actividad.prioridad === 'media' ? 'Media' : 'Baja' }}
+                    </span>
+                  }
+                  @if (actividad.evidencias && actividad.evidencias.length > 0) {
+                    <span class="badge bg-info ms-2">
+                      <i class="bi bi-paperclip"></i>
+                      {{ actividad.evidencias.length }} evidencia(s)
                     </span>
                   }
                 </div>
-                <p class="mb-1 text-muted small">
+
+                <!-- Descripción -->
+                <p class="mb-2 text-muted small">
                   {{ actividad.instrucciones_personalizadas || actividad.actividad?.descripcion || 'Sin descripción' }}
                 </p>
+
+                <!-- Fecha límite -->
                 <div class="text-muted small">
                   @if (actividad.fecha_limite) {
                     <i class="bi bi-calendar-event me-1"></i>
                     Fecha límite: {{ actividad.fecha_limite | date:'dd/MM/yyyy' }}
                   } @else {
+                    <i class="bi bi-calendar-x me-1"></i>
                     <span class="text-info">Sin fecha límite</span>
                   }
                 </div>
@@ -62,43 +259,49 @@
               
               <!-- Menú de opciones -->
               <div class="position-relative">
-                <button class="btn btn-sm btn-outline-secondary" 
-                        (click)="toggleMenu(actividad.id_asignacion)">
+                <button 
+                  class="btn btn-sm btn-outline-secondary" 
+                  (click)="toggleMenu(actividad.id_asignacion); $event.stopPropagation()"
+                  title="Opciones">
                   <i class="bi bi-three-dots-vertical"></i>
                 </button>
                 
                 @if (menuAbierto === actividad.id_asignacion) {
-                  <div class="dropdown-menu show position-absolute end-0" 
+                  <div class="dropdown-menu show position-absolute end-0 shadow-lg" 
                        style="z-index: 1000;">
                     @if (actividad.instrucciones_personalizadas) {
                       <div class="alert alert-info mx-2 mb-2 small">
                         <i class="bi bi-info-circle me-1"></i>
-                        Esta actividad tiene instrucciones personalizadas
+                        Instrucciones personalizadas
                       </div>
                     }
                     
-                    <button class="dropdown-item" 
-                            (click)="cambiarEstado(actividad)">
+                    <button 
+                      class="dropdown-item" 
+                      (click)="cambiarEstado(actividad); $event.stopPropagation()">
                       <i class="bi bi-arrow-repeat me-2"></i>
                       Cambiar a {{ actividad.estado === 'en_proceso' ? 'Finalizada' : 'En Proceso' }}
                     </button>
-                    <button class="dropdown-item" 
-                            (click)="modificarActividad(actividad)">
+                    
+                    <button 
+                      class="dropdown-item" 
+                      (click)="editarActividad(actividad); $event.stopPropagation()">
                       <i class="bi bi-pencil me-2"></i>
-                      Modificar
+                      Editar instrucciones
                     </button>
-                    <button class="dropdown-item" 
-                            (click)="mandarRecordatorio(actividad)">
-                      <i class="bi bi-bell me-2"></i>
-                      Enviar recordatorio
-                    </button>
+                    
                     <div class="dropdown-divider"></div>
-                    <button class="dropdown-item text-danger" 
-                            (click)="eliminarActividad(actividad)">
+                    
+                    <button 
+                      class="dropdown-item text-danger" 
+                      (click)="eliminarActividad(actividad); $event.stopPropagation()">
                       <i class="bi bi-trash me-2"></i>
-                      Eliminar
+                      Eliminar actividad
                     </button>
                   </div>
+                  
+                  <!-- Overlay para cerrar el menú al hacer clic fuera -->
+                  <div class="menu-overlay" (click)="cerrarMenu(); $event.stopPropagation()"></div>
                 }
               </div>
             </div>
@@ -106,24 +309,201 @@
         }
       </div>
     }
-    
-    <!-- Mensaje cuando no hay actividades -->
-    @if (!cargando && actividades.length === 0) {
-      <div class="text-center py-5 text-muted">
-        <i class="bi bi-clipboard-x display-4"></i>
-        <p class="mt-3">No hay actividades asignadas a este paciente</p>
-        <button class="btn btn-primary mt-2" (click)="crearActividad()">
-          <i class="bi bi-plus-lg me-1"></i>
-          Crear primera actividad
-        </button>
-      </div>
-    }
   </div>
 </div>
 
-<!-- Click outside para cerrar menú -->
-@if (menuAbierto !== null) {
-  <div class="position-fixed top-0 start-0 w-100 h-100" 
-       style="z-index: 999;" 
-       (click)="cerrarMenu()"></div>
+<!-- Panel Lateral Detallado -->
+@if (mostrarPanelDetalle && actividadSeleccionada) {
+  <div class="panel-detalle-overlay" (click)="cerrarPanelDetalle()">
+    <div class="panel-detalle-content shadow-lg" (click)="$event.stopPropagation()">
+      <!-- Header del panel -->
+      <div class="panel-header">
+        <h5 class="mb-0">
+          <i class="bi bi-info-circle me-2"></i>
+          Detalle de Actividad
+        </h5>
+        <button class="btn-close" (click)="cerrarPanelDetalle()"></button>
+      </div>
+
+      <!-- Contenido del panel -->
+      <div class="panel-body">
+        <!-- Título y Estado -->
+        <div class="detail-section">
+          <h4 class="mb-3">{{ actividadSeleccionada.actividad?.titulo || 'Sin título' }}</h4>
+          
+          <div class="d-flex gap-2 flex-wrap mb-3">
+            <span [class]="getEstadoClass(actividadSeleccionada.estado)">
+              <i class="bi" 
+                 [class.bi-hourglass-split]="actividadSeleccionada.estado === 'en_proceso'"
+                 [class.bi-check-circle]="actividadSeleccionada.estado === 'finalizada'"></i>
+              {{ actividadSeleccionada.estado === 'en_proceso' ? 'En Proceso' : 'Finalizada' }}
+            </span>
+            
+            @if (actividadSeleccionada.prioridad) {
+              <span [class]="getPrioridadClass(actividadSeleccionada.prioridad)">
+                <i class="bi bi-flag-fill"></i>
+                Prioridad {{ actividadSeleccionada.prioridad === 'alta' ? 'Alta' : 
+                             actividadSeleccionada.prioridad === 'media' ? 'Media' : 'Baja' }}
+              </span>
+            }
+          </div>
+        </div>
+
+        <!-- Información General -->
+        <div class="detail-section">
+          <h6 class="section-title">
+            <i class="bi bi-calendar me-2"></i>
+            Información General
+          </h6>
+          
+          <div class="info-grid">
+            @if (actividadSeleccionada.fecha_asignacion) {
+              <div class="info-item">
+                <label>Fecha de asignación:</label>
+                <span>{{ actividadSeleccionada.fecha_asignacion | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+            }
+            
+            @if (actividadSeleccionada.fecha_limite) {
+              <div class="info-item">
+                <label>Fecha límite:</label>
+                <span class="text-primary">
+                  <i class="bi bi-calendar-event me-1"></i>
+                  {{ actividadSeleccionada.fecha_limite | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+            }
+            
+            @if (actividadSeleccionada.fecha_completada) {
+              <div class="info-item">
+                <label>Fecha de completado:</label>
+                <span class="text-success">
+                  <i class="bi bi-calendar-check me-1"></i>
+                  {{ actividadSeleccionada.fecha_completada | date:'dd/MM/yyyy HH:mm' }}
+                </span>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Descripción -->
+        <div class="detail-section">
+          <h6 class="section-title">
+            <i class="bi bi-text-paragraph me-2"></i>
+            Descripción
+          </h6>
+          <div class="description-box">
+            <p class="mb-0">{{ actividadSeleccionada.actividad?.descripcion || 'Sin descripción' }}</p>
+          </div>
+        </div>
+
+        <!-- Instrucciones Personalizadas -->
+        @if (actividadSeleccionada.instrucciones_personalizadas) {
+          <div class="detail-section">
+            <h6 class="section-title">
+              <i class="bi bi-card-text me-2"></i>
+              Instrucciones Personalizadas
+            </h6>
+            <div class="alert alert-info">
+              <p class="mb-0">{{ actividadSeleccionada.instrucciones_personalizadas }}</p>
+            </div>
+          </div>
+        }
+
+        <!-- Evidencias -->
+        <div class="detail-section">
+          <h6 class="section-title">
+            <i class="bi bi-paperclip me-2"></i>
+            Evidencias del Paciente
+          </h6>
+
+          @if (!actividadSeleccionada.evidencias || actividadSeleccionada.evidencias.length === 0) {
+            <div class="alert alert-secondary">
+              <i class="bi bi-inbox me-2"></i>
+              El paciente aún no ha subido evidencias para esta actividad.
+            </div>
+          } @else {
+            <div class="alert alert-success mb-3">
+              <i class="bi bi-check-circle me-2"></i>
+              El paciente ha subido <strong>{{ actividadSeleccionada.evidencias.length }}</strong> evidencia(s)
+            </div>
+
+            <div class="evidencias-grid">
+              @for (evidencia of actividadSeleccionada.evidencias; track evidencia.id_evidencia) {
+                <div class="evidencia-card">
+                  <div class="evidencia-icon">
+                    <i [class]="getTipoArchivoIcon(evidencia.tipo_archivo)" 
+                       class="fs-1 text-{{ getTipoArchivoColor(evidencia.tipo_archivo) }}"></i>
+                  </div>
+                  
+                  <div class="evidencia-info">
+                    <span class="badge bg-{{ getTipoArchivoColor(evidencia.tipo_archivo) }} mb-2">
+                      {{ evidencia.tipo_archivo }}
+                    </span>
+                    
+                    <small class="d-block text-muted mb-2">
+                      <i class="bi bi-calendar me-1"></i>
+                      {{ evidencia.fecha_subida | date:'dd/MM/yyyy HH:mm' }}
+                    </small>
+                    
+                    @if (evidencia.comentario) {
+                      <p class="small text-muted mb-2">
+                        <i class="bi bi-chat-text me-1"></i>
+                        {{ evidencia.comentario }}
+                      </p>
+                    }
+                    
+                    <button 
+                      class="btn btn-sm btn-primary w-100"
+                      (click)="descargarEvidencia(evidencia.archivo_url)">
+                      <i class="bi bi-download me-1"></i>
+                      Descargar
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Estado de Completado -->
+        @if (actividadSeleccionada.estado === 'finalizada') {
+          <div class="detail-section">
+            <div class="alert alert-success">
+              <i class="bi bi-check-circle-fill me-2"></i>
+              <strong>Actividad Completada</strong>
+              @if (actividadSeleccionada.fecha_completada) {
+                <br>
+                <small>Completada el {{ actividadSeleccionada.fecha_completada | date:'dd/MM/yyyy HH:mm' }}</small>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Footer del panel con acciones -->
+      <div class="panel-footer">
+        <button class="btn btn-outline-secondary" (click)="cerrarPanelDetalle()">
+          <i class="bi bi-x-lg me-1"></i>
+          Cerrar
+        </button>
+        <div class="d-flex gap-2">
+          <button 
+            class="btn btn-warning"
+            (click)="editarActividad(actividadSeleccionada); cerrarPanelDetalle()">
+            <i class="bi bi-pencil me-1"></i>
+            Editar
+          </button>
+          <button 
+            class="btn" 
+            [class.btn-success]="actividadSeleccionada.estado === 'en_proceso'"
+            [class.btn-warning]="actividadSeleccionada.estado === 'finalizada'"
+            (click)="cambiarEstado(actividadSeleccionada); cerrarPanelDetalle()">
+            <i class="bi bi-arrow-repeat me-1"></i>
+            Cambiar Estado
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 }

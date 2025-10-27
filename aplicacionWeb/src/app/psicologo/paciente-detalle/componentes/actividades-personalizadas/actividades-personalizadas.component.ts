@@ -1,14 +1,25 @@
-// aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/actividades-personalizadas/actividades-personalizadas.component.ts
+// actividades-personalizadas.component.ts
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ActividadService } from '../../../../services/actividad.service';
 import { PacientesService } from '../../../../services/pacientes.service';
 import Swal from 'sweetalert2';
 import { ActividadAsignada, Actividad } from '../../../../interfaces/actividad';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+
+interface FiltrosActividad {
+  estado: string;
+  prioridad: string;
+  busqueda: string;
+  ordenarPor: 'fecha' | 'prioridad' | 'titulo';
+  mostrarSoloConEvidencia: boolean;
+}
 
 @Component({
   selector: 'app-actividades-personalizadas',
-  imports: [CommonModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './actividades-personalizadas.component.html',
   styleUrls: ['./actividades-personalizadas.component.css']
 })
@@ -16,13 +27,36 @@ export class ActividadesPersonalizadasComponent implements OnInit {
   @Input() idPaciente!: number;
   
   actividades: ActividadAsignada[] = [];
+  actividadesFiltradas: ActividadAsignada[] = [];
   actividadesGlobales: Actividad[] = [];
+  actividadSeleccionada: ActividadAsignada | null = null;
+  
   cargando: boolean = false;
   menuAbierto: number | null = null;
+  mostrarPanelDetalle: boolean = false;
+  mostrarFiltros: boolean = false;
+  
+  // Filtros
+  filtros: FiltrosActividad = {
+    estado: 'todos',
+    prioridad: 'todos',
+    busqueda: '',
+    ordenarPor: 'fecha',
+    mostrarSoloConEvidencia: false
+  };
+
+  // Estadísticas
+  estadisticas = {
+    total: 0,
+    enProceso: 0,
+    finalizadas: 0,
+    conEvidencia: 0
+  };
 
   constructor(
     private actividadService: ActividadService,
-    private pacienteService: PacientesService
+    private pacienteService: PacientesService,
+    private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -35,6 +69,8 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     this.actividadService.getActividadesPaciente(this.idPaciente).subscribe({
       next: (data) => {
         this.actividades = data;
+        this.calcularEstadisticas();
+        this.aplicarFiltros();
         this.cargando = false;
       },
       error: (error) => {
@@ -60,6 +96,70 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     });
   }
 
+  calcularEstadisticas(): void {
+    this.estadisticas.total = this.actividades.length;
+    this.estadisticas.enProceso = this.actividades.filter(a => a.estado === 'en_proceso').length;
+    this.estadisticas.finalizadas = this.actividades.filter(a => a.estado === 'finalizada').length;
+    this.estadisticas.conEvidencia = this.actividades.filter(a => 
+      a.evidencias && a.evidencias.length > 0
+    ).length;
+  }
+
+  aplicarFiltros(): void {
+    let resultado = [...this.actividades];
+
+    // Filtro por estado
+    if (this.filtros.estado !== 'todos') {
+      resultado = resultado.filter(a => a.estado === this.filtros.estado);
+    }
+
+    // Filtro por prioridad
+    if (this.filtros.prioridad !== 'todos') {
+      resultado = resultado.filter(a => a.prioridad === this.filtros.prioridad);
+    }
+
+    // Filtro por búsqueda
+    if (this.filtros.busqueda.trim()) {
+      const busqueda = this.filtros.busqueda.toLowerCase();
+      resultado = resultado.filter(a => 
+        a.actividad?.titulo?.toLowerCase().includes(busqueda) ||
+        a.actividad?.descripcion?.toLowerCase().includes(busqueda) ||
+        a.instrucciones_personalizadas?.toLowerCase().includes(busqueda)
+      );
+    }
+
+    // Filtro por evidencia
+    if (this.filtros.mostrarSoloConEvidencia) {
+      resultado = resultado.filter(a => a.evidencias && a.evidencias.length > 0);
+    }
+
+    // Ordenamiento
+    resultado = this.ordenarActividades(resultado);
+
+    this.actividadesFiltradas = resultado;
+  }
+
+  ordenarActividades(actividades: ActividadAsignada[]): ActividadAsignada[] {
+    return actividades.sort((a, b) => {
+      switch (this.filtros.ordenarPor) {
+        case 'fecha':
+          const fechaA = a.fecha_limite ? new Date(a.fecha_limite).getTime() : 0;
+          const fechaB = b.fecha_limite ? new Date(b.fecha_limite).getTime() : 0;
+          return fechaB - fechaA;
+        
+        case 'prioridad':
+          const prioridadOrden = { 'alta': 3, 'media': 2, 'baja': 1 };
+          return (prioridadOrden[b.prioridad || 'baja'] || 0) - (prioridadOrden[a.prioridad || 'baja'] || 0);
+        
+        case 'titulo':
+          return (a.actividad?.titulo || '').localeCompare(b.actividad?.titulo || '');
+        
+        default:
+          return 0;
+      }
+    });
+  }
+
   toggleMenu(idAsignacion: number): void {
     this.menuAbierto = this.menuAbierto === idAsignacion ? null : idAsignacion;
   }
@@ -68,551 +168,256 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     this.menuAbierto = null;
   }
 
-  // ==================== NUEVA ACTIVIDAD ====================
-  async crearActividad(): Promise<void> {
-    const { value: formValues } = await Swal.fire({
-      title: '<i class="bi bi-plus-circle-fill text-primary"></i> Nueva Actividad',
-      html: `
-        <div class="text-start px-3">
-          <!-- Título -->
-          <div class="mb-3">
-            <label for="titulo" class="form-label fw-bold">
-              <i class="bi bi-type text-primary"></i> Título *
-            </label>
-            <input 
-              id="titulo" 
-              type="text" 
-              class="form-control" 
-              placeholder="Ej: Diario de emociones semanales"
-              maxlength="255">
-          </div>
-
-          <!-- Descripción -->
-          <div class="mb-3">
-            <label for="descripcion" class="form-label fw-bold">
-              <i class="bi bi-card-text text-primary"></i> Descripción *
-            </label>
-            <textarea 
-              id="descripcion" 
-              class="form-control" 
-              placeholder="Describe los objetivos y pasos de la actividad..."
-              rows="3"></textarea>
-          </div>
-
-          <!-- Fecha límite -->
-          <div class="mb-3">
-            <label for="fecha_limite" class="form-label fw-bold">
-              <i class="bi bi-calendar-event text-primary"></i> Fecha límite
-            </label>
-            <input 
-              id="fecha_limite" 
-              type="date" 
-              class="form-control">
-          </div>
-
-          <!-- Prioridad -->
-          <div class="mb-3">
-            <label for="prioridad" class="form-label fw-bold">
-              <i class="bi bi-flag text-primary"></i> Prioridad
-            </label>
-            <select id="prioridad" class="form-select">
-              <option value="baja">🟢 Baja</option>
-              <option value="media" selected>🟡 Media</option>
-              <option value="alta">🔴 Alta</option>
-            </select>
-          </div>
-
-          <!-- Instrucciones personalizadas -->
-          <div class="mb-3">
-            <label for="instrucciones" class="form-label fw-bold">
-              <i class="bi bi-chat-left-text text-primary"></i> Instrucciones personalizadas
-            </label>
-            <textarea 
-              id="instrucciones" 
-              class="form-control" 
-              rows="2"
-              placeholder="Instrucciones específicas para este paciente..."></textarea>
-          </div>
-        </div>
-      `,
-      width: '600px',
-      showCancelButton: true,
-      confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Crear y Asignar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#0d6efd',
-      cancelButtonColor: '#6c757d',
-      preConfirm: () => {
-        const titulo = (document.getElementById('titulo') as HTMLInputElement).value.trim();
-        const descripcion = (document.getElementById('descripcion') as HTMLTextAreaElement).value.trim();
-        const fecha_limite = (document.getElementById('fecha_limite') as HTMLInputElement).value;
-        const prioridad = (document.getElementById('prioridad') as HTMLSelectElement).value;
-        const instrucciones = (document.getElementById('instrucciones') as HTMLTextAreaElement).value.trim();
-
-        if (!titulo) {
-          Swal.showValidationMessage('El título es obligatorio');
-          return null;
-        }
-
-        if (!descripcion) {
-          Swal.showValidationMessage('La descripción es obligatoria');
-          return null;
-        }
-
-        return {
-          titulo,
-          descripcion,
-          fecha_limite: fecha_limite || null,
-          prioridad: prioridad as 'baja' | 'media' | 'alta',
-          instrucciones_personalizadas: instrucciones || null
-        };
-      }
-    });
-
-    if (formValues) {
-      Swal.fire({
-        title: 'Creando actividad...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-
-      // Primero crear la plantilla
-      this.actividadService.crearActividadGlobal({
-        titulo: formValues.titulo,
-        descripcion: formValues.descripcion,
-        tipo: 'personalizada',
-        obligatoria: false,
-        repetitiva: false
-      }).subscribe({
-        next: (nuevaActividad) => {
-          // Luego asignarla al paciente
-          this.actividadService.asignarActividad({
-            id_actividad: nuevaActividad.id_actividad,
-            pacientes: [this.idPaciente],
-            fecha_limite: formValues.fecha_limite,
-            instrucciones_personalizadas: formValues.instrucciones_personalizadas,
-            prioridad: formValues.prioridad
-          }).subscribe({
-            next: () => {
-              this.cargarActividades();
-              Swal.fire({
-                icon: 'success',
-                title: '¡Actividad creada!',
-                text: 'La actividad se ha creado y asignado correctamente',
-                timer: 2500,
-                showConfirmButton: false
-              });
-            },
-            error: (error) => {
-              console.error('Error al asignar actividad:', error);
-              Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: 'La actividad se creó pero no se pudo asignar'
-              });
-            }
-          });
-        },
-        error: (error) => {
-          console.error('Error al crear actividad:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo crear la actividad'
-          });
-        }
-      });
-    }
+  verDetalleActividad(actividad: ActividadAsignada): void {
+    this.actividadSeleccionada = actividad;
+    this.mostrarPanelDetalle = true;
+    this.cerrarMenu();
   }
 
-  // ==================== ASIGNAR ACTIVIDAD EXISTENTE ====================
-  async asignarActividad(): Promise<void> {
+  cerrarPanelDetalle(): void {
+    this.mostrarPanelDetalle = false;
+    this.actividadSeleccionada = null;
+  }
+
+  toggleFiltros(): void {
+    this.mostrarFiltros = !this.mostrarFiltros;
+  }
+
+  limpiarFiltros(): void {
+    this.filtros = {
+      estado: 'todos',
+      prioridad: 'todos',
+      busqueda: '',
+      ordenarPor: 'fecha',
+      mostrarSoloConEvidencia: false
+    };
+    this.aplicarFiltros();
+  }
+
+  cambiarEstado(actividad: ActividadAsignada): void {
+    const nuevoEstado = actividad.estado === 'en_proceso' ? 'finalizada' : 'en_proceso';
+    
+    Swal.fire({
+      title: '¿Cambiar estado?',
+      text: `¿Deseas marcar esta actividad como "${nuevoEstado === 'finalizada' ? 'Finalizada' : 'En Proceso'}"?`,
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Sí, cambiar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.actividadService.actualizarEstadoActividad(actividad.id_asignacion, nuevoEstado).subscribe({
+          next: () => {
+            actividad.estado = nuevoEstado;
+            this.calcularEstadisticas();
+            this.aplicarFiltros();
+            Swal.fire('¡Actualizado!', 'El estado ha sido cambiado', 'success');
+          },
+          error: (error) => {
+            console.error('Error al cambiar estado:', error);
+            Swal.fire('Error', 'No se pudo cambiar el estado', 'error');
+          }
+        });
+      }
+    });
+    this.cerrarMenu();
+  }
+
+  editarActividad(actividad: ActividadAsignada): void {
+    Swal.fire({
+      title: 'Editar Instrucciones',
+      input: 'textarea',
+      inputLabel: 'Instrucciones personalizadas',
+      inputValue: actividad.instrucciones_personalizadas || '',
+      showCancelButton: true,
+      confirmButtonText: 'Guardar',
+      cancelButtonText: 'Cancelar',
+      inputValidator: (value) => {
+        if (!value) {
+          return 'Las instrucciones no pueden estar vacías';
+        }
+        return null;
+      }
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.actividadService.actualizarInstruccionesActividad(
+          actividad.id_asignacion, 
+          result.value
+        ).subscribe({
+          next: () => {
+            actividad.instrucciones_personalizadas = result.value;
+            this.aplicarFiltros();
+            Swal.fire('¡Actualizado!', 'Las instrucciones han sido actualizadas', 'success');
+          },
+          error: (error) => {
+            console.error('Error al actualizar instrucciones:', error);
+            Swal.fire('Error', 'No se pudieron actualizar las instrucciones', 'error');
+          }
+        });
+      }
+    });
+    this.cerrarMenu();
+  }
+
+  eliminarActividad(actividad: ActividadAsignada): void {
+    Swal.fire({
+      title: '¿Eliminar actividad?',
+      text: 'Esta acción no se puede deshacer',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        this.actividadService.eliminarActividadAsignada(actividad.id_asignacion).subscribe({
+          next: () => {
+            this.actividades = this.actividades.filter(a => a.id_asignacion !== actividad.id_asignacion);
+            this.calcularEstadisticas();
+            this.aplicarFiltros();
+            Swal.fire('¡Eliminada!', 'La actividad ha sido eliminada', 'success');
+          },
+          error: (error) => {
+            console.error('Error al eliminar actividad:', error);
+            Swal.fire('Error', 'No se pudo eliminar la actividad', 'error');
+          }
+        });
+      }
+    });
+    this.cerrarMenu();
+  }
+
+  asignarActividad(): void {
     if (this.actividadesGlobales.length === 0) {
       Swal.fire({
         icon: 'info',
         title: 'Sin plantillas',
-        text: 'No tienes plantillas de actividades creadas. Crea una primero.'
+        text: 'No hay actividades globales disponibles para asignar'
       });
       return;
     }
 
-    const opcionesActividades = this.actividadesGlobales
-      .map(act => `<option value="${act.id_actividad}">${act.titulo}</option>`)
-      .join('');
+    const opcionesActividades = this.actividadesGlobales.map(a => ({
+      value: a.id_actividad.toString(),
+      text: a.titulo
+    }));
 
-    const { value: formValues } = await Swal.fire({
-      title: '<i class="bi bi-link-45deg text-primary"></i> Asignar Actividad Existente',
-      html: `
-        <div class="text-start px-3">
-          <!-- Selección de actividad -->
-          <div class="mb-3">
-            <label for="actividad_select" class="form-label fw-bold">
-              <i class="bi bi-file-earmark-text text-primary"></i> Selecciona una plantilla *
-            </label>
-            <select id="actividad_select" class="form-select">
-              <option value="">Seleccionar...</option>
-              ${opcionesActividades}
-            </select>
-          </div>
-
-          <!-- Fecha límite -->
-          <div class="mb-3">
-            <label for="fecha_limite_asign" class="form-label fw-bold">
-              <i class="bi bi-calendar-event text-primary"></i> Fecha límite
-            </label>
-            <input 
-              id="fecha_limite_asign" 
-              type="date" 
-              class="form-control">
-          </div>
-
-          <!-- Prioridad -->
-          <div class="mb-3">
-            <label for="prioridad_asign" class="form-label fw-bold">
-              <i class="bi bi-flag text-primary"></i> Prioridad
-            </label>
-            <select id="prioridad_asign" class="form-select">
-              <option value="baja">🟢 Baja</option>
-              <option value="media" selected>🟡 Media</option>
-              <option value="alta">🔴 Alta</option>
-            </select>
-          </div>
-
-          <!-- Instrucciones personalizadas -->
-          <div class="mb-3">
-            <label for="instrucciones_asign" class="form-label fw-bold">
-              <i class="bi bi-chat-left-text text-primary"></i> Instrucciones personalizadas
-            </label>
-            <textarea 
-              id="instrucciones_asign" 
-              class="form-control" 
-              rows="3"
-              placeholder="Instrucciones específicas para este paciente..."></textarea>
-          </div>
-        </div>
-      `,
-      width: '600px',
+    Swal.fire({
+      title: 'Asignar Actividad Existente',
+      input: 'select',
+      inputOptions: Object.fromEntries(opcionesActividades.map(o => [o.value, o.text])),
+      inputPlaceholder: 'Selecciona una actividad',
       showCancelButton: true,
-      confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Asignar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#0d6efd',
-      cancelButtonColor: '#6c757d',
-      preConfirm: () => {
-        const id_actividad = parseInt((document.getElementById('actividad_select') as HTMLSelectElement).value);
-        const fecha_limite = (document.getElementById('fecha_limite_asign') as HTMLInputElement).value;
-        const prioridad = (document.getElementById('prioridad_asign') as HTMLSelectElement).value;
-        const instrucciones = (document.getElementById('instrucciones_asign') as HTMLTextAreaElement).value.trim();
+      confirmButtonText: 'Asignar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const idActividad = parseInt(result.value);
+        this.actividadService.asignarActividad(this.idPaciente, idActividad).subscribe({
+          next: () => {
+            this.cargarActividades();
+            Swal.fire('¡Asignada!', 'La actividad ha sido asignada al paciente', 'success');
+          },
+          error: (error) => {
+            console.error('Error al asignar actividad:', error);
+            Swal.fire('Error', 'No se pudo asignar la actividad', 'error');
+          }
+        });
+      }
+    });
+  }
 
-        if (!id_actividad) {
-          Swal.showValidationMessage('Debes seleccionar una actividad');
+  crearActividad(): void {
+    Swal.fire({
+      title: 'Nueva Actividad Personalizada',
+      html: `
+        <input id="titulo" class="swal2-input" placeholder="Título de la actividad">
+        <textarea id="descripcion" class="swal2-textarea" placeholder="Descripción"></textarea>
+        <select id="prioridad" class="swal2-select">
+          <option value="baja">Prioridad Baja</option>
+          <option value="media" selected>Prioridad Media</option>
+          <option value="alta">Prioridad Alta</option>
+        </select>
+      `,
+      showCancelButton: true,
+      confirmButtonText: 'Crear',
+      cancelButtonText: 'Cancelar',
+      preConfirm: () => {
+        const titulo = (document.getElementById('titulo') as HTMLInputElement).value;
+        const descripcion = (document.getElementById('descripcion') as HTMLTextAreaElement).value;
+        const prioridad = (document.getElementById('prioridad') as HTMLSelectElement).value;
+
+        if (!titulo) {
+          Swal.showValidationMessage('El título es requerido');
           return null;
         }
 
-        return {
-          id_actividad,
-          fecha_limite: fecha_limite || null,
-          prioridad: prioridad as 'baja' | 'media' | 'alta',
-          instrucciones_personalizadas: instrucciones || null
+        return { titulo, descripcion, prioridad };
+      }
+    }).then((result) => {
+      if (result.isConfirmed && result.value) {
+        const nuevaActividad = {
+          titulo: result.value.titulo,
+          descripcion: result.value.descripcion,
+          tipo: 'personalizada',
+          id_paciente: this.idPaciente,
+          prioridad: result.value.prioridad
         };
-      }
-    });
 
-    if (formValues) {
-      Swal.fire({
-        title: 'Asignando actividad...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-
-      this.actividadService.asignarActividad({
-        id_actividad: formValues.id_actividad,
-        pacientes: [this.idPaciente],
-        fecha_limite: formValues.fecha_limite,
-        instrucciones_personalizadas: formValues.instrucciones_personalizadas,
-        prioridad: formValues.prioridad
-      }).subscribe({
-        next: () => {
-          this.cargarActividades();
-          Swal.fire({
-            icon: 'success',
-            title: '¡Actividad asignada!',
-            text: 'La actividad se asignó correctamente',
-            timer: 2500,
-            showConfirmButton: false
-          });
-        },
-        error: (error) => {
-          console.error('Error al asignar actividad:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo asignar la actividad'
-          });
-        }
-      });
-    }
-  }
-
-  // ==================== CAMBIAR ESTADO ====================
-  cambiarEstado(actividad: ActividadAsignada): void {
-    const nuevoEstado = actividad.estado === 'en_proceso' ? 'finalizada' : 'en_proceso';
-    
-    this.cerrarMenu();
-
-    Swal.fire({
-      title: 'Cambiando estado...',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
-
-    this.actividadService.actualizarActividadAsignada(actividad.id_asignacion, {
-      estado: nuevoEstado
-    }).subscribe({
-      next: () => {
-        actividad.estado = nuevoEstado;
-        Swal.fire({
-          icon: 'success',
-          title: 'Estado actualizado',
-          text: `La actividad ahora está: ${nuevoEstado === 'finalizada' ? 'Finalizada' : 'En Proceso'}`,
-          timer: 2000,
-          showConfirmButton: false
-        });
-      },
-      error: (error) => {
-        console.error('Error al cambiar estado:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo cambiar el estado'
+        this.actividadService.crearActividad(nuevaActividad).subscribe({
+          next: () => {
+            this.cargarActividades();
+            Swal.fire('¡Creada!', 'La actividad ha sido creada', 'success');
+          },
+          error: (error) => {
+            console.error('Error al crear actividad:', error);
+            Swal.fire('Error', 'No se pudo crear la actividad', 'error');
+          }
         });
       }
     });
   }
 
-  // ==================== MODIFICAR ACTIVIDAD ====================
-  async modificarActividad(actividad: ActividadAsignada): Promise<void> {
-    this.cerrarMenu();
-
-    const { value: formValues } = await Swal.fire({
-      title: '<i class="bi bi-pencil-fill text-primary"></i> Modificar Actividad',
-      html: `
-        <div class="text-start px-3">
-          <p class="text-muted mb-3">
-            <strong>Actividad:</strong> ${actividad.actividad?.titulo || 'Sin título'}
-          </p>
-
-          <!-- Fecha límite -->
-          <div class="mb-3">
-            <label for="fecha_limite_mod" class="form-label fw-bold">
-              <i class="bi bi-calendar-event text-primary"></i> Fecha límite
-            </label>
-            <input 
-              id="fecha_limite_mod" 
-              type="date" 
-              class="form-control"
-              value="${actividad.fecha_limite || ''}">
-          </div>
-
-          <!-- Prioridad -->
-          <div class="mb-3">
-            <label for="prioridad_mod" class="form-label fw-bold">
-              <i class="bi bi-flag text-primary"></i> Prioridad
-            </label>
-            <select id="prioridad_mod" class="form-select">
-              <option value="baja" ${actividad.prioridad === 'baja' ? 'selected' : ''}>🟢 Baja</option>
-              <option value="media" ${actividad.prioridad === 'media' ? 'selected' : ''}>🟡 Media</option>
-              <option value="alta" ${actividad.prioridad === 'alta' ? 'selected' : ''}>🔴 Alta</option>
-            </select>
-          </div>
-
-          <!-- Estado -->
-          <div class="mb-3">
-            <label for="estado_mod" class="form-label fw-bold">
-              <i class="bi bi-check-circle text-primary"></i> Estado
-            </label>
-            <select id="estado_mod" class="form-select">
-              <option value="en_proceso" ${actividad.estado === 'en_proceso' ? 'selected' : ''}>En Proceso</option>
-              <option value="finalizada" ${actividad.estado === 'finalizada' ? 'selected' : ''}>Finalizada</option>
-            </select>
-          </div>
-
-          <!-- Instrucciones personalizadas -->
-          <div class="mb-3">
-            <label for="instrucciones_mod" class="form-label fw-bold">
-              <i class="bi bi-chat-left-text text-primary"></i> Instrucciones personalizadas
-            </label>
-            <textarea 
-              id="instrucciones_mod" 
-              class="form-control" 
-              rows="3"
-              placeholder="Instrucciones específicas...">${actividad.instrucciones_personalizadas || ''}</textarea>
-          </div>
-        </div>
-      `,
-      width: '600px',
-      showCancelButton: true,
-      confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Guardar cambios',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#0d6efd',
-      cancelButtonColor: '#6c757d',
-      preConfirm: () => {
-        const fecha_limite = (document.getElementById('fecha_limite_mod') as HTMLInputElement).value;
-        const prioridad = (document.getElementById('prioridad_mod') as HTMLSelectElement).value;
-        const estado = (document.getElementById('estado_mod') as HTMLSelectElement).value;
-        const instrucciones = (document.getElementById('instrucciones_mod') as HTMLTextAreaElement).value.trim();
-
-        return {
-          fecha_limite: fecha_limite || null,
-          prioridad: prioridad as 'baja' | 'media' | 'alta',
-          estado: estado as 'en_proceso' | 'finalizada',
-          instrucciones_personalizadas: instrucciones || null
-        };
-      }
-    });
-
-    if (formValues) {
-      Swal.fire({
-        title: 'Guardando cambios...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-
-      this.actividadService.actualizarActividadAsignada(actividad.id_asignacion, formValues).subscribe({
-        next: () => {
-          this.cargarActividades();
-          Swal.fire({
-            icon: 'success',
-            title: '¡Cambios guardados!',
-            text: 'La actividad se actualizó correctamente',
-            timer: 2000,
-            showConfirmButton: false
-          });
-        },
-        error: (error) => {
-          console.error('Error al modificar actividad:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudieron guardar los cambios'
-          });
-        }
-      });
-    }
+  descargarEvidencia(url: string): void {
+    window.open(url, '_blank');
   }
 
-  // ==================== ELIMINAR ACTIVIDAD ====================
-  async eliminarActividad(actividad: ActividadAsignada): Promise<void> {
-    this.cerrarMenu();
-
-    const result = await Swal.fire({
-      title: '¿Eliminar actividad asignada?',
-      html: `
-        <p>¿Estás seguro de que deseas eliminar la asignación de:</p>
-        <p class="fw-bold text-primary">"${actividad.actividad?.titulo || 'Sin título'}"</p>
-        <p class="text-muted small">Esta acción no se puede deshacer</p>
-      `,
-      icon: 'warning',
-      showCancelButton: true,
-      confirmButtonText: '<i class="bi bi-trash me-1"></i> Sí, eliminar',
-      cancelButtonText: 'Cancelar',
-      confirmButtonColor: '#dc3545',
-      cancelButtonColor: '#6c757d'
-    });
-
-    if (result.isConfirmed) {
-      Swal.fire({
-        title: 'Eliminando...',
-        allowOutsideClick: false,
-        didOpen: () => {
-          Swal.showLoading();
-        }
-      });
-
-      this.actividadService.eliminarActividadAsignada(actividad.id_asignacion).subscribe({
-        next: () => {
-          this.actividades = this.actividades.filter(a => a.id_asignacion !== actividad.id_asignacion);
-          Swal.fire({
-            icon: 'success',
-            title: 'Eliminada',
-            text: 'La actividad ha sido desasignada',
-            timer: 2000,
-            showConfirmButton: false
-          });
-        },
-        error: (error) => {
-          console.error('Error al eliminar actividad:', error);
-          Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'No se pudo eliminar la actividad'
-          });
-        }
-      });
-    }
-  }
-
-  // ==================== ENVIAR RECORDATORIO ====================
-  mandarRecordatorio(actividad: ActividadAsignada): void {
-    this.cerrarMenu();
-
-    Swal.fire({
-      title: 'Enviando recordatorio...',
-      allowOutsideClick: false,
-      didOpen: () => {
-        Swal.showLoading();
-      }
-    });
-
-    this.actividadService.enviarRecordatorio(actividad.id_asignacion).subscribe({
-      next: () => {
-        Swal.fire({
-          icon: 'success',
-          title: '¡Recordatorio enviado!',
-          text: 'El paciente recibirá una notificación',
-          timer: 2500,
-          showConfirmButton: false
-        });
-      },
-      error: (error) => {
-        console.error('Error al enviar recordatorio:', error);
-        Swal.fire({
-          icon: 'error',
-          title: 'Error',
-          text: 'No se pudo enviar el recordatorio'
-        });
-      }
-    });
-  }
-
-  // ==================== UTILIDADES ====================
   getEstadoClass(estado: string): string {
-    switch (estado) {
-      case 'en_proceso':
-        return 'badge bg-warning text-dark';
-      case 'finalizada':
-        return 'badge bg-success';
-      default:
-        return 'badge bg-secondary';
-    }
+    const classes: Record<string, string> = {
+      'en_proceso': 'badge bg-warning text-dark',
+      'finalizada': 'badge bg-success'
+    };
+    return classes[estado] || 'badge bg-secondary';
   }
 
-  getPrioridadClass(prioridad?: string): string {
-    switch (prioridad) {
-      case 'alta':
-        return 'badge bg-danger';
-      case 'media':
-        return 'badge bg-warning text-dark';
-      case 'baja':
-        return 'badge bg-info text-dark';
-      default:
-        return 'badge bg-secondary';
-    }
+  getPrioridadClass(prioridad: string): string {
+    const classes: Record<string, string> = {
+      'alta': 'badge bg-danger',
+      'media': 'badge bg-warning text-dark',
+      'baja': 'badge bg-info'
+    };
+    return classes[prioridad] || 'badge bg-secondary';
+  }
+
+  getTipoArchivoIcon(tipoArchivo: string): string {
+    const iconos: Record<string, string> = {
+      'imagen': 'bi-file-earmark-image',
+      'video': 'bi-file-earmark-play',
+      'audio': 'bi-file-earmark-music',
+      'documento': 'bi-file-earmark-text',
+      'otro': 'bi-file-earmark'
+    };
+    return iconos[tipoArchivo] || 'bi-file-earmark';
+  }
+
+  getTipoArchivoColor(tipoArchivo: string): string {
+    const colores: Record<string, string> = {
+      'imagen': 'primary',
+      'video': 'danger',
+      'audio': 'warning',
+      'documento': 'info',
+      'otro': 'secondary'
+    };
+    return colores[tipoArchivo] || 'secondary';
   }
 }

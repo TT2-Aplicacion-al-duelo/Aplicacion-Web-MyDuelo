@@ -53,3 +53,12 @@ export interface ActualizarActividadRequest {
   periodo?: number;
   archivo_url?: string;
 }
+
+export interface Evidencia {
+  id_evidencia: number;
+  archivo_url: string;
+  tipo_archivo: 'imagen' | 'video' | 'audio' | 'documento' | 'otro';
+  comentario?: string;
+  fecha_subida: Date;
+  visible_para_psicologo: boolean;
+}
