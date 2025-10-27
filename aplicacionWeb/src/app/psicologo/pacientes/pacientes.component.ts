@@ -40,11 +40,6 @@ export class PacientesComponent implements OnInit {
     });
   }
 
-  // eliminar(id: number){
-  //   this._pacienteServices.eliminarProducto(id).subscribe(() => {
-  //     this.getListaProductos();
-  //   })
-  // }
 
   verDetallePaciente(paciente: Paciente): void {
     if (paciente.id_paciente) {

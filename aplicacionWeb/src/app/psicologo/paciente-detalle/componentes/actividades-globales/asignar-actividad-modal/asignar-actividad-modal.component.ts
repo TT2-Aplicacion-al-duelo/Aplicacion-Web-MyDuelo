@@ -1,35 +1,35 @@
 // asignar-actividad-modal.component.ts
 
-import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-import { PacientesService } from '../../../../../services/pacientes.service'
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
+import { PacientesService } from '../../../../../services/pacientes.service';
+import { Paciente } from '../../../../../interfaces/paciente';
 
-
-export interface AsignarActividadDialogData {
-  actividad: any;
-}
-
-export interface Paciente {
-  id_paciente: number;
-  nombre: string;
-  apellido_paterno: string;
-  apellido_materno: string;
-  email: string;
-  telefono?: string;
-  foto_url?: string;
-  seleccionado?: boolean;
-}
+// export interface Paciente {
+//   id_paciente: number;
+//   nombre: string;
+//   apellido_paterno: string;
+//   apellido_materno: string;
+//   email: string;
+//   telefono?: string;
+//   foto_url?: string;
+//   seleccionado?: boolean;
+// }
 
 @Component({
   selector: 'app-asignar-actividad-modal',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './asignar-actividad-modal.component.html',
-  styleUrls: ['./asignar-actividad-modal.component.scss']
+  styleUrls: ['./asignar-actividad-modal.component.css']
 })
 export class AsignarActividadModalComponent implements OnInit {
-  
-  asignacionForm: FormGroup;
+  @Input() actividad: any = null;
+  @Output() cerrar = new EventEmitter<any>();
+
+  asignacionForm!: FormGroup;
   pacientes: Paciente[] = [];
   pacientesFiltrados: Paciente[] = [];
   pacientesSeleccionados: Set<number> = new Set();
@@ -38,16 +38,14 @@ export class AsignarActividadModalComponent implements OnInit {
   todosSeleccionados = false;
   
   prioridades = [
-    { value: 'baja', label: 'Baja', icon: 'arrow_downward', color: 'accent' },
-    { value: 'media', label: 'Media', icon: 'remove', color: 'primary' },
-    { value: 'alta', label: 'Alta', icon: 'arrow_upward', color: 'warn' }
+    { value: 'baja', label: 'Baja', icon: 'bi-arrow-down', color: 'success' },
+    { value: 'media', label: 'Media', icon: 'bi-dash', color: 'warning' },
+    { value: 'alta', label: 'Alta', icon: 'bi-arrow-up', color: 'danger' }
   ];
 
   constructor(
-    public dialogRef: MatDialogRef<AsignarActividadModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: AsignarActividadDialogData,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar,
+    private toastr: ToastrService,
     private pacientesService: PacientesService
   ) { }
 
@@ -61,26 +59,30 @@ export class AsignarActividadModalComponent implements OnInit {
     fechaManana.setDate(fechaManana.getDate() + 1);
     
     this.asignacionForm = this.fb.group({
-      fechaLimite: [fechaManana, [Validators.required]],
+      fechaLimite: [this.formatearFecha(fechaManana), [Validators.required]],
       instrucciones: ['', [Validators.maxLength(500)]],
       prioridad: ['media', [Validators.required]]
     });
   }
 
+  formatearFecha(fecha: Date): string {
+    const year = fecha.getFullYear();
+    const month = String(fecha.getMonth() + 1).padStart(2, '0');
+    const day = String(fecha.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   cargarPacientes(): void {
     this.isLoading = true;
-    this.pacientesService.obtenerPacientesDelPsicologo().subscribe({
+    this.pacientesService.getPacientesPorPsicologo().subscribe({
       next: (data: Paciente[]) => {
         this.pacientes = data.map(p => ({ ...p, seleccionado: false }));
         this.pacientesFiltrados = [...this.pacientes];
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error al cargar pacientes:', error);
-        this.snackBar.open('Error al cargar los pacientes', 'Cerrar', {
-          duration: 3000,
-          panelClass: ['error-snackbar']
-        });
+        this.toastr.error('Error al cargar los pacientes');
         this.isLoading = false;
       }
     });
@@ -99,7 +101,6 @@ export class AsignarActividadModalComponent implements OnInit {
       );
     }
     
-    // Actualizar el estado de todos seleccionados
     this.actualizarEstadoTodosSeleccionados();
   }
 
@@ -153,46 +154,38 @@ export class AsignarActividadModalComponent implements OnInit {
     if (this.asignacionForm.valid && this.pacientesSeleccionados.size > 0) {
       const configuracion = this.asignacionForm.value;
       
-      // Formatear la fecha correctamente
-      const fecha = new Date(configuracion.fechaLimite);
-      configuracion.fechaLimite = fecha.toISOString().split('T')[0];
-      
-      this.dialogRef.close({
+      this.cerrar.emit({
         pacientesSeleccionados: Array.from(this.pacientesSeleccionados),
         configuracion: configuracion
       });
     } else if (this.pacientesSeleccionados.size === 0) {
-      this.snackBar.open('Debe seleccionar al menos un paciente', 'Cerrar', {
-        duration: 3000,
-        panelClass: ['warning-snackbar']
-      });
+      this.toastr.warning('Debe seleccionar al menos un paciente');
     } else {
       this.mostrarErroresFormulario();
     }
   }
 
   cancelar(): void {
-    this.dialogRef.close();
+    this.cerrar.emit(null);
   }
 
   private mostrarErroresFormulario(): void {
-    let mensaje = 'Por favor, corrija los siguientes errores:\n';
+    const errores: string[] = [];
     
     Object.keys(this.asignacionForm.controls).forEach(key => {
       const control = this.asignacionForm.get(key);
       if (control && control.errors) {
         if (control.errors['required']) {
-          mensaje += `- ${this.obtenerNombreCampo(key)} es requerido\n`;
+          errores.push(`${this.obtenerNombreCampo(key)} es requerido`);
         }
         if (control.errors['maxlength']) {
-          mensaje += `- ${this.obtenerNombreCampo(key)} no debe exceder ${control.errors['maxlength'].requiredLength} caracteres\n`;
+          errores.push(`${this.obtenerNombreCampo(key)} no debe exceder ${control.errors['maxlength'].requiredLength} caracteres`);
         }
       }
     });
 
-    this.snackBar.open(mensaje, 'Cerrar', {
-      duration: 5000,
-      panelClass: ['error-snackbar']
+    errores.forEach(error => {
+      this.toastr.error(error);
     });
   }
 
@@ -205,7 +198,8 @@ export class AsignarActividadModalComponent implements OnInit {
     return nombres[key] || key;
   }
 
-  getMinDate(): Date {
-    return new Date();
+  getMinDate(): string {
+    const today = new Date();
+    return this.formatearFecha(today);
   }
 }

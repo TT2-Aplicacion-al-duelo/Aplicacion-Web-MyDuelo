@@ -1,43 +1,55 @@
-import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatDialog } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { Component, OnInit, Input } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
 import { ActividadesService } from '../../../../services/actividades.service';
 import { PacientesService } from '../../../../services/pacientes.service';
-import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ActividadDetalleModalComponent } from './actividad-detalle-modal/actividad-detalle-modal.component';
 import { AsignarActividadModalComponent } from './asignar-actividad-modal/asignar-actividad-modal.component';
+import Swal from 'sweetalert2';
+import { Actividad } from '../../../../interfaces/actividad';
 
-export interface Actividad {
-  id_actividad: number;
-  titulo: string;
-  descripcion: string;
-  tipo: string;
-  obligatoria: boolean;
-  repetitiva: boolean;
-  periodo?: number;
-  archivo_url?: string;
-  origen: 'personalizada' | 'modulo';
-  id_psicologo_creador?: number;
-  fecha_creacion?: Date;
-}
+declare var bootstrap: any;
 
-export interface Paciente {
-  id_paciente: number;
-  nombre: string;
-  apellido_paterno: string;
-  apellido_materno: string;
-  email: string;
-  telefono?: string;
-  foto_url?: string;
-}
+// export interface Actividad {
+//   id_actividad: number;
+//   titulo: string;
+//   descripcion: string;
+//   tipo: string;
+//   obligatoria: boolean;
+//   repetitiva: boolean;
+//   periodo?: number;
+//   archivo_url?: string;
+//   origen: 'personalizada' | 'modulo';
+//   id_psicologo_creador?: number;
+//   fecha_creacion?: Date;
+// }
+
+// export interface Paciente {
+//   id_paciente: number;
+//   nombre: string;
+//   apellido_paterno: string;
+//   apellido_materno: string;
+//   email: string;
+//   telefono?: string;
+//   foto_url?: string;
+// }
 
 @Component({
   selector: 'app-actividades-globales',
+  standalone: true,
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    ActividadDetalleModalComponent,
+    AsignarActividadModalComponent
+  ],
   templateUrl: './actividades-globales.component.html',
-  styleUrls: ['./actividades-globales.component.scss']
+  styleUrls: ['./actividades-globales.component.css']
 })
 export class ActividadesGlobalesComponent implements OnInit {
+  @Input() idPaciente?: number;
   
   actividades: Actividad[] = [];
   actividadesFiltradas: Actividad[] = [];
@@ -45,14 +57,17 @@ export class ActividadesGlobalesComponent implements OnInit {
   searchTerm = '';
   tipoFiltro = 'todas';
   
-  displayedColumns: string[] = ['titulo', 'tipo', 'descripcion', 'obligatoria', 'origen', 'acciones'];
+  // Propiedades para manejar los modales
+  mostrarModalDetalle = false;
+  mostrarModalAsignar = false;
+  actividadSeleccionada: Actividad | null = null;
+  modoEdicion = false;
+  esNueva = false;
   
   constructor(
     private actividadesService: ActividadesService,
     private pacientesService: PacientesService,
-    private dialog: MatDialog,
-    private snackBar: MatSnackBar,
-    private fb: FormBuilder
+    private toastr: ToastrService
   ) { }
 
   ngOnInit(): void {
@@ -67,9 +82,9 @@ export class ActividadesGlobalesComponent implements OnInit {
         this.aplicarFiltros();
         this.isLoading = false;
       },
-      error: (error) => {
+      error: (error: any) => {
         console.error('Error al cargar actividades:', error);
-        this.mostrarMensaje('Error al cargar las actividades', 'error');
+        this.toastr.error('Error al cargar las actividades');
         this.isLoading = false;
       }
     });
@@ -111,128 +126,70 @@ export class ActividadesGlobalesComponent implements OnInit {
   }
 
   verDetalleActividad(actividad: Actividad): void {
-    const dialogRef = this.dialog.open(ActividadDetalleModalComponent, {
-      width: '800px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
-      data: { 
-        actividad: actividad,
-        modoEdicion: false 
-      },
-      panelClass: 'actividad-detalle-dialog'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result) {
-        if (result.accion === 'editar') {
-          this.editarActividad(result.actividad);
-        } else if (result.accion === 'asignar') {
-          this.asignarActividad(result.actividad);
-        } else if (result.accion === 'eliminar') {
-          this.eliminarActividad(result.actividad);
-        }
+    this.actividadSeleccionada = actividad;
+    this.modoEdicion = false;
+    this.esNueva = false;
+    this.mostrarModalDetalle = true;
+    
+    // Abrir modal de Bootstrap
+    setTimeout(() => {
+      const modalElement = document.getElementById('modalDetalleActividad');
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
       }
-    });
+    }, 100);
   }
 
   editarActividad(actividad: Actividad): void {
-    const dialogRef = this.dialog.open(ActividadDetalleModalComponent, {
-      width: '800px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
-      data: { 
-        actividad: actividad,
-        modoEdicion: true 
-      },
-      panelClass: 'actividad-detalle-dialog'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && result.guardado) {
-        this.actualizarActividad(result.actividad);
+    this.actividadSeleccionada = actividad;
+    this.modoEdicion = true;
+    this.esNueva = false;
+    this.mostrarModalDetalle = true;
+    
+    setTimeout(() => {
+      const modalElement = document.getElementById('modalDetalleActividad');
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
       }
-    });
-  }
-
-  actualizarActividad(actividad: Actividad): void {
-    this.isLoading = true;
-    this.actividadesService.actualizarActividad(actividad.id_actividad, actividad).subscribe({
-      next: (response) => {
-        this.mostrarMensaje('Actividad actualizada correctamente', 'success');
-        this.cargarActividades();
-      },
-      error: (error) => {
-        console.error('Error al actualizar actividad:', error);
-        this.mostrarMensaje('Error al actualizar la actividad', 'error');
-        this.isLoading = false;
-      }
-    });
+    }, 100);
   }
 
   asignarActividad(actividad: Actividad): void {
-    const dialogRef = this.dialog.open(AsignarActividadModalComponent, {
-      width: '600px',
-      maxWidth: '95vw',
-      maxHeight: '80vh',
-      data: { actividad: actividad }
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && result.pacientesSeleccionados && result.pacientesSeleccionados.length > 0) {
-        this.asignarAPacientes(actividad, result.pacientesSeleccionados, result.configuracion);
-      }
-    });
-  }
-
-  asignarAPacientes(actividad: Actividad, pacientes: number[], configuracion: any): void {
-    this.isLoading = true;
+    this.actividadSeleccionada = actividad;
+    this.mostrarModalAsignar = true;
     
-    const asignaciones = pacientes.map(idPaciente => ({
-      id_actividad: actividad.id_actividad,
-      id_paciente: idPaciente,
-      fecha_limite: configuracion.fechaLimite,
-      instrucciones_personalizadas: configuracion.instrucciones,
-      prioridad: configuracion.prioridad || 'media'
-    }));
-
-    this.actividadesService.asignarActividadMultiple(asignaciones).subscribe({
-      next: (response) => {
-        this.mostrarMensaje(
-          `Actividad asignada a ${pacientes.length} paciente(s) correctamente`,
-          'success'
-        );
-        this.isLoading = false;
-      },
-      error: (error) => {
-        console.error('Error al asignar actividad:', error);
-        this.mostrarMensaje('Error al asignar la actividad', 'error');
-        this.isLoading = false;
+    setTimeout(() => {
+      const modalElement = document.getElementById('modalAsignarActividad');
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
       }
-    });
+    }, 100);
   }
 
   eliminarActividad(actividad: Actividad): void {
-    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
-      width: '400px',
-      data: {
-        titulo: 'Confirmar eliminación',
-        mensaje: `¿Está seguro de que desea eliminar la actividad "${actividad.titulo}"?`,
-        textoConfirmar: 'Eliminar',
-        textoCancelar: 'Cancelar'
-      }
-    });
-
-    dialogRef.afterClosed().subscribe(confirmed => {
-      if (confirmed) {
+    Swal.fire({
+      title: '¿Está seguro?',
+      text: `¿Desea eliminar la actividad "${actividad.titulo}"?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Sí, eliminar',
+      cancelButtonText: 'Cancelar'
+    }).then((result) => {
+      if (result.isConfirmed) {
         this.isLoading = true;
         this.actividadesService.eliminarActividad(actividad.id_actividad).subscribe({
-          next: (response) => {
-            this.mostrarMensaje('Actividad eliminada correctamente', 'success');
+          next: () => {
+            this.toastr.success('Actividad eliminada correctamente');
             this.cargarActividades();
           },
-          error: (error) => {
+          error: (error: any) => {
             console.error('Error al eliminar actividad:', error);
-            this.mostrarMensaje('Error al eliminar la actividad', 'error');
+            this.toastr.error('Error al eliminar la actividad');
             this.isLoading = false;
           }
         });
@@ -241,7 +198,8 @@ export class ActividadesGlobalesComponent implements OnInit {
   }
 
   crearNuevaActividad(): void {
-    const nuevaActividad: Partial<Actividad> = {
+    this.actividadSeleccionada = {
+      id_actividad: 0,
       titulo: '',
       descripcion: '',
       tipo: '',
@@ -249,47 +207,118 @@ export class ActividadesGlobalesComponent implements OnInit {
       repetitiva: false,
       origen: 'personalizada'
     };
-
-    const dialogRef = this.dialog.open(ActividadDetalleModalComponent, {
-      width: '800px',
-      maxWidth: '95vw',
-      maxHeight: '90vh',
-      data: { 
-        actividad: nuevaActividad,
-        modoEdicion: true,
-        esNueva: true
-      },
-      panelClass: 'actividad-detalle-dialog'
-    });
-
-    dialogRef.afterClosed().subscribe(result => {
-      if (result && result.guardado) {
-        this.guardarNuevaActividad(result.actividad);
+    this.modoEdicion = true;
+    this.esNueva = true;
+    this.mostrarModalDetalle = true;
+    
+    setTimeout(() => {
+      const modalElement = document.getElementById('modalDetalleActividad');
+      if (modalElement) {
+        const modal = new bootstrap.Modal(modalElement);
+        modal.show();
       }
-    });
+    }, 100);
   }
 
-  guardarNuevaActividad(actividad: Partial<Actividad>): void {
+  onModalDetalleClose(result: any): void {
+    this.mostrarModalDetalle = false;
+    
+    // Cerrar modal de Bootstrap
+    const modalElement = document.getElementById('modalDetalleActividad');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+    
+    if (result) {
+      if (result.accion === 'guardar') {
+        if (this.esNueva) {
+          this.guardarNuevaActividad(result.actividad);
+        } else {
+          this.actualizarActividad(result.actividad);
+        }
+      } else if (result.accion === 'editar') {
+        this.editarActividad(result.actividad);
+      } else if (result.accion === 'asignar') {
+        this.asignarActividad(result.actividad);
+      } else if (result.accion === 'eliminar') {
+        this.eliminarActividad(result.actividad);
+      }
+    }
+  }
+
+  onModalAsignarClose(result: any): void {
+    this.mostrarModalAsignar = false;
+    
+    // Cerrar modal de Bootstrap
+    const modalElement = document.getElementById('modalAsignarActividad');
+    if (modalElement) {
+      const modal = bootstrap.Modal.getInstance(modalElement);
+      if (modal) {
+        modal.hide();
+      }
+    }
+    
+    if (result && result.pacientesSeleccionados && result.pacientesSeleccionados.length > 0) {
+      this.asignarAPacientes(result.pacientesSeleccionados, result.configuracion);
+    }
+  }
+
+  private actualizarActividad(actividad: Actividad): void {
     this.isLoading = true;
-    this.actividadesService.crearActividad(actividad).subscribe({
-      next: (response) => {
-        this.mostrarMensaje('Actividad creada correctamente', 'success');
+    this.actividadesService.actualizarActividad(actividad.id_actividad, actividad).subscribe({
+      next: () => {
+        this.toastr.success('Actividad actualizada correctamente');
         this.cargarActividades();
       },
-      error: (error) => {
-        console.error('Error al crear actividad:', error);
-        this.mostrarMensaje('Error al crear la actividad', 'error');
+      error: (error: any) => {
+        console.error('Error al actualizar actividad:', error);
+        this.toastr.error('Error al actualizar la actividad');
         this.isLoading = false;
       }
     });
   }
 
-  private mostrarMensaje(mensaje: string, tipo: 'success' | 'error' | 'info'): void {
-    this.snackBar.open(mensaje, 'Cerrar', {
-      duration: tipo === 'error' ? 5000 : 3000,
-      horizontalPosition: 'end',
-      verticalPosition: 'top',
-      panelClass: [`snackbar-${tipo}`]
+  private guardarNuevaActividad(actividad: Partial<Actividad>): void {
+    this.isLoading = true;
+    this.actividadesService.crearActividad(actividad).subscribe({
+      next: () => {
+        this.toastr.success('Actividad creada correctamente');
+        this.cargarActividades();
+      },
+      error: (error: any) => {
+        console.error('Error al crear actividad:', error);
+        this.toastr.error('Error al crear la actividad');
+        this.isLoading = false;
+      }
+    });
+  }
+
+  private asignarAPacientes(pacientes: number[], configuracion: any): void {
+    if (!this.actividadSeleccionada) return;
+    
+    this.isLoading = true;
+    
+    const asignaciones = pacientes.map(idPaciente => ({
+      id_actividad: this.actividadSeleccionada!.id_actividad,
+      id_paciente: idPaciente,
+      fecha_limite: configuracion.fechaLimite,
+      instrucciones_personalizadas: configuracion.instrucciones,
+      prioridad: configuracion.prioridad || 'media'
+    }));
+
+    this.actividadesService.asignarActividadMultiple(asignaciones).subscribe({
+      next: () => {
+        this.toastr.success(`Actividad asignada a ${pacientes.length} paciente(s) correctamente`);
+        this.isLoading = false;
+      },
+      error: (error: any) => {
+        console.error('Error al asignar actividad:', error);
+        this.toastr.error('Error al asignar la actividad');
+        this.isLoading = false;
+      }
     });
   }
 }

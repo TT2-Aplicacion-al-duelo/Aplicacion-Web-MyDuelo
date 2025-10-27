@@ -1,179 +1,179 @@
 <!-- actividades-globales.component.html -->
-<div class="actividades-globales-container">
-  <!-- Header con título y botón de crear -->
-  <div class="header-section">
-    <div class="header-content">
-      <h2 class="section-title">
-        <mat-icon>assignment</mat-icon>
+<div class="container-fluid p-3">
+  <!-- Header -->
+  <div class="row mb-4">
+    <div class="col-md-8">
+      <h2 class="text-primary">
+        <i class="bi bi-clipboard-check me-2"></i>
         Actividades Globales
       </h2>
-      <button mat-raised-button color="primary" (click)="crearNuevaActividad()" class="btn-crear">
-        <mat-icon>add</mat-icon>
+    </div>
+    <div class="col-md-4 text-end">
+      <button class="btn btn-primary" (click)="crearNuevaActividad()">
+        <i class="bi bi-plus-circle me-2"></i>
         Nueva Actividad
       </button>
     </div>
   </div>
 
-  <!-- Barra de filtros -->
-  <div class="filters-section">
-    <mat-card class="filters-card">
-      <div class="filters-row">
+  <!-- Filtros -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="row g-3">
         <!-- Búsqueda -->
-        <mat-form-field appearance="outline" class="search-field">
-          <mat-label>Buscar actividad</mat-label>
-          <input matInput 
-                 [(ngModel)]="searchTerm"
-                 (ngModelChange)="onSearchChange()"
-                 placeholder="Título, descripción o tipo">
-          <mat-icon matPrefix>search</mat-icon>
-          <button mat-icon-button matSuffix 
-                  *ngIf="searchTerm" 
-                  (click)="searchTerm = ''; onSearchChange()">
-            <mat-icon>clear</mat-icon>
-          </button>
-        </mat-form-field>
+        <div class="col-md-6">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="bi bi-search"></i>
+            </span>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Buscar actividad..."
+              [(ngModel)]="searchTerm"
+              (ngModelChange)="onSearchChange()">
+          </div>
+        </div>
 
         <!-- Filtro por tipo -->
-        <mat-form-field appearance="outline" class="filter-field">
-          <mat-label>Filtrar por</mat-label>
-          <mat-select [(ngModel)]="tipoFiltro" (selectionChange)="onTipoFiltroChange()">
-            <mat-option value="todas">Todas las actividades</mat-option>
-            <mat-option value="obligatorias">
-              <mat-icon class="option-icon">priority_high</mat-icon>
-              Obligatorias
-            </mat-option>
-            <mat-option value="personalizadas">
-              <mat-icon class="option-icon">person</mat-icon>
-              Personalizadas
-            </mat-option>
-            <mat-option value="modulo">
-              <mat-icon class="option-icon">folder</mat-icon>
-              De módulo
-            </mat-option>
-          </mat-select>
-        </mat-form-field>
+        <div class="col-md-4">
+          <select class="form-select" [(ngModel)]="tipoFiltro" (change)="onTipoFiltroChange()">
+            <option value="todas">Todas las actividades</option>
+            <option value="obligatorias">Obligatorias</option>
+            <option value="personalizadas">Personalizadas</option>
+            <option value="modulo">De módulo</option>
+          </select>
+        </div>
 
-        <!-- Contador de resultados -->
-        <div class="results-counter">
-          <span class="counter-text">
-            {{ actividadesFiltradas.length }} 
-            {{ actividadesFiltradas.length === 1 ? 'actividad' : 'actividades' }}
-            encontrada{{ actividadesFiltradas.length !== 1 ? 's' : '' }}
+        <!-- Contador -->
+        <div class="col-md-2 text-center">
+          <span class="badge bg-info fs-6">
+            {{ actividadesFiltradas.length }} actividad(es)
           </span>
         </div>
       </div>
-    </mat-card>
+    </div>
   </div>
 
-  <!-- Loader -->
-  <div *ngIf="isLoading" class="loading-container">
-    <mat-spinner diameter="50"></mat-spinner>
-    <p>Cargando actividades...</p>
+  <!-- Loading -->
+  <div *ngIf="isLoading" class="text-center my-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2">Cargando actividades...</p>
   </div>
 
   <!-- Grid de actividades -->
-  <div class="actividades-grid" *ngIf="!isLoading">
-    <!-- Mensaje cuando no hay actividades -->
-    <div *ngIf="actividadesFiltradas.length === 0" class="no-results">
-      <mat-icon class="no-results-icon">assignment_turned_in</mat-icon>
-      <h3>No se encontraron actividades</h3>
-      <p *ngIf="searchTerm || tipoFiltro !== 'todas'">
-        Intenta ajustar los filtros de búsqueda
-      </p>
-      <p *ngIf="!searchTerm && tipoFiltro === 'todas'">
-        Crea tu primera actividad para comenzar
-      </p>
+  <div class="row g-3" *ngIf="!isLoading">
+    <!-- Sin resultados -->
+    <div *ngIf="actividadesFiltradas.length === 0" class="col-12">
+      <div class="card text-center py-5">
+        <div class="card-body">
+          <i class="bi bi-inbox fs-1 text-muted"></i>
+          <h4 class="mt-3">No se encontraron actividades</h4>
+          <p class="text-muted" *ngIf="searchTerm || tipoFiltro !== 'todas'">
+            Intenta ajustar los filtros de búsqueda
+          </p>
+          <p class="text-muted" *ngIf="!searchTerm && tipoFiltro === 'todas'">
+            Crea tu primera actividad para comenzar
+          </p>
+        </div>
+      </div>
     </div>
 
     <!-- Cards de actividades -->
-    <mat-card *ngFor="let actividad of actividadesFiltradas" 
-              class="actividad-card"
-              (click)="verDetalleActividad(actividad)">
-      
-      <!-- Header del card -->
-      <div class="card-header">
-        <div class="card-title-section">
-          <h3 class="actividad-titulo">{{ actividad.titulo }}</h3>
-          <div class="actividad-badges">
-            <mat-chip-list aria-label="Propiedades">
-              <mat-chip [color]="actividad.obligatoria ? 'warn' : ''" 
-                       [selected]="actividad.obligatoria"
-                       class="small-chip">
-                <mat-icon class="chip-icon" *ngIf="actividad.obligatoria">priority_high</mat-icon>
-                {{ actividad.obligatoria ? 'Obligatoria' : 'Opcional' }}
-              </mat-chip>
-              <mat-chip class="small-chip origen-chip" 
-                       [class.personalizada]="actividad.origen === 'personalizada'"
-                       [class.modulo]="actividad.origen === 'modulo'">
-                <mat-icon class="chip-icon">
-                  {{ actividad.origen === 'personalizada' ? 'person' : 'folder' }}
-                </mat-icon>
-                {{ actividad.origen === 'personalizada' ? 'Personalizada' : 'Módulo' }}
-              </mat-chip>
-            </mat-chip-list>
+    <div class="col-md-6 col-lg-4" *ngFor="let actividad of actividadesFiltradas">
+      <div class="card h-100 shadow-sm actividad-card" (click)="verDetalleActividad(actividad)">
+        <!-- Header del card -->
+        <div class="card-header bg-primary text-white">
+          <h5 class="card-title mb-2">{{ actividad.titulo }}</h5>
+          <div class="d-flex gap-2">
+            <span class="badge" [ngClass]="actividad.obligatoria ? 'bg-danger' : 'bg-secondary'">
+              <i class="bi" [ngClass]="actividad.obligatoria ? 'bi-exclamation-circle' : 'bi-circle'"></i>
+              {{ actividad.obligatoria ? 'Obligatoria' : 'Opcional' }}
+            </span>
+            <span class="badge" [ngClass]="actividad.origen === 'personalizada' ? 'bg-success' : 'bg-warning'">
+              <i class="bi" [ngClass]="actividad.origen === 'personalizada' ? 'bi-person' : 'bi-folder'"></i>
+              {{ actividad.origen === 'personalizada' ? 'Personalizada' : 'Módulo' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Contenido del card -->
+        <div class="card-body">
+          <!-- Tipo -->
+          <div class="mb-2" *ngIf="actividad.tipo">
+            <small class="text-muted">
+              <i class="bi bi-tag me-1"></i>
+              Tipo: {{ actividad.tipo }}
+            </small>
+          </div>
+
+          <!-- Descripción -->
+          <p class="card-text">
+            {{ actividad.descripcion || 'Sin descripción disponible' }}
+          </p>
+
+          <!-- Información adicional -->
+          <div class="mt-3">
+            <div *ngIf="actividad.repetitiva" class="text-muted small">
+              <i class="bi bi-repeat me-1"></i>
+              Actividad repetitiva
+              <span *ngIf="actividad.periodo"> - Cada {{ actividad.periodo }} días</span>
+            </div>
+            <div *ngIf="actividad.archivo_url" class="text-muted small">
+              <i class="bi bi-paperclip me-1"></i>
+              Contiene archivo adjunto
+            </div>
+          </div>
+        </div>
+
+        <!-- Acciones del card -->
+        <div class="card-footer bg-light">
+          <div class="btn-group btn-group-sm w-100" role="group">
+            <button 
+              class="btn btn-outline-primary" 
+              (click)="verDetalleActividad(actividad); $event.stopPropagation()"
+              title="Ver detalle">
+              <i class="bi bi-eye"></i>
+            </button>
+            <button 
+              class="btn btn-outline-success"
+              (click)="asignarActividad(actividad); $event.stopPropagation()"
+              title="Asignar a pacientes">
+              <i class="bi bi-person-plus"></i>
+            </button>
+            <button 
+              class="btn btn-outline-warning"
+              (click)="editarActividad(actividad); $event.stopPropagation()"
+              title="Editar">
+              <i class="bi bi-pencil"></i>
+            </button>
+            <button 
+              class="btn btn-outline-danger"
+              (click)="eliminarActividad(actividad); $event.stopPropagation()"
+              title="Eliminar">
+              <i class="bi bi-trash"></i>
+            </button>
           </div>
         </div>
       </div>
-
-      <!-- Contenido del card -->
-      <mat-card-content class="card-content">
-        <!-- Tipo de actividad -->
-        <div class="info-row" *ngIf="actividad.tipo">
-          <mat-icon class="info-icon">category</mat-icon>
-          <span class="info-label">Tipo:</span>
-          <span class="info-value">{{ actividad.tipo }}</span>
-        </div>
-
-        <!-- Descripción -->
-        <div class="descripcion-section">
-          <p class="actividad-descripcion">
-            {{ actividad.descripcion || 'Sin descripción disponible' }}
-          </p>
-        </div>
-
-        <!-- Información adicional -->
-        <div class="info-adicional">
-          <div class="info-row" *ngIf="actividad.repetitiva">
-            <mat-icon class="info-icon">repeat</mat-icon>
-            <span class="info-text">
-              Actividad repetitiva
-              <span *ngIf="actividad.periodo"> - Cada {{ actividad.periodo }} días</span>
-            </span>
-          </div>
-          <div class="info-row" *ngIf="actividad.archivo_url">
-            <mat-icon class="info-icon">attachment</mat-icon>
-            <span class="info-text">Contiene archivo adjunto</span>
-          </div>
-        </div>
-      </mat-card-content>
-
-      <!-- Acciones del card -->
-      <mat-card-actions class="card-actions">
-        <button mat-button color="primary" 
-                (click)="verDetalleActividad(actividad); $event.stopPropagation()"
-                class="action-btn">
-          <mat-icon>visibility</mat-icon>
-          Ver Detalle
-        </button>
-        <button mat-button color="accent"
-                (click)="asignarActividad(actividad); $event.stopPropagation()"
-                class="action-btn">
-          <mat-icon>person_add</mat-icon>
-          Asignar
-        </button>
-        <button mat-button 
-                (click)="editarActividad(actividad); $event.stopPropagation()"
-                class="action-btn">
-          <mat-icon>edit</mat-icon>
-          Editar
-        </button>
-        <button mat-button color="warn"
-                (click)="eliminarActividad(actividad); $event.stopPropagation()"
-                class="action-btn">
-          <mat-icon>delete</mat-icon>
-          Eliminar
-        </button>
-      </mat-card-actions>
-    </mat-card>
+    </div>
   </div>
+
+  <!-- Modal de Detalle/Edición de Actividad -->
+  <app-actividad-detalle-modal
+    *ngIf="mostrarModalDetalle"
+    [actividad]="actividadSeleccionada"
+    [modoEdicion]="modoEdicion"
+    [esNueva]="esNueva"
+    (cerrar)="onModalDetalleClose($event)">
+  </app-actividad-detalle-modal>
+
+  <!-- Modal de Asignar Actividad -->
+  <app-asignar-actividad-modal
+    *ngIf="mostrarModalAsignar"
+    [actividad]="actividadSeleccionada"
+    (cerrar)="onModalAsignarClose($event)">
+  </app-asignar-actividad-modal>
 </div>

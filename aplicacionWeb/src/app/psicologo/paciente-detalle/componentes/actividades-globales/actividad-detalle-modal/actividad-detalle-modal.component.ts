@@ -1,24 +1,22 @@
-import { Component, Inject, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
-import { MatSnackBar } from '@angular/material/snack-bar';
-
-export interface ActividadDialogData {
-  actividad: any;
-  modoEdicion: boolean;
-  esNueva?: boolean;
-}
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
 
 @Component({
   selector: 'app-actividad-detalle-modal',
+  standalone: true,
+  imports: [CommonModule, FormsModule, ReactiveFormsModule],
   templateUrl: './actividad-detalle-modal.component.html',
-  styleUrls: ['./actividad-detalle-modal.component.scss']
+  styleUrls: ['./actividad-detalle-modal.component.css']
 })
 export class ActividadDetalleModalComponent implements OnInit {
-  
-  actividadForm: FormGroup;
-  modoEdicion: boolean;
-  esNueva: boolean;
+  @Input() actividad: any = null;
+  @Input() modoEdicion: boolean = false;
+  @Input() esNueva: boolean = false;
+  @Output() cerrar = new EventEmitter<any>();
+
+  actividadForm!: FormGroup;
   tiposActividad = [
     'Meditación',
     'Ejercicio físico',
@@ -33,51 +31,47 @@ export class ActividadDetalleModalComponent implements OnInit {
   ];
 
   constructor(
-    public dialogRef: MatDialogRef<ActividadDetalleModalComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: ActividadDialogData,
     private fb: FormBuilder,
-    private snackBar: MatSnackBar
-  ) {
-    this.modoEdicion = data.modoEdicion || false;
-    this.esNueva = data.esNueva || false;
-  }
+    private toastr: ToastrService
+  ) {}
 
   ngOnInit(): void {
     this.inicializarFormulario();
   }
 
   inicializarFormulario(): void {
-    const actividad = this.data.actividad;
-    
     this.actividadForm = this.fb.group({
       titulo: [
-        { value: actividad.titulo || '', disabled: !this.modoEdicion },
+        { value: this.actividad?.titulo || '', disabled: !this.modoEdicion },
         [Validators.required, Validators.minLength(3), Validators.maxLength(255)]
       ],
       descripcion: [
-        { value: actividad.descripcion || '', disabled: !this.modoEdicion },
+        { value: this.actividad?.descripcion || '', disabled: !this.modoEdicion },
         [Validators.maxLength(1000)]
       ],
       tipo: [
-        { value: actividad.tipo || '', disabled: !this.modoEdicion },
+        { value: this.actividad?.tipo || '', disabled: !this.modoEdicion },
         [Validators.required]
       ],
       obligatoria: [
-        { value: actividad.obligatoria || false, disabled: !this.modoEdicion }
+        { value: this.actividad?.obligatoria || false, disabled: !this.modoEdicion }
       ],
       repetitiva: [
-        { value: actividad.repetitiva || false, disabled: !this.modoEdicion }
+        { value: this.actividad?.repetitiva || false, disabled: !this.modoEdicion }
       ],
       periodo: [
-        { value: actividad.periodo || null, disabled: !this.modoEdicion || !actividad.repetitiva },
+        { 
+          value: this.actividad?.periodo || null, 
+          disabled: !this.modoEdicion || !this.actividad?.repetitiva 
+        },
         [Validators.min(1), Validators.max(365)]
       ],
       archivo_url: [
-        { value: actividad.archivo_url || '', disabled: !this.modoEdicion },
+        { value: this.actividad?.archivo_url || '', disabled: !this.modoEdicion },
         [Validators.pattern(/^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/)]
       ],
       origen: [
-        { value: actividad.origen || 'personalizada', disabled: !this.modoEdicion }
+        { value: this.actividad?.origen || 'personalizada', disabled: !this.modoEdicion }
       ]
     });
 
@@ -108,7 +102,7 @@ export class ActividadDetalleModalComponent implements OnInit {
 
   cancelarEdicion(): void {
     if (this.esNueva) {
-      this.dialogRef.close();
+      this.cerrarModal();
     } else {
       this.modoEdicion = false;
       this.inicializarFormulario();
@@ -118,7 +112,7 @@ export class ActividadDetalleModalComponent implements OnInit {
   guardarCambios(): void {
     if (this.actividadForm.valid) {
       const actividadActualizada = {
-        ...this.data.actividad,
+        ...this.actividad,
         ...this.actividadForm.getRawValue()
       };
 
@@ -127,8 +121,8 @@ export class ActividadDetalleModalComponent implements OnInit {
         actividadActualizada.periodo = null;
       }
 
-      this.dialogRef.close({
-        guardado: true,
+      this.cerrar.emit({
+        accion: 'guardar',
         actividad: actividadActualizada
       });
     } else {
@@ -137,56 +131,53 @@ export class ActividadDetalleModalComponent implements OnInit {
   }
 
   asignarActividad(): void {
-    this.dialogRef.close({
+    this.cerrar.emit({
       accion: 'asignar',
-      actividad: this.data.actividad
+      actividad: this.actividad
     });
   }
 
   editarActividad(): void {
-    this.dialogRef.close({
+    this.cerrar.emit({
       accion: 'editar',
-      actividad: this.data.actividad
+      actividad: this.actividad
     });
   }
 
   eliminarActividad(): void {
-    this.dialogRef.close({
+    this.cerrar.emit({
       accion: 'eliminar',
-      actividad: this.data.actividad
+      actividad: this.actividad
     });
   }
 
-  cerrar(): void {
-    this.dialogRef.close();
+  cerrarModal(): void {
+    this.cerrar.emit(null);
   }
 
   private mostrarErroresFormulario(): void {
-    let mensaje = 'Por favor, corrija los siguientes errores:\n';
+    const errores: string[] = [];
     
     Object.keys(this.actividadForm.controls).forEach(key => {
       const control = this.actividadForm.get(key);
       if (control && control.errors) {
         if (control.errors['required']) {
-          mensaje += `- ${this.obtenerNombreCampo(key)} es requerido\n`;
+          errores.push(`${this.obtenerNombreCampo(key)} es requerido`);
         }
         if (control.errors['minlength']) {
-          mensaje += `- ${this.obtenerNombreCampo(key)} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres\n`;
+          errores.push(`${this.obtenerNombreCampo(key)} debe tener al menos ${control.errors['minlength'].requiredLength} caracteres`);
         }
         if (control.errors['maxlength']) {
-          mensaje += `- ${this.obtenerNombreCampo(key)} no debe exceder ${control.errors['maxlength'].requiredLength} caracteres\n`;
+          errores.push(`${this.obtenerNombreCampo(key)} no debe exceder ${control.errors['maxlength'].requiredLength} caracteres`);
         }
         if (control.errors['pattern']) {
-          mensaje += `- ${this.obtenerNombreCampo(key)} tiene un formato inválido\n`;
+          errores.push(`${this.obtenerNombreCampo(key)} tiene un formato inválido`);
         }
       }
     });
 
-    this.snackBar.open(mensaje, 'Cerrar', {
-      duration: 5000,
-      verticalPosition: 'top',
-      horizontalPosition: 'end',
-      panelClass: ['error-snackbar']
+    errores.forEach(error => {
+      this.toastr.error(error);
     });
   }
 

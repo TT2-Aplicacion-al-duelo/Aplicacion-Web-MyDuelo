@@ -1,217 +1,240 @@
-<!-- actividad-detalle-modal.component.html -->
-<div class="modal-container">
-  <!-- Header del Modal -->
-  <div mat-dialog-title class="modal-header">
-    <div class="header-content">
-      <h2 class="modal-title">
-        <mat-icon class="title-icon">
-          {{ esNueva ? 'add_circle' : (modoEdicion ? 'edit' : 'visibility') }}
-        </mat-icon>
-        {{ esNueva ? 'Nueva Actividad' : (modoEdicion ? 'Editar Actividad' : 'Detalle de Actividad') }}
-      </h2>
-      <button mat-icon-button (click)="cerrar()" class="close-button">
-        <mat-icon>close</mat-icon>
-      </button>
-    </div>
-  </div>
-
-  <!-- Contenido del Modal -->
-  <div mat-dialog-content class="modal-content">
-    <form [formGroup]="actividadForm" class="actividad-form">
-      
-      <!-- Título -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Título</mat-label>
-        <input matInput formControlName="titulo" placeholder="Ingrese el título de la actividad">
-        <mat-icon matPrefix>title</mat-icon>
-        <mat-error *ngIf="actividadForm.get('titulo')?.hasError('required')">
-          El título es requerido
-        </mat-error>
-        <mat-error *ngIf="actividadForm.get('titulo')?.hasError('minlength')">
-          Mínimo 3 caracteres
-        </mat-error>
-        <mat-error *ngIf="actividadForm.get('titulo')?.hasError('maxlength')">
-          Máximo 255 caracteres
-        </mat-error>
-      </mat-form-field>
-
-      <!-- Tipo de Actividad -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Tipo de Actividad</mat-label>
-        <mat-select formControlName="tipo">
-          <mat-option *ngFor="let tipo of tiposActividad" [value]="tipo">
-            {{ tipo }}
-          </mat-option>
-        </mat-select>
-        <mat-icon matPrefix>category</mat-icon>
-        <mat-error *ngIf="actividadForm.get('tipo')?.hasError('required')">
-          El tipo es requerido
-        </mat-error>
-      </mat-form-field>
-
-      <!-- Descripción -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>Descripción</mat-label>
-        <textarea matInput 
-                  formControlName="descripcion"
-                  rows="4"
-                  placeholder="Describa la actividad en detalle"></textarea>
-        <mat-icon matPrefix>description</mat-icon>
-        <mat-hint align="end" *ngIf="modoEdicion">
-          {{ actividadForm.get('descripcion')?.value?.length || 0 }}/1000
-        </mat-hint>
-        <mat-error *ngIf="actividadForm.get('descripcion')?.hasError('maxlength')">
-          Máximo 1000 caracteres
-        </mat-error>
-      </mat-form-field>
-
-      <!-- URL del Archivo -->
-      <mat-form-field appearance="outline" class="full-width">
-        <mat-label>URL del Archivo (Opcional)</mat-label>
-        <input matInput 
-               formControlName="archivo_url"
-               placeholder="https://ejemplo.com/archivo">
-        <mat-icon matPrefix>attach_file</mat-icon>
-        <mat-error *ngIf="actividadForm.get('archivo_url')?.hasError('pattern')">
-          Formato de URL inválido
-        </mat-error>
-      </mat-form-field>
-
-      <!-- Sección de Opciones -->
-      <div class="options-section">
-        <h3 class="section-title">
-          <mat-icon>settings</mat-icon>
-          Configuración
-        </h3>
-        
-        <div class="options-row">
-          <!-- Obligatoria -->
-          <mat-checkbox formControlName="obligatoria" class="option-checkbox">
-            <span class="checkbox-label">
-              <mat-icon class="checkbox-icon" color="warn">priority_high</mat-icon>
-              Actividad Obligatoria
-            </span>
-          </mat-checkbox>
-
-          <!-- Repetitiva -->
-          <mat-checkbox formControlName="repetitiva" class="option-checkbox">
-            <span class="checkbox-label">
-              <mat-icon class="checkbox-icon" color="primary">repeat</mat-icon>
-              Actividad Repetitiva
-            </span>
-          </mat-checkbox>
-        </div>
-
-        <!-- Periodo (solo si es repetitiva) -->
-        <mat-form-field appearance="outline" 
-                        class="periodo-field" 
-                        *ngIf="actividadForm.get('repetitiva')?.value">
-          <mat-label>Periodo de repetición (días)</mat-label>
-          <input matInput 
-                 type="number" 
-                 formControlName="periodo"
-                 placeholder="Ej: 7">
-          <mat-icon matPrefix>event_repeat</mat-icon>
-          <mat-error *ngIf="actividadForm.get('periodo')?.hasError('required')">
-            El periodo es requerido para actividades repetitivas
-          </mat-error>
-          <mat-error *ngIf="actividadForm.get('periodo')?.hasError('min')">
-            El periodo mínimo es 1 día
-          </mat-error>
-          <mat-error *ngIf="actividadForm.get('periodo')?.hasError('max')">
-            El periodo máximo es 365 días
-          </mat-error>
-        </mat-form-field>
-
-        <!-- Origen -->
-        <mat-form-field appearance="outline" class="origen-field">
-          <mat-label>Origen</mat-label>
-          <mat-select formControlName="origen">
-            <mat-option value="personalizada">
-              <mat-icon class="option-icon">person</mat-icon>
-              Personalizada
-            </mat-option>
-            <mat-option value="modulo">
-              <mat-icon class="option-icon">folder</mat-icon>
-              Módulo
-            </mat-option>
-          </mat-select>
-          <mat-icon matPrefix>source</mat-icon>
-        </mat-form-field>
+<div class="modal fade show d-block" id="modalDetalleActividad" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi" [ngClass]="{
+            'bi-plus-circle': esNueva,
+            'bi-pencil': modoEdicion && !esNueva,
+            'bi-eye': !modoEdicion
+          }"></i>
+          {{ esNueva ? 'Nueva Actividad' : (modoEdicion ? 'Editar Actividad' : 'Detalle de Actividad') }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" (click)="cerrarModal()"></button>
       </div>
 
-      <!-- Vista de solo lectura - Información adicional -->
-      <div *ngIf="!modoEdicion && !esNueva" class="readonly-info">
-        <div class="info-card">
-          <h3 class="info-title">
-            <mat-icon>info</mat-icon>
-            Información Adicional
-          </h3>
-          
-          <div class="info-grid">
-            <div class="info-item">
-              <span class="info-label">ID:</span>
-              <span class="info-value">{{ data.actividad.id_actividad || 'N/A' }}</span>
-            </div>
-            
-            <div class="info-item" *ngIf="data.actividad.id_psicologo_creador">
-              <span class="info-label">Creador:</span>
-              <span class="info-value">Psicólogo ID {{ data.actividad.id_psicologo_creador }}</span>
-            </div>
-            
-            <div class="info-item" *ngIf="data.actividad.fecha_creacion">
-              <span class="info-label">Fecha de Creación:</span>
-              <span class="info-value">{{ data.actividad.fecha_creacion | date:'dd/MM/yyyy' }}</span>
+      <!-- Body -->
+      <div class="modal-body">
+        <form [formGroup]="actividadForm">
+          <!-- Título -->
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="bi bi-type me-1"></i>
+              Título <span class="text-danger">*</span>
+            </label>
+            <input 
+              type="text" 
+              class="form-control" 
+              formControlName="titulo"
+              [class.is-invalid]="actividadForm.get('titulo')?.invalid && actividadForm.get('titulo')?.touched"
+              placeholder="Ingrese el título de la actividad">
+            <div class="invalid-feedback" *ngIf="actividadForm.get('titulo')?.invalid && actividadForm.get('titulo')?.touched">
+              {{ getErrorMessage('titulo') }}
             </div>
           </div>
-        </div>
+
+          <!-- Tipo de Actividad -->
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="bi bi-tag me-1"></i>
+              Tipo de Actividad <span class="text-danger">*</span>
+            </label>
+            <select 
+              class="form-select" 
+              formControlName="tipo"
+              [class.is-invalid]="actividadForm.get('tipo')?.invalid && actividadForm.get('tipo')?.touched">
+              <option value="">Seleccione un tipo</option>
+              <option *ngFor="let tipo of tiposActividad" [value]="tipo">
+                {{ tipo }}
+              </option>
+            </select>
+            <div class="invalid-feedback" *ngIf="actividadForm.get('tipo')?.invalid && actividadForm.get('tipo')?.touched">
+              {{ getErrorMessage('tipo') }}
+            </div>
+          </div>
+
+          <!-- Descripción -->
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="bi bi-text-paragraph me-1"></i>
+              Descripción
+            </label>
+            <textarea 
+              class="form-control" 
+              formControlName="descripcion"
+              rows="4"
+              [class.is-invalid]="actividadForm.get('descripcion')?.invalid && actividadForm.get('descripcion')?.touched"
+              placeholder="Describa la actividad en detalle"></textarea>
+            <small class="form-text text-muted">
+              {{ actividadForm.get('descripcion')?.value?.length || 0 }}/1000 caracteres
+            </small>
+            <div class="invalid-feedback" *ngIf="actividadForm.get('descripcion')?.invalid && actividadForm.get('descripcion')?.touched">
+              {{ getErrorMessage('descripcion') }}
+            </div>
+          </div>
+
+          <!-- URL del Archivo -->
+          <div class="mb-3">
+            <label class="form-label">
+              <i class="bi bi-link-45deg me-1"></i>
+              URL del Archivo (Opcional)
+            </label>
+            <input 
+              type="url" 
+              class="form-control" 
+              formControlName="archivo_url"
+              [class.is-invalid]="actividadForm.get('archivo_url')?.invalid && actividadForm.get('archivo_url')?.touched"
+              placeholder="https://ejemplo.com/archivo">
+            <div class="invalid-feedback" *ngIf="actividadForm.get('archivo_url')?.invalid && actividadForm.get('archivo_url')?.touched">
+              {{ getErrorMessage('archivo_url') }}
+            </div>
+          </div>
+
+          <!-- Configuración -->
+          <div class="card mb-3">
+            <div class="card-header">
+              <i class="bi bi-gear me-1"></i>
+              Configuración
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <!-- Obligatoria -->
+                <div class="col-md-6 mb-3">
+                  <div class="form-check">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      formControlName="obligatoria"
+                      id="checkObligatoria">
+                    <label class="form-check-label" for="checkObligatoria">
+                      <i class="bi bi-exclamation-triangle text-warning me-1"></i>
+                      Actividad Obligatoria
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Repetitiva -->
+                <div class="col-md-6 mb-3">
+                  <div class="form-check">
+                    <input 
+                      class="form-check-input" 
+                      type="checkbox" 
+                      formControlName="repetitiva"
+                      id="checkRepetitiva">
+                    <label class="form-check-label" for="checkRepetitiva">
+                      <i class="bi bi-repeat text-info me-1"></i>
+                      Actividad Repetitiva
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Periodo (solo si es repetitiva) -->
+                <div class="col-12" *ngIf="actividadForm.get('repetitiva')?.value">
+                  <label class="form-label">
+                    <i class="bi bi-calendar-range me-1"></i>
+                    Periodo de repetición (días)
+                  </label>
+                  <input 
+                    type="number" 
+                    class="form-control" 
+                    formControlName="periodo"
+                    [class.is-invalid]="actividadForm.get('periodo')?.invalid && actividadForm.get('periodo')?.touched"
+                    placeholder="Ej: 7"
+                    min="1"
+                    max="365">
+                  <div class="invalid-feedback" *ngIf="actividadForm.get('periodo')?.invalid && actividadForm.get('periodo')?.touched">
+                    {{ getErrorMessage('periodo') }}
+                  </div>
+                </div>
+
+                <!-- Origen -->
+                <div class="col-12 mt-3">
+                  <label class="form-label">
+                    <i class="bi bi-folder me-1"></i>
+                    Origen
+                  </label>
+                  <select class="form-select" formControlName="origen">
+                    <option value="personalizada">
+                      <i class="bi bi-person"></i>
+                      Personalizada
+                    </option>
+                    <option value="modulo">
+                      <i class="bi bi-folder"></i>
+                      Módulo
+                    </option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vista de solo lectura - Información adicional -->
+          <div *ngIf="!modoEdicion && !esNueva && actividad" class="alert alert-info">
+            <h6 class="alert-heading">
+              <i class="bi bi-info-circle"></i>
+              Información Adicional
+            </h6>
+            <div class="row">
+              <div class="col-md-6">
+                <small class="d-block">
+                  <strong>ID:</strong> {{ actividad.id_actividad || 'N/A' }}
+                </small>
+              </div>
+              <div class="col-md-6" *ngIf="actividad.id_psicologo_creador">
+                <small class="d-block">
+                  <strong>Creador:</strong> Psicólogo ID {{ actividad.id_psicologo_creador }}
+                </small>
+              </div>
+              <div class="col-12 mt-2" *ngIf="actividad.fecha_creacion">
+                <small class="d-block">
+                  <strong>Fecha de Creación:</strong> 
+                  {{ actividad.fecha_creacion | date:'dd/MM/yyyy HH:mm' }}
+                </small>
+              </div>
+            </div>
+          </div>
+        </form>
       </div>
 
-    </form>
-  </div>
+      <!-- Footer -->
+      <div class="modal-footer">
+        <!-- Modo Vista -->
+        <ng-container *ngIf="!modoEdicion && !esNueva">
+          <button type="button" class="btn btn-secondary" (click)="cerrarModal()">
+            <i class="bi bi-x-circle me-1"></i>
+            Cerrar
+          </button>
+          <button type="button" class="btn btn-success" (click)="asignarActividad()">
+            <i class="bi bi-person-plus me-1"></i>
+            Asignar a Pacientes
+          </button>
+          <button type="button" class="btn btn-primary" (click)="editarActividad()">
+            <i class="bi bi-pencil me-1"></i>
+            Editar
+          </button>
+          <button type="button" class="btn btn-danger" (click)="eliminarActividad()">
+            <i class="bi bi-trash me-1"></i>
+            Eliminar
+          </button>
+        </ng-container>
 
-  <!-- Acciones del Modal -->
-  <div mat-dialog-actions class="modal-actions">
-    <!-- Modo Vista -->
-    <ng-container *ngIf="!modoEdicion && !esNueva">
-      <button mat-button (click)="cerrar()" class="btn-secondary">
-        <mat-icon>close</mat-icon>
-        Cerrar
-      </button>
-      
-      <div class="actions-right">
-        <button mat-raised-button color="accent" (click)="asignarActividad()" class="btn-action">
-          <mat-icon>person_add</mat-icon>
-          Asignar a Pacientes
-        </button>
-        
-        <button mat-raised-button color="primary" (click)="editarActividad()" class="btn-action">
-          <mat-icon>edit</mat-icon>
-          Editar
-        </button>
-        
-        <button mat-raised-button color="warn" (click)="eliminarActividad()" class="btn-action">
-          <mat-icon>delete</mat-icon>
-          Eliminar
-        </button>
+        <!-- Modo Edición -->
+        <ng-container *ngIf="modoEdicion">
+          <button type="button" class="btn btn-secondary" (click)="cancelarEdicion()">
+            <i class="bi bi-x-circle me-1"></i>
+            Cancelar
+          </button>
+          <button 
+            type="button" 
+            class="btn btn-primary" 
+            (click)="guardarCambios()"
+            [disabled]="!actividadForm.valid">
+            <i class="bi bi-save me-1"></i>
+            {{ esNueva ? 'Crear Actividad' : 'Guardar Cambios' }}
+          </button>
+        </ng-container>
       </div>
-    </ng-container>
-
-    <!-- Modo Edición -->
-    <ng-container *ngIf="modoEdicion">
-      <button mat-button (click)="cancelarEdicion()" class="btn-secondary">
-        <mat-icon>cancel</mat-icon>
-        Cancelar
-      </button>
-      
-      <button mat-raised-button 
-              color="primary" 
-              (click)="guardarCambios()"
-              [disabled]="!actividadForm.valid"
-              class="btn-save">
-        <mat-icon>save</mat-icon>
-        {{ esNueva ? 'Crear Actividad' : 'Guardar Cambios' }}
-      </button>
-    </ng-container>
+    </div>
   </div>
 </div>

@@ -1,337 +1,63 @@
-.actividades-globales-container {
-  padding: 20px;
-  max-width: 1400px;
-  margin: 0 auto;
-  min-height: 100vh;
-  background-color: #f5f5f5;
-}
-
-
-.header-section {
-  margin-bottom: 24px;
-  
-  .header-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-  
-  .section-title {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    font-size: 28px;
-    font-weight: 500;
-    color: #333;
-    margin: 0;
-    
-    mat-icon {
-      font-size: 32px;
-      width: 32px;
-      height: 32px;
-      color: #3f51b5;
-    }
-  }
-  
-  .btn-crear {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 20px;
-    font-size: 15px;
-    border-radius: 24px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    transition: all 0.3s ease;
-    
-    &:hover {
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
-      transform: translateY(-2px);
-    }
-  }
-}
-
-.filters-section {
-  margin-bottom: 24px;
-  
-  .filters-card {
-    border-radius: 12px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  }
-  
-  .filters-row {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    padding: 8px;
-  }
-  
-  .search-field {
-    flex: 1;
-    min-width: 280px;
-  }
-  
-  .filter-field {
-    min-width: 200px;
-  }
-  
-  .results-counter {
-    margin-left: auto;
-    padding: 8px 16px;
-    background-color: #e3f2fd;
-    border-radius: 20px;
-    
-    .counter-text {
-      color: #1976d2;
-      font-weight: 500;
-      font-size: 14px;
-    }
-  }
-  
-  ::ng-deep {
-    .mat-form-field-appearance-outline .mat-form-field-outline {
-      color: #e0e0e0;
-    }
-    
-    .mat-form-field-appearance-outline.mat-focused .mat-form-field-outline {
-      color: #3f51b5;
-    }
-  }
-  
-  .option-icon {
-    margin-right: 8px;
-    vertical-align: middle;
-  }
-}
-
-
-.loading-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 60px 20px;
-  
-  p {
-    margin-top: 16px;
-    color: #666;
-    font-size: 16px;
-  }
-}
-
-
-.actividades-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-  gap: 24px;
-  animation: fadeIn 0.5s ease-in;
-}
-
+/* actividades-globales.component.css */
 
 .actividad-card {
-  border-radius: 12px;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.08);
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1px solid #dee2e6;
+}
+
+.actividad-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 .5rem 1rem rgba(0, 0, 0, .15) !important;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+}
+
+.card-text {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  background: white;
-  
-  &:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-    
-    .card-header {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    }
+  text-overflow: ellipsis;
+  min-height: 60px;
+}
+
+.btn-group-sm .btn {
+  padding: .25rem .5rem;
+  font-size: .875rem;
+}
+
+.card-footer {
+  padding: .5rem;
+}
+
+/* Badges personalizados */
+.badge {
+  font-weight: 500;
+  padding: .35em .65em;
+}
+
+/* Loading spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .col-md-6 {
+    margin-bottom: 1rem;
   }
   
-  .card-header {
-    padding: 16px 20px;
-    background: linear-gradient(135deg, #3f51b5 0%, #5a67d8 100%);
-    color: white;
-    transition: background 0.3s ease;
-    
-    .card-title-section {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    
-    .actividad-titulo {
-      margin: 0;
-      font-size: 20px;
-      font-weight: 500;
-      color: white;
-      line-height: 1.3;
-    }
-    
-    .actividad-badges {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      
-      ::ng-deep .mat-chip-list-wrapper {
-        display: flex;
-        gap: 8px;
-        margin: 0;
-      }
-      
-      .small-chip {
-        height: 24px;
-        font-size: 12px;
-        padding: 0 12px;
-        background: rgba(255,255,255,0.2);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.3);
-        
-        &.mat-chip-selected {
-          background: rgba(255,255,255,0.3);
-        }
-        
-        .chip-icon {
-          font-size: 16px;
-          width: 16px;
-          height: 16px;
-          margin-right: 4px;
-        }
-      }
-      
-      .origen-chip {
-        &.personalizada {
-          background: rgba(76, 175, 80, 0.2);
-          border-color: rgba(76, 175, 80, 0.5);
-        }
-        
-        &.modulo {
-          background: rgba(255, 152, 0, 0.2);
-          border-color: rgba(255, 152, 0, 0.5);
-        }
-      }
-    }
-  }
-  
-  .card-content {
-    padding: 20px;
-    
-    .info-row {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 12px;
-      color: #555;
-      
-      .info-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        color: #9e9e9e;
-      }
-      
-      .info-label {
-        font-weight: 500;
-        color: #666;
-      }
-      
-      .info-value {
-        color: #333;
-      }
-      
-      .info-text {
-        font-size: 14px;
-      }
-    }
-    
-    .descripcion-section {
-      margin: 16px 0;
-      padding: 12px;
-      background: #f8f9fa;
-      border-radius: 8px;
-      border-left: 3px solid #3f51b5;
-      
-      .actividad-descripcion {
-        margin: 0;
-        color: #444;
-        line-height: 1.6;
-        font-size: 14px;
-        max-height: 80px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        display: -webkit-box;
-        -webkit-line-clamp: 3;
-        -webkit-box-orient: vertical;
-      }
-    }
-    
-    .info-adicional {
-      margin-top: 16px;
-      padding-top: 12px;
-      border-top: 1px solid #e0e0e0;
-    }
-  }
-  
-  .card-actions {
-    padding: 8px 12px;
-    background: #fafafa;
-    border-top: 1px solid #e0e0e0;
-    display: flex;
-    justify-content: space-around;
+  .btn-group {
     flex-wrap: wrap;
-    gap: 8px;
-    
-    .action-btn {
-      font-size: 13px;
-      padding: 6px 12px;
-      border-radius: 20px;
-      transition: all 0.3s ease;
-      
-      mat-icon {
-        font-size: 18px;
-        width: 18px;
-        height: 18px;
-        margin-right: 4px;
-      }
-      
-      &:hover {
-        background: rgba(63, 81, 181, 0.08);
-        transform: scale(1.05);
-      }
-    }
   }
 }
 
-
-.no-results {
-  grid-column: 1 / -1;
-  text-align: center;
-  padding: 60px 20px;
-  background: white;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-  
-  .no-results-icon {
-    font-size: 72px;
-    width: 72px;
-    height: 72px;
-    color: #bdbdbd;
-    margin: 0 auto 16px;
-  }
-  
-  h3 {
-    color: #666;
-    font-size: 24px;
-    margin-bottom: 8px;
-  }
-  
-  p {
-    color: #999;
-    font-size: 16px;
-    margin: 8px 0;
-  }
-}
-
-
+/* Animaciones */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -343,73 +69,23 @@
   }
 }
 
-
-@media (max-width: 768px) {
-  .actividades-globales-container {
-    padding: 12px;
-  }
-  
-  .header-section {
-    .header-content {
-      flex-direction: column;
-      align-items: stretch;
-      
-      .btn-crear {
-        width: 100%;
-        justify-content: center;
-      }
-    }
-  }
-  
-  .filters-section {
-    .filters-row {
-      flex-direction: column;
-      align-items: stretch;
-      
-      .search-field,
-      .filter-field {
-        width: 100%;
-      }
-      
-      .results-counter {
-        margin: 16px 0 0 0;
-        text-align: center;
-        width: 100%;
-      }
-    }
-  }
-  
-  .actividades-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  
-  .actividad-card {
-    .card-actions {
-      flex-direction: column;
-      
-      .action-btn {
-        width: 100%;
-        justify-content: center;
-      }
-    }
-  }
+.card {
+  animation: fadeIn 0.3s ease-in;
 }
 
-@media (max-width: 480px) {
-  .section-title {
-    font-size: 24px !important;
-    
-    mat-icon {
-      font-size: 28px !important;
-      width: 28px !important;
-      height: 28px !important;
-    }
-  }
-  
-  .actividad-card {
-    .actividad-titulo {
-      font-size: 18px;
-    }
-  }
+/* Filtros */
+.input-group-text {
+  background-color: #f8f9fa;
+  border-right: none;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #86b7fe;
+  box-shadow: 0 0 0 .25rem rgba(13, 110, 253, .25);
+}
+
+/* Estilos para el contador */
+.badge.fs-6 {
+  padding: .5rem 1rem;
 }
