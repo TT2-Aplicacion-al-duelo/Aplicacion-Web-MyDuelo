@@ -2,7 +2,7 @@ import { Component, OnInit, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { ActividadesService } from '../../../../services/actividades.service';
+import { ActividadService } from '../../../../services/actividad.service';
 import { PacientesService } from '../../../../services/pacientes.service';
 import { ActividadDetalleModalComponent } from './actividad-detalle-modal/actividad-detalle-modal.component';
 import { AsignarActividadModalComponent } from './asignar-actividad-modal/asignar-actividad-modal.component';
@@ -11,29 +11,7 @@ import { Actividad } from '../../../../interfaces/actividad';
 
 declare var bootstrap: any;
 
-// export interface Actividad {
-//   id_actividad: number;
-//   titulo: string;
-//   descripcion: string;
-//   tipo: string;
-//   obligatoria: boolean;
-//   repetitiva: boolean;
-//   periodo?: number;
-//   archivo_url?: string;
-//   origen: 'personalizada' | 'modulo';
-//   id_psicologo_creador?: number;
-//   fecha_creacion?: Date;
-// }
 
-// export interface Paciente {
-//   id_paciente: number;
-//   nombre: string;
-//   apellido_paterno: string;
-//   apellido_materno: string;
-//   email: string;
-//   telefono?: string;
-//   foto_url?: string;
-// }
 
 @Component({
   selector: 'app-actividades-globales',
@@ -65,7 +43,7 @@ export class ActividadesGlobalesComponent implements OnInit {
   esNueva = false;
   
   constructor(
-    private actividadesService: ActividadesService,
+    private actividadService: ActividadService,
     private pacientesService: PacientesService,
     private toastr: ToastrService
   ) { }
@@ -76,7 +54,7 @@ export class ActividadesGlobalesComponent implements OnInit {
 
   cargarActividades(): void {
     this.isLoading = true;
-    this.actividadesService.obtenerActividadesGlobales().subscribe({
+    this.actividadService.obtenerActividadesGlobales().subscribe({
       next: (data: Actividad[]) => {
         this.actividades = data;
         this.aplicarFiltros();
@@ -182,7 +160,7 @@ export class ActividadesGlobalesComponent implements OnInit {
     }).then((result) => {
       if (result.isConfirmed) {
         this.isLoading = true;
-        this.actividadesService.eliminarActividad(actividad.id_actividad).subscribe({
+        this.actividadService.eliminarActividad(actividad.id_actividad).subscribe({
           next: () => {
             this.toastr.success('Actividad eliminada correctamente');
             this.cargarActividades();
@@ -268,7 +246,7 @@ export class ActividadesGlobalesComponent implements OnInit {
 
   private actualizarActividad(actividad: Actividad): void {
     this.isLoading = true;
-    this.actividadesService.actualizarActividad(actividad.id_actividad, actividad).subscribe({
+    this.actividadService.actualizarActividad(actividad.id_actividad, actividad).subscribe({
       next: () => {
         this.toastr.success('Actividad actualizada correctamente');
         this.cargarActividades();
@@ -283,7 +261,7 @@ export class ActividadesGlobalesComponent implements OnInit {
 
   private guardarNuevaActividad(actividad: Partial<Actividad>): void {
     this.isLoading = true;
-    this.actividadesService.crearActividad(actividad).subscribe({
+    this.actividadService.crearActividad(actividad).subscribe({
       next: () => {
         this.toastr.success('Actividad creada correctamente');
         this.cargarActividades();
@@ -309,7 +287,7 @@ export class ActividadesGlobalesComponent implements OnInit {
       prioridad: configuracion.prioridad || 'media'
     }));
 
-    this.actividadesService.asignarActividadMultiple(asignaciones).subscribe({
+    this.actividadService.asignarActividadMultiple(asignaciones).subscribe({
       next: () => {
         this.toastr.success(`Actividad asignada a ${pacientes.length} paciente(s) correctamente`);
         this.isLoading = false;
