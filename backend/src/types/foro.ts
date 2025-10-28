@@ -8,7 +8,7 @@ export interface CreateForoRequest {
   titulo: string;
   descripcion?: string;
   publico: boolean;
-  id_psicologo_creador?: number;
+  id_psicologo_creador: number;
 }
 
 export interface UpdateForoRequest {

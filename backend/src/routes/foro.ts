@@ -5,7 +5,7 @@ import {
   verificarToken,
   esPsicologo,
   esPaciente,
-} from '../middlewares/auth';
+} from '../middlewares/auth.middlewares';
 import {
   esParticipanteForo,
   esAdminForo,

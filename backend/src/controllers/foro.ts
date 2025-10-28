@@ -1,6 +1,11 @@
 // backend/src/controllers/foro.controller.ts
 import { Response } from 'express';
-import { RequestWithUser } from '../types/foro';
+import { RequestWithUser } from '../middlewares/auth.middlewares';
+import { 
+  CreateForoRequest,
+  ForoResponse,
+
+} from '../types/foro';
 import foroService from '../services/foro.service';
 
 export class ForoController {
