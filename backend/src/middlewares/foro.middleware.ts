@@ -1,10 +1,11 @@
 // backend/src/middlewares/foro.middleware.ts
 import { Response, NextFunction } from 'express';
 import { RequestWithUser } from './auth.middlewares';
+import { Op } from 'sequelize';
 
-// Importar los modelos necesarios
-const ForoParticipante = require('../models/foro/foro-participante');
-const Foro = require('../models/foro/foro');
+// Importar los modelos correctamente usando import
+import ForoParticipante from '../models/foro/foro-participante';
+import Foro from '../models/foro/foro';
 
 /**
  * Verifica que el usuario es participante del foro
@@ -15,13 +16,22 @@ export const esParticipanteForo = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const idForo = parseInt(req.params.idForo || req.body.id_foro);
+    const idForo = parseInt(req.params.idForo || req.body?.id_foro);
     const user = req.user;
 
     if (!user) {
       res.status(401).json({
         success: false,
         error: 'Usuario no autenticado',
+      });
+      return;
+    }
+
+    // Validar que el idForo es válido
+    if (!idForo || isNaN(idForo)) {
+      res.status(400).json({
+        success: false,
+        error: 'ID de foro inválido',
       });
       return;
     }
@@ -71,13 +81,22 @@ export const esAdminForo = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const idForo = parseInt(req.params.idForo || req.body.id_foro);
+    const idForo = parseInt(req.params.idForo || req.body?.id_foro);
     const user = req.user;
 
     if (!user) {
       res.status(401).json({
         success: false,
         error: 'Usuario no autenticado',
+      });
+      return;
+    }
+
+    // Validar que el idForo es válido
+    if (!idForo || isNaN(idForo)) {
+      res.status(400).json({
+        success: false,
+        error: 'ID de foro inválido',
       });
       return;
     }
@@ -127,7 +146,7 @@ export const esModeradorOAdmin = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const idForo = parseInt(req.params.idForo || req.body.id_foro);
+    const idForo = parseInt(req.params.idForo || req.body?.id_foro);
     const user = req.user;
 
     if (!user) {
@@ -138,10 +157,22 @@ export const esModeradorOAdmin = async (
       return;
     }
 
+    // Validar que el idForo es válido
+    if (!idForo || isNaN(idForo)) {
+      res.status(400).json({
+        success: false,
+        error: 'ID de foro inválido',
+      });
+      return;
+    }
+
     // Construir la consulta según el tipo de usuario  
     const whereClause: any = {
       id_foro: idForo,
       tipo_usuario: user.tipo,
+      rol: {
+        [Op.or]: ['admin', 'moderador']
+      }
     };
 
     if (user.tipo === 'psicologo') {
@@ -149,12 +180,6 @@ export const esModeradorOAdmin = async (
     } else {
       whereClause.id_paciente = user.id_paciente || user.id;
     }
-
-    // Usar Sequelize Op.or para buscar admin o moderador
-    const { Op } = require('sequelize');
-    whereClause.rol = {
-      [Op.or]: ['admin', 'moderador']
-    };
 
     const participante = await ForoParticipante.findOne({
       where: whereClause,
@@ -188,7 +213,16 @@ export const foroExiste = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const idForo = parseInt(req.params.idForo || req.body.id_foro);
+    const idForo = parseInt(req.params.idForo || req.body?.id_foro);
+
+    // Validar que el idForo es válido
+    if (!idForo || isNaN(idForo)) {
+      res.status(400).json({
+        success: false,
+        error: 'ID de foro inválido',
+      });
+      return;
+    }
 
     const foro = await Foro.findOne({
       where: {

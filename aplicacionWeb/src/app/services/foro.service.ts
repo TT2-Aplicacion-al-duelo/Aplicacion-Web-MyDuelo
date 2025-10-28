@@ -1,6 +1,6 @@
 // aplicacionWeb/src/app/services/foro.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams,HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import {
@@ -15,9 +15,6 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class ForoService {
-  //private http = inject(HttpClient);
-  private API_URL = `${environment.apiUrl}/api/foros`;
-
   private AppUrl: string;
   private APIUrl: string;
   
@@ -34,18 +31,19 @@ export class ForoService {
     }
   }
   
-
   private getUsuarioActual(): any {
     const token = localStorage.getItem('token');
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
       return {
-        id: payload.id_psicologo || payload.id_paciente,
+        id: payload.id_psicologo || payload.id_paciente || payload.sub,
         tipo: payload.id_psicologo ? 'psicologo' : 'paciente',
         nombre: payload.nombre,
       };
-    } catch { return null; }
+    } catch { 
+      return null; 
+    }
   }
 
   // FOROS
@@ -53,16 +51,32 @@ export class ForoService {
     let httpParams = new HttpParams();
     if (params) {
       Object.keys(params).forEach(key => {
-        if (params[key] !== undefined) {
+        if (params[key] !== undefined && params[key] !== null && params[key] !== '') {
           httpParams = httpParams.set(key, params[key].toString());
         }
       });
     }
     return this.http.get<ApiResponse<PaginatedResponse<Foro>>>(`${this.AppUrl}${this.APIUrl}`, { params: httpParams })
-      .pipe(map(r => ({ data: r.data!.data, meta: r.data!.meta })));
+      .pipe(
+        map(r => {
+          // Si la respuesta tiene data con estructura paginada
+          if (r.data && 'data' in r.data) {
+            return { data: r.data.data, meta: r.data.meta };
+          }
+          // Si la respuesta es directamente un array (no paginado)
+          return { 
+            data: r.data as any || [], 
+            meta: { total: 0, page: 1, limit: 10, totalPages: 0 } 
+          };
+        })
+      );
   }
 
   obtenerForo(idForo: number): Observable<Foro> {
+    // Validar que idForo es un número válido
+    if (!idForo || isNaN(idForo)) {
+      throw new Error('ID de foro inválido');
+    }
     return this.http.get<ApiResponse<Foro>>(`${this.AppUrl}${this.APIUrl}/${idForo}`)
       .pipe(map(r => r.data!));
   }
@@ -92,7 +106,7 @@ export class ForoService {
       .pipe(map(r => r.data!));
   }
 
-  // INVITACIONES
+  // INVITACIONES - CORREGIDO LA URL
   invitarModerador(idForo: number, data: InvitarModeradorDTO): Observable<Invitacion> {
     return this.http.post<ApiResponse<Invitacion>>(`${this.AppUrl}${this.APIUrl}/${idForo}/invitar`, data)
       .pipe(map(r => r.data!));
@@ -101,9 +115,10 @@ export class ForoService {
   listarInvitaciones(estado?: string): Observable<Invitacion[]> {
     let params = new HttpParams();
     if (estado) params = params.set('estado', estado);
-    return this.http.get<ApiResponse<Invitacion[]>>(`${this.AppUrl}/invitaciones/mis-invitaciones`, { params })
+    // ✅ URL CORREGIDA: Agregamos /api/foros antes de /invitaciones
+    return this.http.get<ApiResponse<Invitacion[]>>(`${this.AppUrl}${this.APIUrl}/invitaciones/mis-invitaciones`, { params })
       .pipe(
-        map(r => r.data!),
+        map(r => r.data || []),
         tap(invs => {
           if (!estado || estado === 'pendiente') {
             const p = invs.filter(i => i.estado === 'pendiente').length;
@@ -114,8 +129,12 @@ export class ForoService {
   }
 
   responderInvitacion(idInvitacion: number, data: ResponderInvitacionDTO): Observable<void> {
-    return this.http.post<ApiResponse<void>>(`${this.AppUrl}/invitaciones/${idInvitacion}/responder`, data)
-      .pipe(map(() => undefined), tap(() => this.cargarContadorInvitaciones()));
+    // ✅ URL CORREGIDA
+    return this.http.post<ApiResponse<void>>(`${this.AppUrl}${this.APIUrl}/invitaciones/${idInvitacion}/responder`, data)
+      .pipe(
+        map(() => undefined), 
+        tap(() => this.cargarContadorInvitaciones())
+      );
   }
 
   private cargarContadorInvitaciones(): void {
@@ -127,9 +146,23 @@ export class ForoService {
 
   // TEMAS
   listarTemas(idForo: number, page = 1, limit = 20): Observable<PaginatedResponse<Tema>> {
+    // Validar que idForo es válido
+    if (!idForo || isNaN(idForo)) {
+      throw new Error('ID de foro inválido');
+    }
     const params = new HttpParams().set('page', page).set('limit', limit);
     return this.http.get<ApiResponse<PaginatedResponse<Tema>>>(`${this.AppUrl}${this.APIUrl}/${idForo}/temas`, { params })
-      .pipe(map(r => ({ data: r.data!.data, meta: r.data!.meta })));
+      .pipe(
+        map(r => {
+          if (r.data && 'data' in r.data) {
+            return { data: r.data.data, meta: r.data.meta };
+          }
+          return { 
+            data: r.data as any || [], 
+            meta: { total: 0, page, limit, totalPages: 0 } 
+          };
+        })
+      );
   }
 
   crearTema(idForo: number, data: CreateTemaDTO): Observable<Tema> {
@@ -140,8 +173,19 @@ export class ForoService {
   // MENSAJES
   listarMensajes(idTema: number, page = 1, limit = 50): Observable<PaginatedResponse<Mensaje>> {
     const params = new HttpParams().set('page', page).set('limit', limit);
+    // ✅ URL CORREGIDA: /api/foros/temas en lugar de solo /temas
     return this.http.get<ApiResponse<PaginatedResponse<Mensaje>>>(`${this.AppUrl}${this.APIUrl}/temas/${idTema}/mensajes`, { params })
-      .pipe(map(r => ({ data: r.data!.data, meta: r.data!.meta })));
+      .pipe(
+        map(r => {
+          if (r.data && 'data' in r.data) {
+            return { data: r.data.data, meta: r.data.meta };
+          }
+          return { 
+            data: r.data as any || [], 
+            meta: { total: 0, page, limit, totalPages: 0 } 
+          };
+        })
+      );
   }
 
   crearMensaje(idTema: number, data: CreateMensajeDTO): Observable<Mensaje> {
@@ -157,10 +201,18 @@ export class ForoService {
   }
 
   getBadgeRol(rol: 'admin' | 'moderador' | 'miembro'): string {
-    return { admin: 'badge bg-danger', moderador: 'badge bg-warning text-dark', miembro: 'badge bg-info text-dark' }[rol];
+    return { 
+      admin: 'badge bg-danger', 
+      moderador: 'badge bg-warning text-dark', 
+      miembro: 'badge bg-info text-dark' 
+    }[rol] || 'badge bg-secondary';
   }
 
   getTextoRol(rol: 'admin' | 'moderador' | 'miembro'): string {
-    return { admin: 'Administrador', moderador: 'Moderador', miembro: 'Miembro' }[rol];
+    return { 
+      admin: 'Administrador', 
+      moderador: 'Moderador', 
+      miembro: 'Miembro' 
+    }[rol] || 'Usuario';
   }
 }

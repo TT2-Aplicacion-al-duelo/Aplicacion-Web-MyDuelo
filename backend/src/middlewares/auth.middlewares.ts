@@ -85,12 +85,16 @@ export const verificarToken = async (
     // Adjuntar el usuario normalizado a la request
     (req as RequestWithUser).user = normalizedUser;
     
-    // También mantener compatibilidad con el sistema antiguo
+    // ✅ FIX: Solo establecer req.body.usuario si req.body existe
+    // Inicializar req.body si no existe
+    if (!req.body) {
+      req.body = {};
+    }
     req.body.usuario = decoded;
     
     next();
-  } catch (error) {
-    console.error('Error en verificarToken:', error);
+  } catch (error: any) {
+    console.error('Error en verificarToken:', error.message);
     res.status(401).json({
       success: false,
       msg: 'Token inválido o expirado',
@@ -183,3 +187,28 @@ export const verificarAdmin = (
 
 // Exportar también con los nombres antiguos para mantener compatibilidad
 export { verificarToken as verificarTokenJWT };
+
+// Mantener compatibilidad con el sistema existente que usa este middleware
+export const verificarTokenOriginal = (req: Request, res: Response, next: NextFunction): void => {
+  const token = req.header('Authorization')?.replace('Bearer ', '');
+  
+  if (!token) {
+    res.status(401).json({ 
+      msg: 'Acceso denegado. No se proporcionó token de autenticación.' 
+    });
+    return;
+  }
+  
+  try {
+    const decoded = jwt.verify(token, process.env.SECRET_KEY || 'defaultsecretkey');
+    if (!req.body) {
+      req.body = {};
+    }
+    req.body.usuario = decoded;
+    next();
+  } catch (error) {
+    res.status(401).json({ 
+      msg: 'Token inválido o expirado' 
+    });
+  }
+};
