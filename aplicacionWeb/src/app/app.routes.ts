@@ -27,11 +27,11 @@ import { ChatAdminComponent } from './admin/chat-admin/chat-admin.component';
 
 // Importar componentes de foros
 import { foroAuthGuard, psicologoGuard } from './utils/foro.guard';
-import { ListaForosComponent } from './psicologo/foro/lista-foro/lista-foro.component';
-import { CrearForoComponent } from './psicologo/foro/crear-foro/crear-foro.component';
-import { InvitacionesComponent } from './psicologo/foro/invitaciones/invitaciones.component';
-import { DetalleForoComponent } from './psicologo/foro/detalle-foro/detalle-foro.component';
-import { TemaForoComponent } from './psicologo/foro/tema-foro/tema-foro.component';
+import { ListaForosComponent } from './psicologo/foros/lista-foro/lista-foro.component';
+import { CrearForoComponent } from './psicologo/foros/crear-foro/crear-foro.component';
+import { InvitacionesComponent } from './psicologo/foros/invitaciones/invitaciones.component';
+import { DetalleForoComponent } from './psicologo/foros/detalle-foro/detalle-foro.component';
+import { TemaForoComponent } from './psicologo/foros/tema-foro/tema-foro.component';
 
 // Guard de Autenticación
 const canActivate: CanActivateFn = (route, state) => {
@@ -108,7 +108,8 @@ export const routes: Routes = [
     children: [
       { 
         path: '', 
-        component: ListaForosComponent 
+        component: ListaForosComponent,
+        canActivate: [psicologoGuard]
       },
       { 
         path: 'crear', 

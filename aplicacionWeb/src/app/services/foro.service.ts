@@ -1,6 +1,6 @@
 // aplicacionWeb/src/app/services/foro.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams,HttpHeaders } from '@angular/common/http';
 import { Observable, BehaviorSubject } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
 import {
@@ -15,6 +15,9 @@ import { environment } from '../../environments/environment';
   providedIn: 'root',
 })
 export class ForoService {
+  //private http = inject(HttpClient);
+  private API_URL = `${environment.apiUrl}/api/foros`;
+
   private AppUrl: string;
   private APIUrl: string;
   
@@ -30,6 +33,7 @@ export class ForoService {
       this.cargarContadorInvitaciones();
     }
   }
+  
 
   private getUsuarioActual(): any {
     const token = localStorage.getItem('token');
