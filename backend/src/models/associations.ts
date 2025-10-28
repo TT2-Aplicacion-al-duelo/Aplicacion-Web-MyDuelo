@@ -1,6 +1,3 @@
-// backend/src/models/associations.ts
-// Archivo unificado de asociaciones
-
 import { ActividadModulo } from "./actividad-modulo";
 import { Modulo } from "./modulo";
 import { Actividad } from "./actividad/actividad";
@@ -14,6 +11,11 @@ import ResultadoTest from './resultado_test';
 import Nota from './nota';
 import { Paciente } from './paciente';
 import { Psicologo } from './psicologo';
+import InvitacionForo from "./foro/inivitacion";
+import Foro from "./foro/foro";
+import MensajeForo from "./foro/mensaje-foro";
+import Tema from "./foro/tema";
+import ForoParticipante from "./foro/foro-participante";
 
 export function setupAssociations() {
   console.log('🔧 Iniciando configuración de asociaciones...');
@@ -190,4 +192,130 @@ export function setupAssociations() {
   console.log('✅ Asociaciones de Evidencias configuradas');
 
   console.log('🎉 TODAS las asociaciones configuradas exitosamente');
+
+  // ===================== ASOCIACIONES DEL FORO =========================
+  console.log('🗣️ Configurando asociaciones de Foros...');
+
+  // ==================== FORO <-> PSICOLOGO (CREADOR) ====================
+  Foro.belongsTo(Psicologo, {
+    foreignKey: 'id_psicologo_creador',
+    as: 'creador',
+  });
+
+  Psicologo.hasMany(Foro, {
+    foreignKey: 'id_psicologo_creador',
+    as: 'foros_creados',
+  });
+
+  // ==================== FORO_PARTICIPANTE <-> FORO ====================
+  ForoParticipante.belongsTo(Foro, {
+    foreignKey: 'id_foro',
+    as: 'foro',
+  });
+
+  Foro.hasMany(ForoParticipante, {
+    foreignKey: 'id_foro',
+    as: 'participantes',
+  });
+
+  // ==================== FORO_PARTICIPANTE <-> PSICOLOGO ====================
+  ForoParticipante.belongsTo(Psicologo, {
+    foreignKey: 'id_psicologo',
+    as: 'psicologo',
+  });
+
+  Psicologo.hasMany(ForoParticipante, {
+    foreignKey: 'id_psicologo',
+    as: 'participaciones_foro',
+  });
+
+  // ==================== FORO_PARTICIPANTE <-> PACIENTE ====================
+  ForoParticipante.belongsTo(Paciente, {
+    foreignKey: 'id_paciente',
+    as: 'paciente',
+  });
+
+  Paciente.hasMany(ForoParticipante, {
+    foreignKey: 'id_paciente',
+    as: 'participaciones_foro',
+  });
+
+  // ==================== TEMA <-> FORO ====================
+  Tema.belongsTo(Foro, {
+    foreignKey: 'id_foro',
+    as: 'foro',
+  });
+
+  Foro.hasMany(Tema, {
+    foreignKey: 'id_foro',
+    as: 'temas',
+  });
+
+  // ==================== MENSAJE_FORO <-> TEMA ====================
+  MensajeForo.belongsTo(Tema, {
+    foreignKey: 'id_tema',
+    as: 'tema',
+  });
+
+  Tema.hasMany(MensajeForo, {
+    foreignKey: 'id_tema',
+    as: 'mensajes',
+  });
+
+  // ==================== MENSAJE_FORO <-> PSICOLOGO ====================
+  MensajeForo.belongsTo(Psicologo, {
+    foreignKey: 'id_psicologo',
+    as: 'psicologo',
+  });
+
+  Psicologo.hasMany(MensajeForo, {
+    foreignKey: 'id_psicologo',
+    as: 'mensajes_foro',
+  });
+
+  // ==================== MENSAJE_FORO <-> PACIENTE ====================
+  MensajeForo.belongsTo(Paciente, {
+    foreignKey: 'id_paciente',
+    as: 'paciente',
+  });
+
+  Paciente.hasMany(MensajeForo, {
+    foreignKey: 'id_paciente',
+    as: 'mensajes_foro',
+  });
+
+  // ==================== INVITACION_FORO <-> FORO ====================
+  InvitacionForo.belongsTo(Foro, {
+    foreignKey: 'id_foro',
+    as: 'foro',
+  });
+
+  Foro.hasMany(InvitacionForo, {
+    foreignKey: 'id_foro',
+    as: 'invitaciones',
+  });
+
+  // ==================== INVITACION_FORO <-> PSICOLOGO (INVITADO) ====================
+  InvitacionForo.belongsTo(Psicologo, {
+    foreignKey: 'id_psicologo_invitado',
+    as: 'invitado',
+  });
+
+  Psicologo.hasMany(InvitacionForo, {
+    foreignKey: 'id_psicologo_invitado',
+    as: 'invitaciones_recibidas',
+  });
+
+  // ==================== INVITACION_FORO <-> PSICOLOGO (INVITADOR) ====================
+  InvitacionForo.belongsTo(Psicologo, {
+    foreignKey: 'id_psicologo_invitador',
+    as: 'invitador',
+  });
+
+  Psicologo.hasMany(InvitacionForo, {
+    foreignKey: 'id_psicologo_invitador',
+    as: 'invitaciones_enviadas',
+  });
+
+  console.log('✅ Asociaciones de Foros configuradas');
 }
