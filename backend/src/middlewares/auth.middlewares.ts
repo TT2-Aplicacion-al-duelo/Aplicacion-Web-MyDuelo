@@ -25,6 +25,7 @@ export const verificarToken = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
+  
   try {
     // Obtener el token del header
     const authHeader = req.headers.authorization || req.header('Authorization');
@@ -39,10 +40,21 @@ export const verificarToken = async (
       return;
     }
 
+    
+
     // Verificar el token con la misma clave que usa el sistema actual
     const SECRET_KEY = process.env.SECRET_KEY || 'defaultsecretkey';
     const decoded = jwt.verify(token, SECRET_KEY) as any;
 
+    // ✅ Verificar expiración explícitamente
+    if (decoded.exp && decoded.exp < Date.now() / 1000) {
+      res.status(401).json({
+        success: false,
+        msg: 'Token expirado',
+        error: 'Token expirado',
+      });
+      return;
+    }
     // Normalizar la estructura del usuario según el tipo
     let normalizedUser: any = {
       nombre: decoded.nombre,
@@ -97,8 +109,8 @@ export const verificarToken = async (
     console.error('Error en verificarToken:', error.message);
     res.status(401).json({
       success: false,
-      msg: 'Token inválido o expirado',
-      error: 'Token inválido o expirado',
+      msg: 'Token inválido',
+      error: 'Token inválido',
     });
   }
 };

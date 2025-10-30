@@ -109,7 +109,7 @@ export const routes: Routes = [
       { 
         path: '', 
         component: ListaForosComponent,
-        canActivate: [psicologoGuard]
+       
       },
       { 
         path: 'crear', 

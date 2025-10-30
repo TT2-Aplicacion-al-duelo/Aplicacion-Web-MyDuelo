@@ -95,7 +95,7 @@ router.get(
   '/:idForo/participantes',
   verificarToken,
   foroExiste,
-  esParticipanteForo,
+  //esParticipanteForo, // si quitamos esta linea ayuda a NO requerir ser participante para ver la lista
   foroController.listarParticipantes.bind(foroController)
 );
 
@@ -150,7 +150,7 @@ router.get(
   '/:idForo/temas',
   verificarToken,
   foroExiste,
-  esParticipanteForo,
+  //esParticipanteForo,
   foroController.listarTemas.bind(foroController)
 );
 

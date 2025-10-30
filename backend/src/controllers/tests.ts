@@ -55,20 +55,104 @@ export const getDetalleTest = async (req: Request, res: Response) => {
 
 /**
  * POST /api/psicologo/tests/aplicar
+ * Aplicar un test a un paciente este test es del 29/ 10 / 2025
+ * El constraint uq_test_inicial solo permite UN test de tipo "inicial" 
+ * por paciente. El código actual no verifica si ya existe un test inicial aplicado.
+ */
+// export const aplicarTest = async (req: Request, res: Response) => {
+//   try {
+//     const id_psicologo = (req as any).user?.id_psicologo;
+//     const { id_test, id_paciente, respuestas } = req.body;
+
+//     if (!id_psicologo) {
+//       return res.status(401).json({ msg: "No autorizado" });
+//     }
+
+//     // Verificar que el paciente pertenece al psicólogo
+//     const paciente = await Paciente.findOne({
+//       where: { id_paciente, id_psicologo }
+//     });
+
+//     if (!paciente) {
+//       return res.status(404).json({ msg: "Paciente no encontrado" });
+//     }
+
+//     // Verificar que el test existe
+//     const test = await Test.findByPk(id_test);
+//     if (!test) {
+//       return res.status(404).json({ msg: "Test no encontrado" });
+//     }
+
+//     // Crear aplicación del test
+//     const aplicacion = await AplicacionTest.create({
+//       id_test,
+//       id_paciente,
+//       id_psicologo,
+//       fecha: new Date(),
+//       estado: 'completado'
+//     });
+
+//     // Guardar respuestas si se proporcionaron
+//     if (respuestas && Array.isArray(respuestas)) {
+//       for (const respuesta of respuestas) {
+//         await RespuestaTest.create({
+//           id_aplicacion: (aplicacion as any).id_aplicacion,
+//           id_pregunta: respuesta.id_pregunta,
+//           respuesta: respuesta.respuesta
+//         });
+//       }
+
+//       // Calcular puntaje e interpretación
+//       const puntaje = calcularPuntaje(respuestas);
+//       const interpretacion = generarInterpretacion(puntaje, (test as any).nombre);
+
+//       // Crear resultado
+//       await ResultadoTest.create({
+//         id_aplicacion: (aplicacion as any).id_aplicacion,
+//         puntaje_total: puntaje,
+//         interpretacion
+//       });
+//     }
+
+//     // Cargar la aplicación completa con relaciones
+//     const aplicacionCompleta = await AplicacionTest.findByPk((aplicacion as any).id_aplicacion, {
+//       include: [
+//         { model: Test, as: 'test' },
+//         { model: ResultadoTest, as: 'resultado' }
+//       ]
+//     });
+
+//     res.status(201).json(aplicacionCompleta);
+//   } catch (error) {
+//     console.error("Error al aplicar test:", error);
+//     res.status(500).json({ msg: "Error al aplicar test" });
+//   }
+// };
+
+/**
+ * POST /api/psicologo/tests/aplicar
  * Aplicar un test a un paciente
  */
 export const aplicarTest = async (req: Request, res: Response) => {
   try {
     const id_psicologo = (req as any).user?.id_psicologo;
-    const { id_test, id_paciente, respuestas } = req.body;
+    const { id_test, id_paciente, respuestas, tipo } = req.body;
 
     if (!id_psicologo) {
       return res.status(401).json({ msg: "No autorizado" });
     }
 
+    // Validar parámetros requeridos
+    if (!id_test || !id_paciente) {
+      return res.status(400).json({ msg: "id_test e id_paciente son requeridos" });
+    }
+
     // Verificar que el paciente pertenece al psicólogo
     const paciente = await Paciente.findOne({
-      where: { id_paciente, id_psicologo }
+      where: { 
+        id_paciente, 
+        id_psicologo 
+      }
     });
 
     if (!paciente) {
@@ -81,13 +165,33 @@ export const aplicarTest = async (req: Request, res: Response) => {
       return res.status(404).json({ msg: "Test no encontrado" });
     }
 
+    // Determinar el tipo de test (por defecto: seguimiento para evitar constraint)
+    const tipoTest = tipo || 'seguimiento';
+
+    // Si es tipo "inicial", verificar que no exista uno previo
+    if (tipoTest === 'inicial') {
+      const testInicialExistente = await AplicacionTest.findOne({
+        where: {
+          id_paciente,
+          tipo: 'inicial'
+        }
+      });
+
+      if (testInicialExistente) {
+        return res.status(400).json({ 
+          msg: "Este paciente ya tiene un test inicial aplicado. Use tipo 'seguimiento' para aplicar nuevos tests." 
+        });
+      }
+    }
+
     // Crear aplicación del test
     const aplicacion = await AplicacionTest.create({
       id_test,
       id_paciente,
       id_psicologo,
       fecha: new Date(),
-      estado: 'completado'
+      estado: 'completado',
+      tipo: tipoTest
     });
 
     // Guardar respuestas si se proporcionaron
@@ -123,9 +227,18 @@ export const aplicarTest = async (req: Request, res: Response) => {
     res.status(201).json(aplicacionCompleta);
   } catch (error) {
     console.error("Error al aplicar test:", error);
+    
+    // Manejar errores específicos de Sequelize
+    if ((error as any).name === 'SequelizeUniqueConstraintError') {
+      return res.status(400).json({ 
+        msg: "Ya existe un test inicial para este paciente. Use tipo 'seguimiento' para aplicar nuevos tests." 
+      });
+    }
+    
     res.status(500).json({ msg: "Error al aplicar test" });
   }
 };
+
 
 /**
  * GET /api/psicologo/pacientes/:id_paciente/tests

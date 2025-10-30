@@ -38,6 +38,9 @@ router.post("/api/psicologo/actividades/asignar", validarToken, asignarActividad
 // Actualizar actividad asignada
 router.put("/api/psicologo/actividades/asignadas/:id_asignacion", validarToken, actualizarActividadAsignada);
 
+// Actualizar actividad asignada parcialmente (PATCH)
+router.patch("/api/psicologo/actividades/asignadas/:id_asignacion", validarToken, actualizarActividadAsignada);
+
 // Eliminar actividad asignada
 router.delete("/api/psicologo/actividades/asignadas/:id_asignacion", validarToken, eliminarActividadAsignada);
 
