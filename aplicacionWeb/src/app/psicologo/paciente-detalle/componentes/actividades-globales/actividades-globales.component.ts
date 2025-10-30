@@ -170,48 +170,50 @@ export class ActividadesGlobalesComponent implements OnInit {
    * Este método se ejecuta cuando el modal de detalle emite el evento 'cerrar'
    */
   onModalDetalleClose(result: any): void {
-    // Limpiar el estado del modal
     this.mostrarModalDetalle = false;
     this.actividadSeleccionada = null;
     this.modoEdicion = false;
     this.esNueva = false;
     
-    // Limpiar cualquier backdrop residual de Bootstrap
     this.limpiarBackdrops();
     
-    // Procesar la acción si hay resultado
     if (result) {
       if (result.accion === 'guardar') {
         if (this.esNueva) {
-          this.guardarNuevaActividad(result.actividad);
+          // ✅ CORRECCIÓN:
+          this.guardarNuevaActividad(result.actividad);  // Cambiar de guardarActividad a guardarNuevaActividad
         } else {
           this.actualizarActividad(result.actividad);
         }
       } else if (result.accion === 'editar') {
-        // El modal interno maneja la edición, no necesitamos reabrir
         this.editarActividad(result.actividad);
       } else if (result.accion === 'asignar') {
         this.asignarActividad(result.actividad);
       } else if (result.accion === 'eliminar') {
         this.eliminarActividad(result.actividad);
       }
+    }else {
+    // ✅ Solo limpiar si se canceló
+    this.actividadSeleccionada = null;
     }
   }
 
   /**
    * CORRECCIÓN: Manejo mejorado del cierre del modal de asignar
    */
+  // ✅ DESPUÉS (correcto):
   onModalAsignarClose(result: any): void {
-    // Limpiar el estado del modal
     this.mostrarModalAsignar = false;
-    this.actividadSeleccionada = null;
+    // ✅ NO se limpia actividadSeleccionada aquí
     
-    // Limpiar cualquier backdrop residual de Bootstrap
     this.limpiarBackdrops();
     
-    // Procesar la asignación si hay pacientes seleccionados
     if (result && result.pacientesSeleccionados && result.pacientesSeleccionados.length > 0) {
       this.asignarAPacientes(result.pacientesSeleccionados, result.configuracion);
+      // ✅ actividadSeleccionada se limpiará dentro de asignarAPacientes después del éxito
+    } else {
+      // ✅ Solo limpiar si NO se va a asignar
+      this.actividadSeleccionada = null;
     }
   }
 
@@ -267,7 +269,7 @@ export class ActividadesGlobalesComponent implements OnInit {
 
     const asignaciones = pacientesIds.map(idPaciente => ({
       id_paciente: idPaciente,
-      id_actividad: this.actividadSeleccionada!.id_actividad,
+      id_actividad: this.actividadSeleccionada!.id_actividad,  // ✅ Ahora SÍ tiene valor
       fecha_limite: configuracion.fechaLimite,
       instrucciones_adicionales: configuracion.instrucciones || null,
       prioridad: configuracion.prioridad
@@ -277,11 +279,13 @@ export class ActividadesGlobalesComponent implements OnInit {
       next: () => {
         this.toastr.success(`Actividad asignada a ${pacientesIds.length} paciente(s) correctamente`);
         this.isLoading = false;
+        this.actividadSeleccionada = null;  // ✅ AGREGADO: Limpiar después del éxito
       },
       error: (error: any) => {
         console.error('Error al asignar actividad:', error);
         this.toastr.error('Error al asignar la actividad');
         this.isLoading = false;
+        this.actividadSeleccionada = null;  // ✅ AGREGADO: Limpiar también en error
       }
     });
   }
