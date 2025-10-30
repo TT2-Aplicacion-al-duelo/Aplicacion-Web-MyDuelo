@@ -268,7 +268,7 @@ export class ForoService {
         {
           model: sequelize.models.paciente,
           as: 'paciente',
-          attributes: ['id_paciente', 'nombre', 'apellidoPaterno'],
+          attributes: ['id_paciente', 'nombre', 'apellido_Paterno'],
         },
       ],
     });
@@ -289,7 +289,7 @@ export class ForoService {
           : {
               id: p.id_paciente!,
               nombre: (p as any).paciente.nombre,
-              apellido: (p as any).paciente.apellidoPaterno,
+              apellido: (p as any).paciente.apellido_Paterno,
             },
     }));
   }
@@ -517,7 +517,7 @@ export class ForoService {
             {
               model: sequelize.models.paciente,
               as: 'paciente',
-              attributes: ['nombre', 'apellidoPaterno'],
+              attributes: ['nombre', 'apellido_Paterno'],
             },
           ],
         });
@@ -528,11 +528,12 @@ export class ForoService {
             ultimoMensaje.tipo_usuario === 'psicologo'
               ? (ultimoMensaje as any).psicologo
               : (ultimoMensaje as any).paciente;
-
+          const apellido = ultimoMensaje.tipo_usuario === 'psicologo' ? autor.apellidoPaterno : autor.apellido_paterno;
           ultimoMensajeInfo = {
             contenido: ultimoMensaje.contenido.substring(0, 100),
             fecha_envio: ultimoMensaje.fecha_envio,
-            autor: `${autor.nombre} ${autor.apellidoPaterno}`,
+            //autor: `${autor.nombre} ${autor.apellidoPaterno}`,
+            autor: `${autor.nombre} ${apellido}`, 
           };
         }
 

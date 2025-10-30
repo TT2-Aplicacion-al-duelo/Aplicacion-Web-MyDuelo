@@ -375,8 +375,8 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     // Datos de la nueva actividad personalizada
     const nuevaActividad = {
       titulo: actividad.titulo,
-      descripcion: actividad.descripcion,
-      tipo: actividad.tipo || 'personalizada',
+      descripcion: actividad.descripcion || '',  // ✅ CORRECCIÓN: Garantizar que sea string
+      tipo: 'personalizada',  // ✅ CORRECCIÓN: Siempre fijo
       id_paciente: this.idPaciente,
       prioridad: 'media' as 'baja' | 'media' | 'alta'
     };
@@ -393,7 +393,6 @@ export class ActividadesPersonalizadasComponent implements OnInit {
       }
     });
   }
-  
   // ✅ AGREGAR método para limpiar backdrops
   private limpiarBackdrops(): void {
     // Remover la clase 'modal-open' del body
