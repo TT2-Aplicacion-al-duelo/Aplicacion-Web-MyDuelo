@@ -171,23 +171,41 @@ export class ForoController {
    * GET /api/foros/:idForo/participantes
    * Listar participantes de un foro
    */
+  
+  // Agregar al inicio de listarParticipantes():
   async listarParticipantes(req: RequestWithUser, res: Response): Promise<void> {
     try {
       const idForo = parseInt(req.params.idForo);
+      
+      // ✅ LOG DE DIAGNÓSTICO
+      console.log('============================================');
+      console.log('🔍 listarParticipantes - Iniciando');
+      console.log('ID Foro:', idForo);
+      console.log('Usuario:', req.user);
+      console.log('============================================');
+      
       const participantes = await foroService.listarParticipantes(idForo);
-
+      
+      // ✅ LOG DE ÉXITO
+      console.log(`✅ Participantes encontrados: ${participantes.length}`);
+      
       res.json({
         success: true,
         data: participantes,
       });
     } catch (error: any) {
+      // ✅ LOG DE ERROR DETALLADO
+      console.error('❌ ERROR en listarParticipantes:');
+      console.error('Mensaje:', error.message);
+      console.error('Stack:', error.stack);
+      console.error('============================================');
+      
       res.status(500).json({
         success: false,
         error: error.message || 'Error al listar participantes',
       });
     }
   }
-
   // ========== INVITACIONES ==========
 
   /**
@@ -340,25 +358,41 @@ export class ForoController {
    * Listar temas de un foro
    */
   async listarTemas(req: RequestWithUser, res: Response): Promise<void> {
-    try {
-      const idForo = parseInt(req.params.idForo);
-      const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 20;
-
-      const result = await foroService.listarTemas(idForo, page, limit);
-
-      res.json({
-        success: true,
-        data: result.data,
-        meta: result.meta,
-      });
-    } catch (error: any) {
-      res.status(500).json({
-        success: false,
-        error: error.message || 'Error al listar temas',
-      });
-    }
+  try {
+    const idForo = parseInt(req.params.idForo);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 20;
+    
+    // ✅ LOG DE DIAGNÓSTICO
+    console.log('============================================');
+    console.log('🔍 listarTemas - Iniciando');
+    console.log('ID Foro:', idForo);
+    console.log('Page:', page, 'Limit:', limit);
+    console.log('============================================');
+    
+    const result = await foroService.listarTemas(idForo, page, limit);
+    
+    // ✅ LOG DE ÉXITO
+    console.log(`✅ Temas encontrados: ${result.data.length}`);
+    
+    res.json({
+      success: true,
+      data: result.data,
+      meta: result.meta,
+    });
+  } catch (error: any) {
+    // ✅ LOG DE ERROR DETALLADO
+    console.error('❌ ERROR en listarTemas:');
+    console.error('Mensaje:', error.message);
+    console.error('Stack:', error.stack);
+    console.error('============================================');
+    
+    res.status(500).json({
+      success: false,
+      error: error.message || 'Error al listar temas',
+    });
   }
+}
 
   // ========== MENSAJES ==========
 

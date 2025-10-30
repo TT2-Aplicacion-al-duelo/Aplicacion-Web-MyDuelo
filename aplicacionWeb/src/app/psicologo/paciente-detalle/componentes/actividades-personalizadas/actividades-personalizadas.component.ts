@@ -1,10 +1,12 @@
 // actividades-personalizadas.component.ts - VERSIÓN CORREGIDA
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ActividadService } from '../../../../services/actividad.service';
 import Swal from 'sweetalert2';
 import { ActividadAsignada, Actividad } from '../../../../interfaces/actividad';
+import { ActividadDetalleModalComponent } from '../actividades-globales/actividad-detalle-modal/actividad-detalle-modal.component';
+import { ToastrService } from 'ngx-toastr';
 
 interface FiltrosActividad {
   estado: string;
@@ -17,7 +19,9 @@ interface FiltrosActividad {
 @Component({
   selector: 'app-actividades-personalizadas',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,
+    ReactiveFormsModule,
+    ActividadDetalleModalComponent ],
   templateUrl: './actividades-personalizadas.component.html',
   styleUrls: ['./actividades-personalizadas.component.css']
 })
@@ -33,6 +37,9 @@ export class ActividadesPersonalizadasComponent implements OnInit {
   menuAbierto: number | null = null;
   mostrarPanelDetalle: boolean = false;
   mostrarFiltros: boolean = false;
+
+  mostrarModalCrear: boolean = false;
+  actividadNueva: Actividad | null = null;
   
   // Filtros
   filtros: FiltrosActividad = {
@@ -52,7 +59,8 @@ export class ActividadesPersonalizadasComponent implements OnInit {
   };
 
   constructor(
-    private actividadService: ActividadService
+    private actividadService: ActividadService,
+    private toastr: ToastrService,
   ) {}
 
   ngOnInit(): void {
@@ -330,54 +338,74 @@ export class ActividadesPersonalizadasComponent implements OnInit {
   }
 
   crearActividad(): void {
-    Swal.fire({
-      title: 'Nueva Actividad Personalizada',
-      html: `
-        <input id="titulo" class="swal2-input" placeholder="Título de la actividad">
-        <textarea id="descripcion" class="swal2-textarea" placeholder="Descripción"></textarea>
-        <select id="prioridad" class="swal2-select">
-          <option value="baja">Prioridad Baja</option>
-          <option value="media" selected>Prioridad Media</option>
-          <option value="alta">Prioridad Alta</option>
-        </select>
-      `,
-      showCancelButton: true,
-      confirmButtonText: 'Crear',
-      cancelButtonText: 'Cancelar',
-      preConfirm: () => {
-        const titulo = (document.getElementById('titulo') as HTMLInputElement).value;
-        const descripcion = (document.getElementById('descripcion') as HTMLTextAreaElement).value;
-        const prioridad = (document.getElementById('prioridad') as HTMLSelectElement).value as 'baja' | 'media' | 'alta';
+    // Crear actividad vacía para el modal
+    this.actividadNueva = {
+      id_actividad: 0,
+      titulo: '',
+      descripcion: '',
+      tipo: 'personalizada',
+      obligatoria: false,
+      repetitiva: false,
+      origen: 'personalizada'
+    };
+    
+    // Mostrar el modal
+    this.mostrarModalCrear = true;
+  }
 
-        if (!titulo) {
-          Swal.showValidationMessage('El título es requerido');
-          return null;
-        }
+  // ✅ AGREGAR método para manejar el cierre del modal
+  onModalCrearClose(result: any): void {
+    // Limpiar el estado del modal
+    this.mostrarModalCrear = false;
+    
+    // Limpiar backdrops residuales
+    this.limpiarBackdrops();
+    
+    // Si se guardó la actividad, crearla y asignarla al paciente
+    if (result && result.accion === 'guardar') {
+      this.guardarActividadPersonalizada(result.actividad);
+    }
+    
+    // Limpiar la actividad temporal
+    this.actividadNueva = null;
+  }
+  
+  // ✅ AGREGAR método para guardar la actividad personalizada
+  private guardarActividadPersonalizada(actividad: Actividad): void {
+    // Datos de la nueva actividad personalizada
+    const nuevaActividad = {
+      titulo: actividad.titulo,
+      descripcion: actividad.descripcion,
+      tipo: actividad.tipo || 'personalizada',
+      id_paciente: this.idPaciente,
+      prioridad: 'media' as 'baja' | 'media' | 'alta'
+    };
 
-        return { titulo, descripcion, prioridad };
-      }
-    }).then((result) => {
-      if (result.isConfirmed && result.value) {
-        const nuevaActividad = {
-          titulo: result.value.titulo,
-          descripcion: result.value.descripcion,
-          tipo: 'personalizada',
-          id_paciente: this.idPaciente,
-          prioridad: result.value.prioridad
-        };
-
-        this.actividadService.crearActividadPersonalizada(nuevaActividad).subscribe({
-          next: () => {
-            this.cargarActividades();
-            Swal.fire('¡Creada!', 'La actividad ha sido creada', 'success');
-          },
-          error: (error) => {
-            console.error('Error al crear actividad:', error);
-            Swal.fire('Error', 'No se pudo crear la actividad', 'error');
-          }
-        });
+    // Crear la actividad personalizada (la crea y la asigna automáticamente)
+    this.actividadService.crearActividadPersonalizada(nuevaActividad).subscribe({
+      next: () => {
+        this.toastr.success('Actividad creada y asignada correctamente');
+        this.cargarActividades();
+      },
+      error: (error) => {
+        console.error('Error al crear actividad personalizada:', error);
+        this.toastr.error('Error al crear la actividad');
       }
     });
+  }
+  
+  // ✅ AGREGAR método para limpiar backdrops
+  private limpiarBackdrops(): void {
+    // Remover la clase 'modal-open' del body
+    document.body.classList.remove('modal-open');
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('padding-right');
+    
+    // Eliminar cualquier backdrop residual
+    const backdrops = document.getElementsByClassName('modal-backdrop');
+    while (backdrops.length > 0) {
+      backdrops[0].parentNode?.removeChild(backdrops[0]);
+    }
   }
 
   descargarEvidencia(url: string): void {

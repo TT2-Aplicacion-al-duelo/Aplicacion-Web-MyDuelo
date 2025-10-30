@@ -221,18 +221,19 @@ export function setupAssociations() {
   // ==================== FORO_PARTICIPANTE <-> PSICOLOGO ====================
   ForoParticipante.belongsTo(Psicologo, {
     foreignKey: 'id_psicologo',
-    as: 'psicologo',
+    as: 'psicologo'
   });
 
+  // En psicologo.ts
   Psicologo.hasMany(ForoParticipante, {
     foreignKey: 'id_psicologo',
-    as: 'participaciones_foro',
+    as: 'participaciones'
   });
 
   // ==================== FORO_PARTICIPANTE <-> PACIENTE ====================
   ForoParticipante.belongsTo(Paciente, {
     foreignKey: 'id_paciente',
-    as: 'paciente',
+    as: 'paciente'
   });
 
   Paciente.hasMany(ForoParticipante, {

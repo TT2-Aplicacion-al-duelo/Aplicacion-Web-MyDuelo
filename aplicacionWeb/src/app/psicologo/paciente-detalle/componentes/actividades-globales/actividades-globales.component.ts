@@ -169,9 +169,12 @@ export class ActividadesGlobalesComponent implements OnInit {
    * CORRECCIÓN: Manejo mejorado del cierre del modal de detalle
    * Este método se ejecuta cuando el modal de detalle emite el evento 'cerrar'
    */
+  /**
+ * ✅ CORRECCIÓN ALTERNATIVA: Verificar por ID en lugar de flag
+ */
   onModalDetalleClose(result: any): void {
+    // Limpiar el estado del modal
     this.mostrarModalDetalle = false;
-    this.actividadSeleccionada = null;
     this.modoEdicion = false;
     this.esNueva = false;
     
@@ -179,9 +182,9 @@ export class ActividadesGlobalesComponent implements OnInit {
     
     if (result) {
       if (result.accion === 'guardar') {
-        if (this.esNueva) {
-          // ✅ CORRECCIÓN:
-          this.guardarNuevaActividad(result.actividad);  // Cambiar de guardarActividad a guardarNuevaActividad
+        // ✅ VERIFICAR por ID: si es 0, es nueva; si no, es actualización
+        if (!result.actividad.id_actividad || result.actividad.id_actividad === 0) {
+          this.guardarNuevaActividad(result.actividad);
         } else {
           this.actualizarActividad(result.actividad);
         }
@@ -192,9 +195,9 @@ export class ActividadesGlobalesComponent implements OnInit {
       } else if (result.accion === 'eliminar') {
         this.eliminarActividad(result.actividad);
       }
-    }else {
-    // ✅ Solo limpiar si se canceló
-    this.actividadSeleccionada = null;
+    } else {
+      // Solo limpiar si se canceló
+      this.actividadSeleccionada = null;
     }
   }
 

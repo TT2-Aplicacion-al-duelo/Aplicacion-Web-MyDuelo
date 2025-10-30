@@ -310,6 +310,15 @@
       </div>
     }
   </div>
+  <!-- Modal de Crear Actividad Personalizada -->
+  <app-actividad-detalle-modal
+    *ngIf="mostrarModalCrear"
+    [actividad]="actividadNueva"
+    [modoEdicion]="true"
+    [esNueva]="true"
+    (cerrar)="onModalCrearClose($event)">
+  </app-actividad-detalle-modal>
+  
 </div>
 
 <!-- Panel Lateral Detallado -->
