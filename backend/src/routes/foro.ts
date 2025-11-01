@@ -1,14 +1,12 @@
-// backend/src/routes/foro.routes.ts
 import { Router } from 'express';
 import foroController from '../controllers/foro';
-import {
-  verificarToken,
-  esPsicologo,
-  esPaciente,
-} from '../middlewares/auth.middlewares';
+import moderacionController from '../controllers/moderacion';
+import { verificarToken, esPsicologo } from '../middlewares/auth.middlewares';
 import {
   esParticipanteForo,
+  esParticipanteForoDelTema, // 🆕 CRÍTICO: Middleware corregido para mensajes
   esAdminForo,
+  esModeradorOAdmin,
   foroExiste,
   noEstaBaneado,
 } from '../middlewares/foro.middleware';
@@ -16,26 +14,26 @@ import {
 const router = Router();
 
 // ============================================================================
-// RUTAS DE FOROS
+// ENDPOINTS DE FOROS (FASE 1)
 // ============================================================================
 
 /**
  * GET /api/foros
- * Listar todos los foros
- * Público (sin autenticación) pero con info adicional si está autenticado
+ * Listar todos los foros públicos
  */
 router.get(
   '/',
-  // Nota: verificarToken es opcional aquí, se puede hacer condicional
+  verificarToken,
   foroController.listarForos.bind(foroController)
 );
 
 /**
  * GET /api/foros/:idForo
- * Obtener detalles de un foro
+ * Ver detalles de un foro específico
  */
 router.get(
   '/:idForo',
+  verificarToken,
   foroExiste,
   foroController.obtenerForo.bind(foroController)
 );
@@ -77,12 +75,11 @@ router.delete(
 
 /**
  * POST /api/foros/:idForo/unirse
- * Unirse a un foro público (solo pacientes)
+ * Unirse a un foro (pacientes)
  */
 router.post(
   '/:idForo/unirse',
   verificarToken,
-  esPaciente,
   foroExiste,
   foroController.unirseAForo.bind(foroController)
 );
@@ -95,30 +92,29 @@ router.get(
   '/:idForo/participantes',
   verificarToken,
   foroExiste,
-  //esParticipanteForo, // si quitamos esta linea ayuda a NO requerir ser participante para ver la lista
+  esParticipanteForo,
   foroController.listarParticipantes.bind(foroController)
 );
 
 // ============================================================================
-// RUTAS DE INVITACIONES
+// ENDPOINTS DE INVITACIONES (FASE 1)
 // ============================================================================
 
 /**
  * POST /api/foros/:idForo/invitar
- * Invitar un psicólogo como moderador (solo admin)
+ * Invitar a un psicólogo como moderador (solo admin)
  */
 router.post(
   '/:idForo/invitar',
   verificarToken,
-  esPsicologo,
   foroExiste,
   esAdminForo,
   foroController.invitarModerador.bind(foroController)
 );
 
 /**
- * GET /api/invitaciones
- * Listar invitaciones del psicólogo autenticado
+ * GET /api/invitaciones/mis-invitaciones
+ * Ver invitaciones recibidas (psicólogos)
  */
 router.get(
   '/invitaciones/mis-invitaciones',
@@ -128,18 +124,18 @@ router.get(
 );
 
 /**
- * POST /api/invitaciones/:idInvitacion/responder
- * Responder a una invitación
+ * POST /api/invitaciones/:id/responder
+ * Aceptar o rechazar una invitación
  */
 router.post(
-  '/invitaciones/:idInvitacion/responder',
+  '/invitaciones/:id/responder',
   verificarToken,
   esPsicologo,
   foroController.responderInvitacion.bind(foroController)
 );
 
 // ============================================================================
-// RUTAS DE TEMAS
+// ENDPOINTS DE TEMAS (FASE 1)
 // ============================================================================
 
 /**
@@ -150,13 +146,13 @@ router.get(
   '/:idForo/temas',
   verificarToken,
   foroExiste,
-  //esParticipanteForo,
+  // 🔓 NO requiere ser participante para ver la lista de temas
   foroController.listarTemas.bind(foroController)
 );
 
 /**
  * POST /api/foros/:idForo/temas
- * Crear un tema en un foro
+ * Crear un tema en un foro (participantes)
  */
 router.post(
   '/:idForo/temas',
@@ -168,60 +164,104 @@ router.post(
 );
 
 // ============================================================================
-// RUTAS DE MENSAJES
+// ENDPOINTS DE MENSAJES (FASE 1 - CORREGIDO ✅)
 // ============================================================================
 
 /**
- * GET /api/temas/:idTema/mensajes
+ * GET /api/foros/temas/:idTema/mensajes
  * Listar mensajes de un tema
+ * 🆕 CORREGIDO: Ahora verifica que el usuario es participante del foro del tema
  */
 router.get(
   '/temas/:idTema/mensajes',
   verificarToken,
-  // TODO: Agregar middleware para verificar que es participante del foro del tema
+  esParticipanteForoDelTema, // ✅ MIDDLEWARE CORREGIDO
   foroController.listarMensajes.bind(foroController)
 );
 
 /**
- * POST /api/temas/:idTema/mensajes
+ * POST /api/foros/temas/:idTema/mensajes
  * Crear un mensaje en un tema
+ * 🆕 CORREGIDO: Ahora verifica que el usuario es participante del foro del tema
  */
 router.post(
   '/temas/:idTema/mensajes',
   verificarToken,
-  // TODO: Agregar middleware para verificar que es participante del foro del tema
-  noEstaBaneado,
+  esParticipanteForoDelTema, // ✅ MIDDLEWARE CORREGIDO
+  noEstaBaneado, // ✅ FASE 2: Verifica que no esté baneado
   foroController.crearMensaje.bind(foroController)
 );
 
-export default router;
-
 // ============================================================================
-// DOCUMENTACIÓN DE ENDPOINTS
+// 🆕 FASE 2: ENDPOINTS DE MODERACIÓN
 // ============================================================================
 
 /**
- * RESUMEN DE ENDPOINTS DISPONIBLES EN FASE 1:
- * 
- * FOROS:
- * - GET    /api/foros                      → Listar foros
- * - GET    /api/foros/:idForo              → Ver detalles de un foro
- * - POST   /api/foros                      → Crear foro (psicólogo)
- * - PUT    /api/foros/:idForo              → Actualizar foro (admin)
- * - DELETE /api/foros/:idForo              → Eliminar foro (admin)
- * - POST   /api/foros/:idForo/unirse       → Unirse a foro (paciente)
- * - GET    /api/foros/:idForo/participantes → Ver participantes
- * 
- * INVITACIONES:
- * - POST   /api/foros/:idForo/invitar      → Invitar moderador (admin)
- * - GET    /api/invitaciones/mis-invitaciones → Ver mis invitaciones (psicólogo)
- * - POST   /api/invitaciones/:id/responder → Aceptar/rechazar invitación
- * 
- * TEMAS:
- * - GET    /api/foros/:idForo/temas        → Listar temas del foro
- * - POST   /api/foros/:idForo/temas        → Crear tema (participante)
- * 
- * MENSAJES:
- * - GET    /api/temas/:idTema/mensajes     → Listar mensajes del tema
- * - POST   /api/temas/:idTema/mensajes     → Enviar mensaje (participante)
+ * POST /api/foros/:idForo/moderar/banear
+ * Banear o silenciar a un usuario (moderadores y admins)
  */
+router.post(
+  '/:idForo/moderar/banear',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionController.banearUsuario.bind(moderacionController)
+);
+
+/**
+ * DELETE /api/foros/:idForo/moderar/banear/:idBaneo
+ * Levantar un baneo (moderadores y admins)
+ */
+router.delete(
+  '/:idForo/moderar/banear/:idBaneo',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionController.levantarBaneo.bind(moderacionController)
+);
+
+/**
+ * GET /api/foros/:idForo/moderar/baneos
+ * Listar baneos de un foro (moderadores y admins)
+ */
+router.get(
+  '/:idForo/moderar/baneos',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionController.listarBaneos.bind(moderacionController)
+);
+
+/**
+ * GET /api/foros/:idForo/moderar/estadisticas
+ * Obtener estadísticas de moderación (moderadores y admins)
+ */
+router.get(
+  '/:idForo/moderar/estadisticas',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionController.obtenerEstadisticas.bind(moderacionController)
+);
+
+/**
+ * GET /api/moderar/historial/:tipoUsuario/:idUsuario
+ * Obtener historial de sanciones de un usuario (moderadores y admins)
+ */
+router.get(
+  '/moderar/historial/:tipoUsuario/:idUsuario',
+  verificarToken,
+  moderacionController.obtenerHistorialUsuario.bind(moderacionController)
+);
+
+/**
+ * GET /api/moderar/verificar/:idForo/:tipoUsuario/:idUsuario
+ * Verificar si un usuario está baneado
+ */
+router.get(
+  '/moderar/verificar/:idForo/:tipoUsuario/:idUsuario',
+  verificarToken,
+  moderacionController.verificarBaneo.bind(moderacionController)
+);
+
+export default router;

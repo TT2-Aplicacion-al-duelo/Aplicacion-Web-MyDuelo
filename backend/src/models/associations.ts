@@ -16,6 +16,7 @@ import Foro from "./foro/foro";
 import MensajeForo from "./foro/mensaje-foro";
 import Tema from "./foro/tema";
 import ForoParticipante from "./foro/foro-participante";
+import ForoBaneo from "./foro/foro-baneo";
 
 export function setupAssociations() {
   console.log('🔧 Iniciando configuración de asociaciones...');
@@ -320,3 +321,78 @@ export function setupAssociations() {
 
   console.log('✅ Asociaciones de Foros configuradas');
 }
+
+// ==================== ASOCIACIONES DE FORO_BANEO (FASE 2) ====================
+console.log('🚫 Configurando asociaciones de ForoBaneo (Fase 2)...');
+
+// ForoBaneo <-> Foro
+ForoBaneo.belongsTo(Foro, {
+  foreignKey: 'id_foro',
+  as: 'foro',
+});
+
+Foro.hasMany(ForoBaneo, {
+  foreignKey: 'id_foro',
+  as: 'baneos',
+});
+
+// ForoBaneo <-> Psicologo (usuario baneado)
+ForoBaneo.belongsTo(Psicologo, {
+  foreignKey: 'id_psicologo',
+  as: 'psicologo_baneado',
+});
+
+Psicologo.hasMany(ForoBaneo, {
+  foreignKey: 'id_psicologo',
+  as: 'baneos_recibidos',
+});
+
+// ForoBaneo <-> Paciente (usuario baneado)
+ForoBaneo.belongsTo(Paciente, {
+  foreignKey: 'id_paciente',
+  as: 'paciente_baneado',
+});
+
+Paciente.hasMany(ForoBaneo, {
+  foreignKey: 'id_paciente',
+  as: 'baneos_recibidos',
+});
+
+// ForoBaneo <-> Psicologo (moderador que baneó)
+ForoBaneo.belongsTo(Psicologo, {
+  foreignKey: 'id_moderador',
+  as: 'moderador_sancionador',
+});
+
+Psicologo.hasMany(ForoBaneo, {
+  foreignKey: 'id_moderador',
+  as: 'baneos_aplicados',
+});
+
+// ForoBaneo <-> Psicologo (moderador que levantó el baneo)
+ForoBaneo.belongsTo(Psicologo, {
+  foreignKey: 'id_moderador_levantamiento',
+  as: 'moderador_levantamiento',
+});
+
+Psicologo.hasMany(ForoBaneo, {
+  foreignKey: 'id_moderador_levantamiento',
+  as: 'baneos_levantados',
+});
+
+console.log('✅ Asociaciones de ForoBaneo (Fase 2) configuradas');
+
+// ============================================================================
+// EXPORTACIONES
+// ============================================================================
+
+export {
+  // ... exportaciones existentes
+  ForoBaneo, // 🆕 Agregar esta exportación
+};
+
+console.log('🎉 TODAS las asociaciones configuradas exitosamente (Fase 1 + Fase 2)');
+
+
+
+

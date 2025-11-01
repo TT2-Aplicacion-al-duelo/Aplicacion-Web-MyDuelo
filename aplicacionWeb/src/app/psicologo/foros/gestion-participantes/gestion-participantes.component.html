@@ -1,0 +1,281 @@
+<div class="container mt-4" *ngIf="!cargando && foro">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h2>Gestión de Participantes</h2>
+      <p class="text-muted">{{ foro.titulo }}</p>
+    </div>
+    <button class="btn btn-outline-secondary" routerLink="/foros/{{ foro.id_foro }}">
+      <i class="bi bi-arrow-left"></i> Volver al Foro
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+      <a
+        class="nav-link"
+        [class.active]="tabActiva === 'participantes'"
+        (click)="cambiarTab('participantes')"
+        style="cursor: pointer;"
+      >
+        <i class="bi bi-people"></i> Participantes ({{ participantes.length }})
+      </a>
+    </li>
+    <li class="nav-item">
+      <a
+        class="nav-link"
+        [class.active]="tabActiva === 'baneos'"
+        (click)="cambiarTab('baneos')"
+        style="cursor: pointer;"
+      >
+        <i class="bi bi-slash-circle"></i> Sanciones Activas ({{ baneos.length }})
+      </a>
+    </li>
+  </ul>
+
+  <!-- Tab: Participantes -->
+  <div *ngIf="tabActiva === 'participantes'">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Tipo</th>
+            <th>Rol</th>
+            <th>Fecha de Unión</th>
+            <th *ngIf="esModerador">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let p of participantes">
+            <td>
+              <strong>{{ getNombreCompleto(p) }}</strong>
+              <span *ngIf="p.usuario.especialidad" class="text-muted d-block small">
+                {{ p.usuario.especialidad }}
+              </span>
+            </td>
+            <td>
+              <span class="badge bg-secondary">
+                {{ p.tipo_usuario === 'psicologo' ? 'Psicólogo' : 'Paciente' }}
+              </span>
+            </td>
+            <td>
+              <span [class]="getBadgeRol(p.rol)">
+                {{ getTextoRol(p.rol) }}
+              </span>
+            </td>
+            <td>{{ p.fecha_union | date:'short' }}</td>
+            <td *ngIf="esModerador">
+              <button
+                *ngIf="p.rol !== 'admin'"
+                class="btn btn-sm btn-warning me-2"
+                (click)="abrirModalBaneo(p)"
+                [disabled]="p.rol === 'moderador' && !esAdmin"
+              >
+                <i class="bi bi-slash-circle"></i> Sancionar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="participantes.length === 0" class="alert alert-info">
+        No hay participantes en este foro.
+      </div>
+    </div>
+  </div>
+
+  <!-- Tab: Baneos -->
+  <div *ngIf="tabActiva === 'baneos'">
+    <div class="table-responsive">
+      <table class="table table-hover">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Tipo de Sanción</th>
+            <th>Razón</th>
+            <th>Fecha</th>
+            <th>Duración</th>
+            <th>Moderador</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let b of baneos">
+            <td>
+              <strong>{{ b.usuario.nombre }} {{ b.usuario.apellido }}</strong>
+              <span class="badge bg-secondary ms-2">
+                {{ b.tipo_usuario === 'psicologo' ? 'Psicólogo' : 'Paciente' }}
+              </span>
+            </td>
+            <td>
+              <span [class]="getClaseTipoBaneo(b.tipo_baneo)">
+                {{ getTextoTipoBaneo(b.tipo_baneo) }}
+              </span>
+            </td>
+            <td>
+              <small>{{ b.razon }}</small>
+            </td>
+            <td>{{ b.fecha_baneo | date:'short' }}</td>
+            <td>
+              <span
+                [class]="b.fecha_expiracion ? 'badge bg-warning' : 'badge bg-danger'"
+              >
+                {{ formatearDuracion(b.fecha_expiracion) }}
+              </span>
+            </td>
+            <td>
+              <small>{{ b.moderador.nombre }} {{ b.moderador.apellido }}</small>
+            </td>
+            <td>
+              <button
+                class="btn btn-sm btn-success"
+                (click)="levantarBaneo(b)"
+              >
+                <i class="bi bi-check-circle"></i> Levantar
+              </button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div *ngIf="baneos.length === 0" class="alert alert-info">
+        No hay sanciones activas en este foro.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de Baneo -->
+<div
+  class="modal fade"
+  [class.show]="mostrarModalBaneo"
+  [style.display]="mostrarModalBaneo ? 'block' : 'none'"
+  tabindex="-1"
+  *ngIf="mostrarModalBaneo"
+>
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          Sancionar Usuario: {{ getNombreCompleto(participanteSeleccionado!) }}
+        </h5>
+        <button
+          type="button"
+          class="btn-close"
+          (click)="cerrarModalBaneo()"
+        ></button>
+      </div>
+      <div class="modal-body">
+        <!-- Tipo de sanción -->
+        <div class="mb-3">
+          <label class="form-label">Tipo de Sanción</label>
+          <select class="form-select" [(ngModel)]="formBaneo.tipo_baneo">
+            <option value="silencio">Silencio (no puede escribir)</option>
+            <option value="baneo">Baneo (expulsado del foro)</option>
+          </select>
+        </div>
+
+        <!-- Duración -->
+        <div class="mb-3">
+          <label class="form-label">Duración</label>
+          <div class="form-check">
+            <input
+              class="form-check-input"
+              type="radio"
+              [value]="false"
+              [(ngModel)]="formBaneo.es_permanente"
+              id="temporal"
+            />
+            <label class="form-check-label" for="temporal">
+              Temporal
+            </label>
+          </div>
+          <div class="form-check mb-2">
+            <input
+              class="form-check-input"
+              type="radio"
+              [value]="true"
+              [(ngModel)]="formBaneo.es_permanente"
+              id="permanente"
+            />
+            <label class="form-check-label" for="permanente">
+              Permanente
+            </label>
+          </div>
+
+          <div *ngIf="!formBaneo.es_permanente" class="input-group">
+            <input
+              type="number"
+              class="form-control"
+              [(ngModel)]="formBaneo.dias_duracion"
+              min="1"
+              max="365"
+            />
+            <span class="input-group-text">días</span>
+          </div>
+        </div>
+
+        <!-- Razón -->
+        <div class="mb-3">
+          <label class="form-label">Razón de la Sanción *</label>
+          <textarea
+            class="form-control"
+            rows="3"
+            [(ngModel)]="formBaneo.razon"
+            placeholder="Describe el motivo de la sanción (mínimo 10 caracteres)"
+            maxlength="500"
+          ></textarea>
+          <small class="text-muted">
+            {{ formBaneo.razon.length }} / 500 caracteres
+          </small>
+        </div>
+
+        <div class="alert alert-warning">
+          <i class="bi bi-exclamation-triangle"></i>
+          <strong>Advertencia:</strong>
+          <span *ngIf="formBaneo.tipo_baneo === 'silencio'">
+            El usuario no podrá escribir mensajes ni crear temas durante la sanción.
+          </span>
+          <span *ngIf="formBaneo.tipo_baneo === 'baneo'">
+            El usuario será expulsado del foro y no podrá acceder a él.
+          </span>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button
+          type="button"
+          class="btn btn-secondary"
+          (click)="cerrarModalBaneo()"
+        >
+          Cancelar
+        </button>
+        <button
+          type="button"
+          class="btn btn-danger"
+          (click)="aplicarBaneo()"
+          [disabled]="formBaneo.razon.trim().length < 10"
+        >
+          <i class="bi bi-slash-circle"></i> Aplicar Sanción
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop del modal -->
+<div
+  class="modal-backdrop fade"
+  [class.show]="mostrarModalBaneo"
+  *ngIf="mostrarModalBaneo"
+  (click)="cerrarModalBaneo()"
+></div>
+
+<!-- Loading -->
+<div *ngIf="cargando" class="text-center mt-5">
+  <div class="spinner-border" role="status">
+    <span class="visually-hidden">Cargando...</span>
+  </div>
+  <p class="mt-2">Cargando datos...</p>
+</div>
