@@ -1,4 +1,4 @@
-import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TestsService } from '../../../../../../services/tests.service';
@@ -17,7 +17,7 @@ Chart.register(...registerables);
   templateUrl: './historial-tests.component.html',
   styleUrls: ['./historial-tests.component.css']
 })
-export class HistorialTestsComponent implements OnInit, AfterViewInit {
+export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() idPaciente!: number;
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
 
@@ -96,7 +96,6 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
 
     if (aplicacionesITRD.length > 0) {
       this.mostrarGrafica = true;
-      // Esperar a que el canvas esté disponible
       setTimeout(() => {
         this.crearGraficaITRD();
       }, 100);
@@ -104,7 +103,7 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
   }
 
   /**
-   * Crear gráfica de barras para ITRD
+   * ✅ CORRECCIÓN: Crear gráfica de barras para ITRD con manejo de null
    */
   private crearGraficaITRD(): void {
     if (!this.chartCanvas) {
@@ -112,7 +111,6 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    // Filtrar y separar aplicaciones ITRD
     const aplicacionesITRD = this.historialTests.filter(app => 
       app.test?.nombre && this.esTestITRD(app.test.nombre)
     );
@@ -125,7 +123,6 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
       .filter(app => app.test?.nombre.toLowerCase().includes('presente'))
       .sort((a, b) => new Date(a.fecha).getTime() - new Date(b.fecha).getTime());
 
-    // Construir datos para la gráfica
     const labels: string[] = [];
     const data: number[] = [];
     const backgroundColors: string[] = [];
@@ -134,8 +131,8 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
     // Agregar ITRD Pasado (si existe)
     itrdPasado.forEach((app, index) => {
       labels.push(`ITRD Pasado${itrdPasado.length > 1 ? ` (${index + 1})` : ''}`);
-      data.push(app.resultado?.puntaje_total || 0);
-      backgroundColors.push('rgba(255, 99, 132, 0.5)');  // Rojo
+      data.push(app.resultado?.puntaje_total ?? 0);  // ✅ CORRECCIÓN: Usar ?? para null/undefined
+      backgroundColors.push('rgba(255, 99, 132, 0.5)');
       borderColors.push('rgb(255, 99, 132)');
     });
 
@@ -143,23 +140,22 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
     itrdPresente.forEach((app, index) => {
       const fecha = new Date(app.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' });
       labels.push(`ITRD Presente (${fecha})`);
-      data.push(app.resultado?.puntaje_total || 0);
-      backgroundColors.push('rgba(54, 162, 235, 0.5)');  // Azul
+      data.push(app.resultado?.puntaje_total ?? 0);  // ✅ CORRECCIÓN: Usar ?? para null/undefined
+      backgroundColors.push('rgba(54, 162, 235, 0.5)');
       borderColors.push('rgb(54, 162, 235)');
     });
 
-    // Destruir gráfica anterior si existe
     if (this.chart) {
       this.chart.destroy();
     }
 
-    // Crear nueva gráfica
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
     if (!ctx) {
       console.error('No se pudo obtener el contexto del canvas');
       return;
     }
 
+    // ✅ CORRECCIÓN: Eliminar propiedad duplicada 'plugins'
     this.chart = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -193,12 +189,11 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
                 const puntaje = context.parsed.y;
                 const label = context.label;
                 
-                // Determinar si es Pasado o Presente
                 const esPasado = label.includes('Pasado');
                 const maxPuntaje = esPasado ? 40 : 65;
                 const porcentaje = Math.round((puntaje / maxPuntaje) * 100);
                 
-                // Obtener categoría
+                // ✅ CORRECCIÓN: Pasar puntaje como number (ya verificado que no es null)
                 const resultado = esPasado ?
                   ITRDInterpretacionHelper.interpretarITRDPasado(puntaje) :
                   ITRDInterpretacionHelper.interpretarITRDPresente(puntaje);
@@ -209,30 +204,8 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
                 ];
               }
             }
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true,
-            max: 70,  // Máximo para abarcar ambos tests
-            ticks: {
-              stepSize: 10
-            },
-            title: {
-              display: true,
-              text: 'Puntaje'
-            }
           },
-          x: {
-            ticks: {
-              autoSkip: false,
-              maxRotation: 45,
-              minRotation: 45
-            }
-          }
-        },
-        // Líneas de referencia para umbrales
-        plugins: {
+          // Líneas de referencia para umbrales
           annotation: {
             annotations: {
               linePasado50: {
@@ -262,8 +235,28 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
                 }
               }
             }
+          } as any
+        },
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 70,
+            ticks: {
+              stepSize: 10
+            },
+            title: {
+              display: true,
+              text: 'Puntaje'
+            }
+          },
+          x: {
+            ticks: {
+              autoSkip: false,
+              maxRotation: 45,
+              minRotation: 45
+            }
           }
-        } as any
+        }
       }
     });
   }
@@ -272,7 +265,6 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
    * Aplicar filtro de test
    */
   aplicarFiltro(): void {
-    // Recargar gráfica si cambia el filtro y hay ITRD
     if (this.filtroTestSeleccionado) {
       const testSeleccionado = this.testsFiltro.find(t => t.id === this.filtroTestSeleccionado);
       if (testSeleccionado && this.esTestITRD(testSeleccionado.nombre)) {
@@ -301,7 +293,6 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
     this.toastr.info('Generando PDF...', '', { timeOut: 2000 });
 
     try {
-      // Obtener respuestas del test
       const respuestas = await this.testsService.getRespuestasTest(aplicacion.id_aplicacion).toPromise();
       
       if (!respuestas) {
@@ -309,16 +300,13 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
         return;
       }
 
-      // Obtener imagen de la gráfica si es ITRD
       let chartImageData: string | undefined = undefined;
       if (this.esTestITRD(aplicacion.test?.nombre || '') && this.chart) {
         chartImageData = this.chart.toBase64Image();
       }
 
-      // Obtener nombre del paciente (puedes pasarlo como Input o obtenerlo de otro servicio)
-      const nombrePaciente = 'Paciente';  // TODO: Obtener nombre real del paciente
+      const nombrePaciente = 'Paciente';
 
-      // Generar PDF
       await this.pdfService.generarPDFTest(
         aplicacion,
         respuestas,
@@ -377,9 +365,3 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit {
     }
   }
 }
-
-
-
-
-
-

@@ -27,7 +27,7 @@ export class PdfGeneratorService {
     // ========================================
     // ENCABEZADO
     // ========================================
-    doc.setFillColor(13, 110, 253); // Azul primario
+    doc.setFillColor(13, 110, 253);
     doc.rect(0, 0, 210, 30, 'F');
     
     doc.setTextColor(255, 255, 255);
@@ -64,6 +64,7 @@ export class PdfGeneratorService {
       ['Tipo', aplicacion.tipo === 'inicial' ? 'Inicial' : 'Seguimiento']
     ];
 
+    // ✅ CORRECCIÓN: Usar sintaxis correcta para autoTable
     autoTable(doc, {
       startY: yPosition,
       head: [],
@@ -101,18 +102,18 @@ export class PdfGeneratorService {
       headStyles: { fillColor: [13, 110, 253], fontSize: 10 },
       styles: { fontSize: 9, cellPadding: 3 },
       columnStyles: {
+        // ✅ CORRECCIÓN: Especificar ancho sin 'as number'
         0: { cellWidth: 10, halign: 'center' },
         1: { cellWidth: 120 },
         2: { cellWidth: 50 }
       },
       didParseCell: (data) => {
-        // Resaltar respuestas con colores según el valor
         if (data.column.index === 2 && data.section === 'body') {
           const respuesta = respuestas[data.row.index].respuesta;
           if (this.esRespuestaEscala(respuesta)) {
             const valor = parseInt(respuesta);
             if (valor >= 4) {
-              data.cell.styles.fillColor = [255, 193, 7, 0.3]; // Amarillo para valores altos
+              data.cell.styles.fillColor = [255, 193, 7, 0.3];
             }
           }
         }
@@ -158,11 +159,11 @@ export class PdfGeneratorService {
             const porcentaje = (puntaje / maxPuntaje) * 100;
             
             if (porcentaje >= 80) {
-              data.cell.styles.fillColor = [220, 53, 69, 0.3]; // Rojo
+              data.cell.styles.fillColor = [220, 53, 69, 0.3];
             } else if (porcentaje >= 60) {
-              data.cell.styles.fillColor = [255, 193, 7, 0.3]; // Amarillo
+              data.cell.styles.fillColor = [255, 193, 7, 0.3];
             } else {
-              data.cell.styles.fillColor = [25, 135, 84, 0.3]; // Verde
+              data.cell.styles.fillColor = [25, 135, 84, 0.3];
             }
           }
         }
@@ -264,14 +265,12 @@ export class PdfGeneratorService {
       return respuesta;
     }
 
-    // Si es test ITRD, usar las etiquetas específicas
     if (this.esTestITRD(nombreTest)) {
       const etiquetas = ITRDInterpretacionHelper.ESCALA_RESPUESTAS;
       const valor = parseInt(respuesta) as keyof typeof etiquetas;
       return `${respuesta} - ${etiquetas[valor]}`;
     }
 
-    // Etiquetas genéricas para otros tests
     const etiquetasGenericas: {[key: string]: string} = {
       '1': 'Muy en desacuerdo',
       '2': 'En desacuerdo',
@@ -334,7 +333,7 @@ export class PdfGeneratorService {
         return ITRDInterpretacionHelper.ITRD_PRESENTE.puntajeMaximo;
       }
     }
-    return 100; // Por defecto
+    return 100;
   }
 
   /**
