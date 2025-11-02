@@ -26,6 +26,7 @@ export interface AplicacionTest {
   fecha: Date;
   fecha_creacion: Date;
   estado: 'pendiente' | 'completado';
+  tipo?: 'inicial' | 'seguimiento';  // AGREGADO
   test?: Test;
   resultado?: ResultadoTest;
 }
@@ -57,9 +58,6 @@ export interface GraficaTest {
 export interface AplicarTestRequest {
   id_test: number;
   id_paciente: number;
-  tipo?: 'inicial' | 'seguimiento';  // Agregado para manejar ITRD Pasado (inicial) vs Presente (seguimiento)
-  respuestas?: Array<{
-    id_pregunta: number;
-    respuesta: string;
-  }>;
+  tipo?: 'inicial' | 'seguimiento';  // AGREGADO - Campo opcional para especificar el tipo
+  respuestas?: { id_pregunta: number; respuesta: string }[];
 }

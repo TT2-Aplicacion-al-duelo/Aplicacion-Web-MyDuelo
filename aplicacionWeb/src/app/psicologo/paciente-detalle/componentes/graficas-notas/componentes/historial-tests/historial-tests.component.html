@@ -33,45 +33,60 @@
     </div>
   </div>
 
-  <!-- Gráfica de evolución -->
-  <div *ngIf="datosGraficas.length > 0" class="card shadow-sm mb-4">
+  <!-- Gráfica de evolución ITRD -->
+  <div *ngIf="mostrarGrafica" class="card shadow-sm mb-4">
     <div class="card-header bg-primary text-white">
-      <h6 class="mb-0">
-        <i class="bi bi-graph-up me-2"></i>
-        Evolución de Puntajes
-      </h6>
+      <div class="d-flex justify-content-between align-items-center">
+        <h6 class="mb-0">
+          <i class="bi bi-graph-up me-2"></i>
+          Evolución de ITRD - Comparativa Pasado vs Presente
+        </h6>
+        <div>
+          <span class="badge bg-danger me-2">
+            <i class="bi bi-square-fill me-1"></i>
+            ITRD Pasado
+          </span>
+          <span class="badge bg-info">
+            <i class="bi bi-square-fill me-1"></i>
+            ITRD Presente
+          </span>
+        </div>
+      </div>
     </div>
     <div class="card-body">
-      <div *ngIf="cargandoGraficas" class="text-center py-4">
-        <div class="spinner-border text-primary" role="status"></div>
+      <div class="grafica-container" style="height: 400px; position: relative;">
+        <canvas #chartCanvas></canvas>
       </div>
-
-      <div *ngIf="!cargandoGraficas" class="grafica-container">
-        <!-- Aquí iría la implementación de la gráfica -->
-        <!-- Por ahora mostramos una tabla simple con los datos -->
-        <div class="table-responsive">
-          <table class="table table-sm">
-            <thead>
-              <tr>
-                <th>Fecha</th>
-                <th>Test</th>
-                <th>Puntaje</th>
-                <th>Interpretación</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let dato of datosGraficas">
-                <td>{{ dato.fecha | date: 'dd/MM/yyyy' }}</td>
-                <td>{{ dato.nombre_test }}</td>
-                <td>
-                  <span class="badge bg-{{getColorPuntaje(dato.puntaje)}}">
-                    {{ dato.puntaje }}
-                  </span>
-                </td>
-                <td class="text-muted small">{{ dato.interpretacion }}</td>
-              </tr>
-            </tbody>
-          </table>
+      
+      <!-- Leyenda de interpretación -->
+      <div class="mt-3 p-3 bg-light rounded">
+        <h6 class="fw-bold mb-2">
+          <i class="bi bi-info-circle me-2"></i>
+          Interpretación de Umbrales
+        </h6>
+        <div class="row">
+          <div class="col-md-6">
+            <small>
+              <strong>ITRD Pasado (Máx: 40 pts):</strong>
+              <ul class="mb-0 mt-1">
+                <li>0-16 pts (0-40%): Duelo Agudo Leve</li>
+                <li>17-24 pts (41-60%): Duelo Agudo Moderado</li>
+                <li>25-32 pts (61-80%): Duelo Agudo Intenso</li>
+                <li>33-40 pts (81-100%): Duelo Agudo Muy Intenso</li>
+              </ul>
+            </small>
+          </div>
+          <div class="col-md-6">
+            <small>
+              <strong>ITRD Presente (Máx: 65 pts):</strong>
+              <ul class="mb-0 mt-1">
+                <li>0-26 pts (0-40%): Duelo Resuelto</li>
+                <li>27-39 pts (41-60%): Duelo en Curso</li>
+                <li>40-52 pts (61-80%): Duelo Complicado</li>
+                <li>53-65 pts (81-100%): Duelo Prolongado</li>
+              </ul>
+            </small>
+          </div>
         </div>
       </div>
     </div>
@@ -88,69 +103,89 @@
     <div class="card-body">
       <!-- Estado de carga -->
       <div *ngIf="cargando" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
         <p class="mt-3 text-muted">Cargando historial...</p>
       </div>
 
-      <!-- Lista -->
+      <!-- Lista de tests -->
       <div *ngIf="!cargando && historialFiltrado.length > 0" class="test-list">
         <div *ngFor="let aplicacion of historialFiltrado" class="test-item mb-3">
           <div class="card border">
             <div class="card-body">
               <div class="row align-items-center">
                 <!-- Información del test -->
-                <div class="col-md-7">
-                  <div class="d-flex align-items-center mb-2">
+                <div class="col-md-6">
+                  <div class="d-flex align-items-start mb-2">
                     <i class="bi bi-clipboard-data text-primary fs-4 me-3"></i>
-                    <div>
-                      <h6 class="mb-0">{{ aplicacion.test?.nombre }}</h6>
-                      <small class="text-muted">
-                        <i class="bi bi-calendar3 me-1"></i>
-                        {{ aplicacion.fecha | date: 'dd/MM/yyyy HH:mm' }}
-                      </small>
+                    <div class="flex-grow-1">
+                      <h6 class="mb-1">{{ aplicacion.test?.nombre }}</h6>
+                      <div class="mb-2">
+                        <small class="text-muted">
+                          <i class="bi bi-calendar3 me-1"></i>
+                          {{ aplicacion.fecha | date: 'dd/MM/yyyy HH:mm' }}
+                        </small>
+                      </div>
+                      <div>
+                        <span class="badge bg-{{getEstadoBadge(aplicacion.estado)}} me-1">
+                          {{ aplicacion.estado === 'completado' ? 'Completado' : 'Pendiente' }}
+                        </span>
+                        <span *ngIf="aplicacion.tipo" class="badge bg-secondary">
+                          {{ aplicacion.tipo === 'inicial' ? 'Inicial' : 'Seguimiento' }}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                  
-                  <span class="badge bg-{{getEstadoBadge(aplicacion.estado)}}">
-                    {{ aplicacion.estado === 'completado' ? 'Completado' : 'Pendiente' }}
-                  </span>
                 </div>
 
                 <!-- Resultado -->
-                <div class="col-md-2 text-center">
+                <div class="col-md-3 text-center">
                   <div *ngIf="aplicacion.resultado">
                     <div class="puntaje-circle bg-{{getColorPuntaje(aplicacion.resultado.puntaje_total)}} bg-opacity-10 mb-2">
                       <span class="fs-5 fw-bold text-{{getColorPuntaje(aplicacion.resultado.puntaje_total)}}">
                         {{ aplicacion.resultado.puntaje_total }}
                       </span>
                     </div>
-                    <small class="text-muted">Puntaje</small>
+                    <small class="text-muted d-block">Puntaje</small>
+                    
+                    <!-- Mostrar categoría si es ITRD -->
+                    <div *ngIf="esTestITRD(aplicacion.test?.nombre || '')" class="mt-2">
+                      <small class="badge bg-info">
+                        {{ aplicacion.resultado.interpretacion }}
+                      </small>
+                    </div>
+                  </div>
+                  <div *ngIf="!aplicacion.resultado">
+                    <small class="text-muted">Sin resultado</small>
                   </div>
                 </div>
 
                 <!-- Acciones -->
                 <div class="col-md-3">
-                  <div class="d-flex gap-2 justify-content-end">
-                    <button 
-                      class="btn btn-sm btn-outline-primary"
-                      (click)="verRespuestas(aplicacion)"
-                      title="Ver respuestas">
-                      <i class="bi bi-eye"></i>
-                    </button>
+                  <div class="d-flex gap-2 justify-content-end flex-wrap">
                     <button 
                       class="btn btn-sm btn-outline-danger"
                       (click)="descargarPDF(aplicacion)"
-                      title="Descargar PDF">
-                      <i class="bi bi-file-pdf"></i>
+                      [disabled]="!aplicacion.resultado"
+                      title="Descargar PDF completo">
+                      <i class="bi bi-file-pdf me-1"></i>
+                      PDF
                     </button>
                   </div>
                 </div>
               </div>
 
-              <!-- Interpretación -->
-              <div *ngIf="aplicacion.resultado?.interpretacion" class="mt-3 p-2 bg-light rounded">
-                <small class="text-muted">
-                  <strong>Interpretación:</strong> {{ aplicacion.resultado?.interpretacion }}
+              <!-- Interpretación expandida (solo para ITRD) -->
+              <div *ngIf="aplicacion.resultado?.interpretacion && esTestITRD(aplicacion.test?.nombre || '')" 
+                   class="mt-3 p-3 bg-light rounded">
+                <small>
+                  <strong class="text-primary">
+                    <i class="bi bi-lightbulb me-1"></i>
+                    Interpretación Clínica:
+                  </strong>
+                  <br>
+                  {{ aplicacion.resultado.interpretacion }}
                 </small>
               </div>
             </div>
@@ -169,10 +204,3 @@
     </div>
   </div>
 </div>
-
-<!-- Modal detalle de respuestas -->
-<app-detalle-respuestas
-  *ngIf="mostrarDetalleRespuestas && aplicacionSeleccionada"
-  [aplicacion]="aplicacionSeleccionada"
-  (cerrar)="cerrarDetalleRespuestas()">
-</app-detalle-respuestas>

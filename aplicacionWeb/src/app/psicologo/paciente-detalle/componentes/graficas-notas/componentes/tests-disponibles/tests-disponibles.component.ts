@@ -129,44 +129,48 @@ export class TestsDisponiblesComponent implements OnInit {
    * Confirmar y enviar la aplicación del test
    */
   private confirmarAplicarTest(): void {
-    if (!this.testSeleccionado) return;
+  if (!this.testSeleccionado) return;
 
-    this.aplicandoTest = true;
+  this.aplicandoTest = true;
 
-    const respuestasArray = Array.from(this.respuestas.entries()).map(([id_pregunta, respuesta]) => ({
-      id_pregunta,
-      respuesta
-    }));
+  const respuestasArray = Array.from(this.respuestas.entries()).map(([id_pregunta, respuesta]) => ({
+    id_pregunta,
+    respuesta
+  }));
 
-    // Determinar el tipo de test basado en el nombre
-    // ITRD Pasado es siempre "inicial" (solo una vez)
-    // ITRD Presente es siempre "seguimiento" (múltiples veces)
-    let tipoTest = 'seguimiento';
-    if (this.esITRDPasado(this.testSeleccionado.nombre)) {
-      tipoTest = 'inicial';
+  // ← AGREGADO: Determinar el tipo de test
+  let tipo: 'inicial' | 'seguimiento' = 'seguimiento';
+  
+  // Si el test es ITRD Pasado, debe ser tipo 'inicial'
+  if (this.testSeleccionado.nombre.toLowerCase().includes('itrd') && 
+      this.testSeleccionado.nombre.toLowerCase().includes('pasado')) {
+    tipo = 'inicial';
+  }
+
+  const data = {
+    id_test: this.testSeleccionado.id_test,
+    id_paciente: this.idPaciente,
+    tipo: tipo,  // ← AGREGADO: Enviamos el tipo explícitamente
+    respuestas: respuestasArray
+  };
+
+  this.testsService.aplicarTest(data).subscribe({
+    next: () => {
+      this.toastr.success('Test aplicado exitosamente');
+      this.cerrarModal();
+      this.testAplicado.emit();
+      this.aplicandoTest = false;
+    },
+    error: (error) => {
+      console.error('Error al aplicar test:', error);
+      const mensajeError = error.error?.msg || 'Error al aplicar el test';
+      this.toastr.error(mensajeError);
+      this.aplicandoTest = false;
     }
-
-    const data = {
-      id_test: this.testSeleccionado.id_test,
-      id_paciente: this.idPaciente,
-      respuestas: respuestasArray,
-      tipo: tipoTest
-    };
-
-    this.testsService.aplicarTest(data).subscribe({
-      next: () => {
-        this.toastr.success('Test aplicado exitosamente');
-        this.cerrarModalAplicacion();
-        this.testAplicado.emit();
-        this.aplicandoTest = false;
-      },
-      error: (error) => {
-        console.error('Error al aplicar test:', error);
-        const mensajeError = error.error?.msg || 'Error al aplicar el test';
-        this.toastr.error(mensajeError);
-        this.aplicandoTest = false;
-      }
-    });
+  });
+}
+  cerrarModal() {
+    throw new Error('Method not implemented.');
   }
 
   /**

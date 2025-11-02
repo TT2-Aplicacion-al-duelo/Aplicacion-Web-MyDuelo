@@ -1,4 +1,3 @@
-// backend/src/models/foro/foro-baneo.ts
 import { DataTypes, Model, Optional } from 'sequelize';
 import sequelize from '../../database/connection';
 
@@ -142,9 +141,15 @@ ForoBaneo.init(
         name: 'idx_baneo_moderador',
         fields: ['id_moderador'],
       },
+      // ✅ CORREGIDO: Formato correcto para índice con orden
       {
         name: 'idx_baneo_fecha',
-        fields: [['fecha_baneo', 'DESC']],
+        fields: [
+          {
+            name: 'fecha_baneo',
+            order: 'DESC'
+          }
+        ],
       },
     ],
   }

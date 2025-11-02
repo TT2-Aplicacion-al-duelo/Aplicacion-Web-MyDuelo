@@ -93,26 +93,6 @@ export class TestsService {
   // ==================== RESPUESTAS Y RESULTADOS ====================
 
   /**
-   * Obtener respuestas de una aplicación de test específica
-   */
-  getRespuestasTest(idAplicacion: number): Observable<RespuestaTest[]> {
-    return this.http.get<RespuestaTest[]>(
-      `${this.AppUrl}${this.APIUrl}/tests/aplicaciones/${idAplicacion}/respuestas`,
-      { headers: this.getHeaders() }
-    );
-  }
-
-  /**
-   * Obtener resultado de un test
-   */
-  getResultadoTest(idAplicacion: number): Observable<ResultadoTest> {
-    return this.http.get<ResultadoTest>(
-      `${this.AppUrl}${this.APIUrl}/tests/aplicaciones/${idAplicacion}/resultado`,
-      { headers: this.getHeaders() }
-    );
-  }
-
-  /**
    * Generar PDF de respuestas de un test
    */
   generarPDFRespuestas(idAplicacion: number): Observable<Blob> {
@@ -125,22 +105,36 @@ export class TestsService {
     );
   }
 
+
+    /**
+   * Obtener respuestas de una aplicación de test
+   */
+  getRespuestasTest(idAplicacion: number): Observable<RespuestaTest[]> {
+    return this.http.get<RespuestaTest[]>(
+      `${this.AppUrl}${this.APIUrl}/tests/aplicaciones/${idAplicacion}/respuestas`,
+      { headers: this.getHeaders() }
+    );
+  }
+
   /**
-   * Descargar PDF de respuestas
+   * Obtener resultado de una aplicación de test
+   */
+  getResultadoTest(idAplicacion: number): Observable<ResultadoTest> {
+    return this.http.get<ResultadoTest>(
+      `${this.AppUrl}${this.APIUrl}/tests/aplicaciones/${idAplicacion}/resultado`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  /**
+   * Descargar PDF de respuestas (método auxiliar)
    */
   descargarPDF(idAplicacion: number, nombreArchivo: string): void {
-    this.generarPDFRespuestas(idAplicacion).subscribe({
-      next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = nombreArchivo;
-        link.click();
-        window.URL.revokeObjectURL(url);
-      },
-      error: (error) => {
-        console.error('Error al descargar PDF:', error);
-      }
-    });
+    const url = `${this.AppUrl}${this.APIUrl}/tests/aplicaciones/${idAplicacion}/pdf`;
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = nombreArchivo;
+    link.click();
   }
+
 }

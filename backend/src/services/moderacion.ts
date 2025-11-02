@@ -1,8 +1,10 @@
+// backend/src/services/moderacion.service.ts
 import { Op } from 'sequelize';
 import ForoBaneo from '../models/foro/foro-baneo';
 import ForoParticipante from '../models/foro/foro-participante';
-import {Psicologo} from '../models/psicologo';
-import {Paciente} from '../models/paciente';
+// ✅ CORRECTO: Estos modelos usan export const, no export default
+import { Psicologo } from '../models/psicologo';
+import { Paciente } from '../models/paciente';
 import sequelize from '../database/connection';
 
 interface BaneoDTO {
@@ -235,7 +237,7 @@ class ModeracionService {
       });
     } else if (baneo.tipo_usuario === 'paciente' && baneo.id_paciente) {
       usuario = await Paciente.findByPk(baneo.id_paciente, {
-        attributes: ['id_paciente', 'nombre', 'apellidoPaterno'],
+        attributes: ['id_paciente', 'nombre', 'apellido_paterno'],
       });
     }
 
@@ -256,7 +258,10 @@ class ModeracionService {
       usuario: {
         id: baneo.tipo_usuario === 'psicologo' ? baneo.id_psicologo! : baneo.id_paciente!,
         nombre: usuario?.nombre || 'Usuario',
-        apellido: usuario?.apellidoPaterno || 'Desconocido',
+        // ✅ CORRECTO: Paciente usa apellido_paterno (snake_case), Psicologo usa apellidoPaterno (camelCase)
+        apellido: baneo.tipo_usuario === 'psicologo' 
+          ? (usuario?.apellidoPaterno || 'Desconocido')
+          : (usuario?.apellido_paterno || 'Desconocido'),
       },
       moderador: {
         id: moderador?.id_psicologo || 0,
@@ -270,6 +275,7 @@ class ModeracionService {
    * Expirar baneos automáticamente (llamado por un cron job)
    */
   async expirarBaneosVencidos(): Promise<number> {
+    // ✅ CORREGIDO: Usar Op.and con condiciones separadas
     const [affectedCount] = await ForoBaneo.update(
       {
         activo: false,
@@ -277,11 +283,11 @@ class ModeracionService {
       },
       {
         where: {
-          activo: true,
-          fecha_expiracion: {
-            [Op.lte]: new Date(),
-            [Op.ne]: null,
-          },
+          [Op.and]: [
+            { activo: true },
+            { fecha_expiracion: { [Op.lte]: new Date() } },
+            { fecha_expiracion: { [Op.not]: null } }
+          ]
         },
       }
     );
