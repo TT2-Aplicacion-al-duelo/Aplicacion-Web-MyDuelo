@@ -1,12 +1,17 @@
+/* aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/tests-disponibles/tests-disponibles.component.css */
 
 .tests-disponibles-container {
   padding: 1.5rem;
 }
 
-/* Efecto hover en las cards */
+/* ===================================== */
+/* CARDS DE TESTS DISPONIBLES */
+/* ===================================== */
+
 .hover-card {
   transition: all 0.3s ease;
   border: 1px solid #dee2e6;
+  cursor: pointer;
 }
 
 .hover-card:hover {
@@ -15,7 +20,6 @@
   border-color: #0d6efd;
 }
 
-/* Icono del test */
 .icon-test {
   width: 60px;
   height: 60px;
@@ -24,14 +28,57 @@
   justify-content: center;
 }
 
-/* Card title */
 .card-title {
   font-size: 1.1rem;
   font-weight: 600;
   color: #212529;
+  line-height: 1.3;
 }
 
-/* Pregunta card */
+/* ===================================== */
+/* MODAL DE INFORMACIÓN */
+/* ===================================== */
+
+.modal.show {
+  display: block;
+}
+
+.modal-xl {
+  max-width: 1200px;
+}
+
+.bg-gradient-primary {
+  background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
+}
+
+/* Accordion de preguntas */
+.accordion-button {
+  font-weight: 500;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: #e7f1ff;
+  color: #0d6efd;
+}
+
+.accordion-button:focus {
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Escala visual */
+.escala-visual .escala-item {
+  padding: 0.25rem 0;
+}
+
+.escala-visual .badge {
+  min-width: 25px;
+  text-align: center;
+}
+
+/* ===================================== */
+/* MODAL DE APLICACIÓN */
+/* ===================================== */
+
 .pregunta-card {
   animation: slideIn 0.3s ease-out;
 }
@@ -49,35 +96,38 @@
 
 /* Botones de escala */
 .escala-respuesta .btn {
-  min-height: 70px;
-  font-size: 1.2rem;
+  min-height: 80px;
+  font-size: 1.1rem;
   font-weight: 600;
   transition: all 0.2s ease;
+  padding: 0.75rem 0.5rem;
 }
 
 .escala-respuesta .btn:hover {
   transform: scale(1.05);
+  box-shadow: 0 0.25rem 0.5rem rgba(0, 0, 0, 0.1);
 }
 
-.escala-respuesta .btn.active {
-  background-color: #0d6efd;
-  color: white;
-  border-color: #0d6efd;
-  transform: scale(1.1);
+.escala-respuesta .btn.active,
+.escala-respuesta .btn.btn-primary {
+  background-color: #0d6efd !important;
+  border-color: #0d6efd !important;
+  color: white !important;
+  transform: scale(1.08);
+  box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.3);
+}
+
+.escala-respuesta .btn small {
+  font-size: 0.7rem;
+  font-weight: 400;
+  line-height: 1.2;
+  display: block;
+  margin-top: 0.25rem;
 }
 
 /* Número de pregunta */
 .numero-pregunta {
   min-width: 35px;
-}
-
-/* Modal */
-.modal.show {
-  display: block;
-}
-
-.modal-xl {
-  max-width: 1200px;
 }
 
 /* Progress bar */
@@ -91,20 +141,63 @@
   font-size: 0.9rem;
 }
 
-/* Responsive */
+/* ===================================== */
+/* BADGES Y ALERTAS */
+/* ===================================== */
+
+.badge {
+  font-weight: 500;
+  padding: 0.35em 0.65em;
+}
+
+.alert {
+  border-radius: 0.5rem;
+}
+
+.alert-heading {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ===================================== */
+/* TABLAS */
+/* ===================================== */
+
+.table-bordered {
+  border: 1px solid #dee2e6;
+}
+
+.table-bordered thead {
+  background-color: #f8f9fa;
+  font-weight: 600;
+}
+
+.table-bordered td,
+.table-bordered th {
+  vertical-align: middle;
+}
+
+/* ===================================== */
+/* RESPONSIVE */
+/* ===================================== */
+
 @media (max-width: 768px) {
   .tests-disponibles-container {
     padding: 1rem;
   }
 
   .escala-respuesta .btn {
-    min-height: 50px;
-    font-size: 1rem;
-    padding: 0.5rem;
+    min-height: 60px;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.25rem;
   }
 
   .escala-respuesta .btn small {
-    display: none !important;
+    font-size: 0.6rem;
+  }
+
+  .escala-respuesta .btn strong {
+    font-size: 1.2rem !important;
   }
 
   .icon-test {
@@ -115,4 +208,135 @@
   .icon-test i {
     font-size: 1.5rem !important;
   }
+
+  .card-title {
+    font-size: 1rem;
+  }
+
+  .modal-xl {
+    max-width: 95%;
+  }
+
+  .accordion-button {
+    font-size: 0.9rem;
+    padding: 0.75rem;
+  }
+
+  .table-responsive {
+    font-size: 0.85rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .escala-respuesta .col {
+    flex: 0 0 100%;
+    max-width: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .escala-respuesta .btn {
+    width: 100% !important;
+    min-height: 50px;
+  }
+
+  .numero-pregunta {
+    display: none;
+  }
+}
+
+/* ===================================== */
+/* UTILIDADES */
+/* ===================================== */
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Scroll suave en modales */
+.modal-dialog-scrollable .modal-body {
+  overflow-y: auto;
+}
+
+/* Mejorar contraste de texto */
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* Estados de hover para botones */
+.btn:focus,
+.btn:active {
+  outline: none;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Animaciones sutiles */
+.card,
+.btn,
+.badge {
+  transition: all 0.2s ease;
+}
+
+/* Sombras consistentes */
+.shadow-sm {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+}
+
+.shadow {
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* ===================================== */
+/* ACCESIBILIDAD */
+/* ===================================== */
+
+.btn:focus-visible,
+.form-control:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: 2px;
+}
+
+/* Alto contraste para badges */
+.badge.bg-success {
+  background-color: #198754 !important;
+}
+
+.badge.bg-info {
+  background-color: #0dcaf0 !important;
+  color: #000 !important;
+}
+
+.badge.bg-warning {
+  background-color: #ffc107 !important;
+  color: #000 !important;
+}
+
+.badge.bg-danger {
+  background-color: #dc3545 !important;
+}
+
+/* ===================================== */
+/* ANIMACIONES DE CARGA */
+/* ===================================== */
+
+.spinner-border {
+  vertical-align: middle;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.loading-pulse {
+  animation: pulse 1.5s ease-in-out infinite;
 }

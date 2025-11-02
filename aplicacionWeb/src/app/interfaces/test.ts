@@ -57,5 +57,9 @@ export interface GraficaTest {
 export interface AplicarTestRequest {
   id_test: number;
   id_paciente: number;
-  respuestas?: { id_pregunta: number; respuesta: string }[];
+  tipo?: 'inicial' | 'seguimiento';  // Agregado para manejar ITRD Pasado (inicial) vs Presente (seguimiento)
+  respuestas?: Array<{
+    id_pregunta: number;
+    respuesta: string;
+  }>;
 }

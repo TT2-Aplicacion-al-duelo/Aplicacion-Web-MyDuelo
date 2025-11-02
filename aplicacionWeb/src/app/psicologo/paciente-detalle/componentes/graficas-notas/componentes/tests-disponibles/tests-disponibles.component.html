@@ -1,4 +1,3 @@
-<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/tests-disponibles/tests-disponibles.component.html -->
 
 <div class="tests-disponibles-container">
   <!-- Estado de carga -->
@@ -19,25 +18,30 @@
               <i class="bi bi-clipboard-data text-primary fs-4"></i>
             </div>
             <div class="flex-grow-1">
-              <h5 class="card-title mb-1">{{ test.nombre }}</h5>
-              <span class="badge bg-info text-dark">
-                {{ test.tipo_escala === 'likert_5' ? 'Escala 1-5' : 
-                   test.tipo_escala === 'likert_7' ? 'Escala 1-7' : 
-                   'Sí/No' }}
-              </span>
+              <h5 class="card-title mb-2">{{ test.nombre }}</h5>
+              <div class="mb-2">
+                <span class="badge" [ngClass]="getTipoBadge(test.nombre).class">
+                  {{ getTipoBadge(test.nombre).text }}
+                </span>
+                <span class="badge bg-info text-dark ms-1">
+                  {{ test.tipo_escala === 'likert_5' ? 'Escala 1-5' : 
+                     test.tipo_escala === 'likert_7' ? 'Escala 1-7' : 
+                     'Sí/No' }}
+                </span>
+              </div>
             </div>
           </div>
           
-          <p class="card-text text-muted small">
+          <p class="card-text text-muted small mb-3">
             {{ test.descripcion }}
           </p>
           
-          <div class="d-grid">
+          <div class="d-grid gap-2">
             <button 
-              class="btn btn-outline-primary"
-              (click)="verDetalleTest(test)">
-              <i class="bi bi-play-circle me-2"></i>
-              Aplicar Test
+              class="btn btn-outline-primary btn-sm"
+              (click)="verInformacionTest(test)">
+              <i class="bi bi-info-circle me-2"></i>
+              Ver información completa
             </button>
           </div>
         </div>
@@ -60,30 +64,302 @@
   </div>
 </div>
 
-<!-- Modal para aplicar test -->
-<div *ngIf="mostrarModalTest" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+<!-- ============================================= -->
+<!-- MODAL DE INFORMACIÓN DEL TEST -->
+<!-- ============================================= -->
+<div *ngIf="mostrarModalInfo && testSeleccionado" 
+     class="modal fade show d-block" 
+     tabindex="-1" 
+     style="background-color: rgba(0,0,0,0.5);">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header bg-gradient-primary text-white">
+        <div>
+          <h5 class="modal-title mb-1">
+            <i class="bi bi-clipboard-check me-2"></i>
+            {{ testSeleccionado.nombre }}
+          </h5>
+          <small class="d-block opacity-75">Información detallada del test psicológico</small>
+        </div>
+        <button 
+          type="button" 
+          class="btn-close btn-close-white" 
+          (click)="cerrarModalInfo()">
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Descripción general -->
+        <div class="card border-primary mb-4">
+          <div class="card-header bg-primary bg-opacity-10">
+            <h6 class="mb-0 text-primary">
+              <i class="bi bi-book me-2"></i>
+              Descripción General
+            </h6>
+          </div>
+          <div class="card-body">
+            <p class="mb-0">{{ testSeleccionado.descripcion }}</p>
+          </div>
+        </div>
+
+        <!-- Información específica del ITRD -->
+        <div *ngIf="esTestITRD(testSeleccionado.nombre)" class="card border-info mb-4">
+          <div class="card-header bg-info bg-opacity-10">
+            <h6 class="mb-0 text-info">
+              <i class="bi bi-lightbulb me-2"></i>
+              Características del Test
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <ul class="list-unstyled mb-0">
+                  <li *ngFor="let caracteristica of getInfoITRD(testSeleccionado.nombre)?.caracteristicas" 
+                      class="mb-2">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    {{ caracteristica }}
+                  </li>
+                </ul>
+              </div>
+              <div class="col-md-6">
+                <div class="bg-light p-3 rounded">
+                  <h6 class="text-muted small mb-2">Instrucciones:</h6>
+                  <p class="small mb-0">
+                    {{ getInfoITRD(testSeleccionado.nombre)?.instrucciones }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Escala de evaluación -->
+        <div class="card border-warning mb-4">
+          <div class="card-header bg-warning bg-opacity-10">
+            <h6 class="mb-0 text-warning">
+              <i class="bi bi-bar-chart me-2"></i>
+              Cómo se Evalúa
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row align-items-center">
+              <div class="col-md-6">
+                <p class="mb-2"><strong>Tipo de escala:</strong> 
+                  <span class="badge bg-secondary ms-2">
+                    {{ testSeleccionado.tipo_escala === 'likert_5' ? 'Likert 5 puntos' : 
+                       testSeleccionado.tipo_escala === 'likert_7' ? 'Likert 7 puntos' : 
+                       'Sí/No' }}
+                  </span>
+                </p>
+                <p class="mb-2"><strong>Total de preguntas:</strong> {{ testSeleccionado.preguntas.length }}</p>
+                <p class="mb-0"><strong>Tiempo aproximado:</strong> 10-15 minutos</p>
+              </div>
+              <div class="col-md-6">
+                <!-- Escala visual para ITRD -->
+                <div *ngIf="esTestITRD(testSeleccionado.nombre)" class="bg-light p-3 rounded">
+                  <h6 class="small text-muted mb-2">Escala de respuestas:</h6>
+                  <div class="escala-visual">
+                    <div *ngFor="let valor of [1,2,3,4,5]" class="escala-item d-flex align-items-center mb-1">
+                      <span class="badge bg-primary me-2" style="width: 25px;">{{ valor }}</span>
+                      <small>{{ getEtiquetaEscalaITRD(valor) }}</small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Preguntas del test -->
+        <div class="card border-success mb-4">
+          <div class="card-header bg-success bg-opacity-10">
+            <h6 class="mb-0 text-success">
+              <i class="bi bi-list-check me-2"></i>
+              Preguntas del Test ({{ testSeleccionado.preguntas.length }})
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="accordion" id="accordionPreguntas">
+              <div class="accordion-item" 
+                   *ngFor="let pregunta of testSeleccionado.preguntas; let i = index">
+                <h2 class="accordion-header">
+                  <button class="accordion-button collapsed" 
+                          type="button" 
+                          data-bs-toggle="collapse" 
+                          [attr.data-bs-target]="'#pregunta' + i">
+                    <span class="badge bg-primary rounded-circle me-3" 
+                          style="width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;">
+                      {{ i + 1 }}
+                    </span>
+                    <span class="text-truncate">{{ pregunta.texto_pregunta }}</span>
+                  </button>
+                </h2>
+                <div [id]="'pregunta' + i" 
+                     class="accordion-collapse collapse" 
+                     data-bs-parent="#accordionPreguntas">
+                  <div class="accordion-body">
+                    <p class="mb-2"><strong>Pregunta completa:</strong></p>
+                    <p class="mb-3">{{ pregunta.texto_pregunta }}</p>
+                    <p class="mb-2"><strong>Tipo de respuesta:</strong> 
+                      <span class="badge bg-info">
+                        {{ pregunta.tipo_respuesta === 'escala' ? 'Escala de valoración' : 
+                           pregunta.tipo_respuesta === 'si_no' ? 'Sí/No' : 
+                           'Texto libre' }}
+                      </span>
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interpretación de resultados -->
+        <div class="card border-danger">
+          <div class="card-header bg-danger bg-opacity-10">
+            <h6 class="mb-0 text-danger">
+              <i class="bi bi-graph-up me-2"></i>
+              Escala de Interpretación
+            </h6>
+          </div>
+          <div class="card-body">
+            <!-- Interpretación específica para ITRD -->
+            <div *ngIf="esTestITRD(testSeleccionado.nombre)">
+              <div class="alert alert-info">
+                <h6 class="alert-heading">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Sistema de Puntuación ITRD
+                </h6>
+                <p class="mb-2">
+                  <strong>Rango de puntuación:</strong> 
+                  {{ getInfoITRD(testSeleccionado.nombre)?.puntajeMinimo }} - 
+                  {{ getInfoITRD(testSeleccionado.nombre)?.puntajeMaximo }} puntos
+                </p>
+                <hr>
+                <p class="small mb-0">
+                  La interpretación se basa en el porcentaje del puntaje obtenido respecto al máximo posible.
+                  Se consideran diferentes categorías según la intensidad de los síntomas.
+                </p>
+              </div>
+
+              <!-- Tabla de interpretación -->
+              <div class="table-responsive">
+                <table class="table table-sm table-bordered">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Porcentaje</th>
+                      <th>Categoría</th>
+                      <th>Descripción</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngIf="esITRDPasado(testSeleccionado.nombre)">
+                      <td class="text-center">0-40%</td>
+                      <td><span class="badge bg-success">Duelo Agudo Leve</span></td>
+                      <td class="small">Respuesta emocional limitada al momento de la pérdida</td>
+                    </tr>
+                    <tr *ngIf="esITRDPasado(testSeleccionado.nombre)">
+                      <td class="text-center">41-60%</td>
+                      <td><span class="badge bg-info">Duelo Agudo Moderado</span></td>
+                      <td class="small">Respuesta emocional moderada con cierta funcionalidad</td>
+                    </tr>
+                    <tr *ngIf="esITRDPasado(testSeleccionado.nombre)">
+                      <td class="text-center">61-80%</td>
+                      <td><span class="badge bg-warning">Duelo Agudo Intenso</span></td>
+                      <td class="small">Respuesta intensa con impacto significativo</td>
+                    </tr>
+                    <tr *ngIf="esITRDPasado(testSeleccionado.nombre)">
+                      <td class="text-center">81-100%</td>
+                      <td><span class="badge bg-danger">Duelo Agudo Muy Intenso</span></td>
+                      <td class="small">Afectación severa en múltiples áreas</td>
+                    </tr>
+
+                    <tr *ngIf="esITRDPresente(testSeleccionado.nombre)">
+                      <td class="text-center">0-40%</td>
+                      <td><span class="badge bg-success">Duelo Resuelto</span></td>
+                      <td class="small">Procesamiento adecuado del duelo</td>
+                    </tr>
+                    <tr *ngIf="esITRDPresente(testSeleccionado.nombre)">
+                      <td class="text-center">41-60%</td>
+                      <td><span class="badge bg-info">Duelo en Curso</span></td>
+                      <td class="small">Proceso activo con síntomas manejables</td>
+                    </tr>
+                    <tr *ngIf="esITRDPresente(testSeleccionado.nombre)">
+                      <td class="text-center">61-80%</td>
+                      <td><span class="badge bg-warning">Duelo Complicado</span></td>
+                      <td class="small">Síntomas intensos que interfieren con funcionamiento</td>
+                    </tr>
+                    <tr *ngIf="esITRDPresente(testSeleccionado.nombre)">
+                      <td class="text-center">81-100%</td>
+                      <td><span class="badge bg-danger">Duelo Prolongado</span></td>
+                      <td class="small">Síntomas persistentes y severos</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Interpretación genérica para otros tests -->
+            <div *ngIf="!esTestITRD(testSeleccionado.nombre)">
+              <p>La interpretación de los resultados se realizará basándose en el puntaje total obtenido 
+                 y las normas establecidas para este test psicológico.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer bg-light">
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModalInfo()">
+          <i class="bi bi-x-circle me-2"></i>
+          Cerrar
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-primary" 
+          (click)="iniciarAplicacion()">
+          <i class="bi bi-play-circle me-2"></i>
+          Aplicar Test al Paciente
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================= -->
+<!-- MODAL PARA APLICAR EL TEST -->
+<!-- ============================================= -->
+<div *ngIf="mostrarModalAplicacion && testSeleccionado" 
+     class="modal fade show d-block" 
+     tabindex="-1" 
+     style="background-color: rgba(0,0,0,0.5);">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
       <!-- Header -->
       <div class="modal-header bg-primary text-white">
         <h5 class="modal-title">
           <i class="bi bi-clipboard-check me-2"></i>
-          {{ testSeleccionado?.nombre }}
+          Aplicando: {{ testSeleccionado.nombre }}
         </h5>
         <button 
           type="button" 
           class="btn-close btn-close-white" 
-          (click)="cerrarModal()"
+          (click)="cerrarModalAplicacion()"
           [disabled]="aplicandoTest">
         </button>
       </div>
 
       <!-- Body con preguntas -->
       <div class="modal-body">
-        <!-- Descripción del test -->
+        <!-- Instrucciones -->
         <div class="alert alert-info mb-4">
           <i class="bi bi-info-circle me-2"></i>
-          {{ testSeleccionado?.descripcion }}
+          <strong>Instrucciones:</strong> {{ testSeleccionado.descripcion }}
         </div>
 
         <!-- Barra de progreso -->
@@ -91,18 +367,19 @@
           <div 
             class="progress-bar progress-bar-striped progress-bar-animated"
             [style.width.%]="getProgreso()">
-            {{ respuestas.size }} / {{ testSeleccionado?.preguntas?.length || 0 }} preguntas
+            {{ respuestas.size }} / {{ testSeleccionado.preguntas.length }} preguntas
           </div>
         </div>
 
         <!-- Preguntas -->
-        <div *ngFor="let pregunta of testSeleccionado?.preguntas; let i = index" 
+        <div *ngFor="let pregunta of testSeleccionado.preguntas; let i = index" 
              class="pregunta-card mb-4">
           <div class="card">
             <div class="card-body">
               <div class="d-flex align-items-start">
                 <div class="numero-pregunta me-3">
-                  <span class="badge bg-primary rounded-circle" style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
+                  <span class="badge bg-primary rounded-circle" 
+                        style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
                     {{ i + 1 }}
                   </span>
                 </div>
@@ -110,37 +387,67 @@
                 <div class="flex-grow-1">
                   <h6 class="mb-3">{{ pregunta.texto_pregunta }}</h6>
                   
-                  <!-- Tipo escala -->
-                  <div *ngIf="pregunta.tipo_respuesta === 'escala' && testSeleccionado" 
+                  <!-- Tipo escala para ITRD -->
+                  <div *ngIf="pregunta.tipo_respuesta === 'escala' && esTestITRD(testSeleccionado.nombre)" 
                        class="escala-respuesta">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <button 
-                        *ngFor="let valor of getOpcionesEscala(testSeleccionado.tipo_escala)"
-                        type="button"
-                        class="btn btn-outline-primary flex-fill mx-1"
-                        [class.active]="respuestas.get(pregunta.id_pregunta) === valor.toString()"
-                        (click)="guardarRespuesta(pregunta.id_pregunta, valor.toString())">
-                        {{ valor }}
-                        <small class="d-block" style="font-size: 0.7rem;">
-                          {{ getEtiquetaEscala(valor, getOpcionesEscala(testSeleccionado.tipo_escala).length) }}
-                        </small>
-                      </button>
+                    <div class="row g-2">
+                      <div *ngFor="let opcion of getOpcionesEscala(testSeleccionado.tipo_escala)" 
+                           class="col">
+                        <button 
+                          type="button"
+                          class="btn w-100"
+                          [class.btn-outline-primary]="respuestas.get(pregunta.id_pregunta) !== opcion.toString()"
+                          [class.btn-primary]="respuestas.get(pregunta.id_pregunta) === opcion.toString()"
+                          [class.active]="respuestas.get(pregunta.id_pregunta) === opcion.toString()"
+                          (click)="guardarRespuesta(pregunta.id_pregunta, opcion.toString())">
+                          <div class="d-flex flex-column align-items-center">
+                            <strong style="font-size: 1.5rem;">{{ opcion }}</strong>
+                            <small class="d-block text-truncate w-100" 
+                                   style="font-size: 0.7rem;">
+                              {{ getEtiquetaEscalaITRD(opcion) }}
+                            </small>
+                          </div>
+                        </button>
+                      </div>
                     </div>
                   </div>
 
-                  <!-- Tipo si/no -->
+                  <!-- Tipo escala genérica -->
+                  <div *ngIf="pregunta.tipo_respuesta === 'escala' && !esTestITRD(testSeleccionado.nombre)" 
+                       class="escala-respuesta">
+                    <div class="row g-2">
+                      <div *ngFor="let opcion of getOpcionesEscala(testSeleccionado.tipo_escala)" 
+                           class="col">
+                        <button 
+                          type="button"
+                          class="btn w-100"
+                          [class.btn-outline-primary]="respuestas.get(pregunta.id_pregunta) !== opcion.toString()"
+                          [class.btn-primary]="respuestas.get(pregunta.id_pregunta) === opcion.toString()"
+                          (click)="guardarRespuesta(pregunta.id_pregunta, opcion.toString())">
+                          {{ opcion }}
+                          <small class="d-block" style="font-size: 0.7rem;">
+                            {{ getEtiquetaEscala(opcion, getOpcionesEscala(testSeleccionado.tipo_escala).length) }}
+                          </small>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- Tipo sí/no -->
                   <div *ngIf="pregunta.tipo_respuesta === 'si_no'" class="btn-group w-100">
                     <button 
                       type="button"
-                      class="btn btn-outline-success"
-                      [class.active]="respuestas.get(pregunta.id_pregunta) === 'si'"
+                      class="btn"
+                      [class.btn-outline-success]="respuestas.get(pregunta.id_pregunta) !== 'si'"
+                      [class.btn-success]="respuestas.get(pregunta.id_pregunta) === 'si'"
                       (click)="guardarRespuesta(pregunta.id_pregunta, 'si')">
                       <i class="bi bi-check-circle me-1"></i> Sí
                     </button>
                     <button 
                       type="button"
-                      class="btn btn-outline-danger"
-                      [class.active]="respuestas.get(pregunta.id_pregunta) === 'no'"
+                      class="btn"
+                      [class.btn-outline-danger]="respuestas.get(pregunta.id_pregunta) !== 'no'"
+                      [class.btn-danger]="respuestas.get(pregunta.id_pregunta) === 'no'"
                       (click)="guardarRespuesta(pregunta.id_pregunta, 'no')">
                       <i class="bi bi-x-circle me-1"></i> No
                     </button>
@@ -168,7 +475,7 @@
         <button 
           type="button" 
           class="btn btn-secondary" 
-          (click)="cerrarModal()"
+          (click)="cerrarModalAplicacion()"
           [disabled]="aplicandoTest">
           <i class="bi bi-x-circle me-2"></i>
           Cancelar
@@ -177,7 +484,7 @@
           type="button" 
           class="btn btn-primary" 
           (click)="aplicarTest()"
-          [disabled]="aplicandoTest || respuestas.size < (testSeleccionado?.preguntas?.length || 0)">
+          [disabled]="aplicandoTest || respuestas.size < (testSeleccionado.preguntas.length || 0)">
           <span *ngIf="aplicandoTest">
             <span class="spinner-border spinner-border-sm me-2"></span>
             Aplicando...

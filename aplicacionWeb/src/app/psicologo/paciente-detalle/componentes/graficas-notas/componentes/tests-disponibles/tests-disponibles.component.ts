@@ -1,3 +1,5 @@
+// aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/tests-disponibles/tests-disponibles.component.ts
+
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -5,6 +7,7 @@ import { Test, PreguntaTest } from '../../../../../../interfaces/test';
 import { ToastrService } from 'ngx-toastr';
 import Swal from 'sweetalert2';
 import { TestsService } from '../../../../../../services/tests.service';
+import { ITRDInterpretacionHelper } from '../../../../../../services/helpers/itrd-interpretacion.helper';
 
 @Component({
   selector: 'app-tests-disponibles',
@@ -21,10 +24,16 @@ export class TestsDisponiblesComponent implements OnInit {
   
   cargando: boolean = false;
   aplicandoTest: boolean = false;
-  mostrarModalTest: boolean = false;
+  
+  // Estados del modal
+  mostrarModalInfo: boolean = false;  // Modal de información del test
+  mostrarModalAplicacion: boolean = false;  // Modal para aplicar el test
   
   // Respuestas del test siendo aplicado
   respuestas: Map<number, string> = new Map();
+
+  // Helper para interpretación ITRD
+  itrdHelper = ITRDInterpretacionHelper;
 
   constructor(
     private testsService: TestsService,
@@ -54,20 +63,35 @@ export class TestsDisponiblesComponent implements OnInit {
   }
 
   /**
-   * Ver detalles de un test y preparar para aplicarlo
+   * Ver información completa del test antes de aplicarlo
    */
-  verDetalleTest(test: Test): void {
+  verInformacionTest(test: Test): void {
     this.testsService.getDetalleTest(test.id_test).subscribe({
       next: (detalleTest) => {
         this.testSeleccionado = detalleTest;
-        this.respuestas.clear();
-        this.mostrarModalTest = true;
+        this.mostrarModalInfo = true;
       },
       error: (error) => {
         console.error('Error al cargar detalle del test:', error);
         this.toastr.error('Error al cargar los detalles del test');
       }
     });
+  }
+
+  /**
+   * Cerrar modal de información
+   */
+  cerrarModalInfo(): void {
+    this.mostrarModalInfo = false;
+  }
+
+  /**
+   * Iniciar aplicación del test (desde el modal de información)
+   */
+  iniciarAplicacion(): void {
+    this.mostrarModalInfo = false;
+    this.respuestas.clear();
+    this.mostrarModalAplicacion = true;
   }
 
   /**
@@ -114,22 +138,32 @@ export class TestsDisponiblesComponent implements OnInit {
       respuesta
     }));
 
+    // Determinar el tipo de test basado en el nombre
+    // ITRD Pasado es siempre "inicial" (solo una vez)
+    // ITRD Presente es siempre "seguimiento" (múltiples veces)
+    let tipoTest = 'seguimiento';
+    if (this.esITRDPasado(this.testSeleccionado.nombre)) {
+      tipoTest = 'inicial';
+    }
+
     const data = {
       id_test: this.testSeleccionado.id_test,
       id_paciente: this.idPaciente,
-      respuestas: respuestasArray
+      respuestas: respuestasArray,
+      tipo: tipoTest
     };
 
     this.testsService.aplicarTest(data).subscribe({
       next: () => {
         this.toastr.success('Test aplicado exitosamente');
-        this.cerrarModal();
+        this.cerrarModalAplicacion();
         this.testAplicado.emit();
         this.aplicandoTest = false;
       },
       error: (error) => {
         console.error('Error al aplicar test:', error);
-        this.toastr.error('Error al aplicar el test');
+        const mensajeError = error.error?.msg || 'Error al aplicar el test';
+        this.toastr.error(mensajeError);
         this.aplicandoTest = false;
       }
     });
@@ -155,7 +189,15 @@ export class TestsDisponiblesComponent implements OnInit {
   }
 
   /**
-   * Obtener etiqueta de la opción de escala
+   * Obtener etiqueta de la opción de escala para ITRD
+   */
+  getEtiquetaEscalaITRD(valor: number): string {
+    const etiquetas: { [key: number]: string } = ITRDInterpretacionHelper.ESCALA_RESPUESTAS;
+    return etiquetas[valor] || '';
+  }
+
+  /**
+   * Obtener etiqueta genérica de escala
    */
   getEtiquetaEscala(valor: number, total: number): string {
     if (valor === 1) return 'Muy en desacuerdo';
@@ -165,10 +207,10 @@ export class TestsDisponiblesComponent implements OnInit {
   }
 
   /**
-   * Cerrar modal
+   * Cerrar modal de aplicación
    */
-  cerrarModal(): void {
-    this.mostrarModalTest = false;
+  cerrarModalAplicacion(): void {
+    this.mostrarModalAplicacion = false;
     this.testSeleccionado = null;
     this.respuestas.clear();
   }
@@ -181,5 +223,57 @@ export class TestsDisponiblesComponent implements OnInit {
     const total = this.testSeleccionado.preguntas.length;
     const completadas = this.respuestas.size;
     return (completadas / total) * 100;
+  }
+
+  /**
+   * Verificar si el test es ITRD
+   */
+  esTestITRD(nombreTest: string): boolean {
+    return ITRDInterpretacionHelper.esTestITRD(nombreTest);
+  }
+
+  /**
+   * Verificar si es ITRD Pasado
+   */
+  esITRDPasado(nombreTest: string): boolean {
+    return ITRDInterpretacionHelper.esITRDPasado(nombreTest);
+  }
+
+  /**
+   * Verificar si es ITRD Presente
+   */
+  esITRDPresente(nombreTest: string): boolean {
+    return ITRDInterpretacionHelper.esITRDPresente(nombreTest);
+  }
+
+  /**
+   * Obtener información específica del ITRD
+   */
+  getInfoITRD(nombreTest: string): any {
+    if (this.esITRDPasado(nombreTest)) {
+      return ITRDInterpretacionHelper.ITRD_PASADO;
+    } else if (this.esITRDPresente(nombreTest)) {
+      return ITRDInterpretacionHelper.ITRD_PRESENTE;
+    }
+    return null;
+  }
+
+  /**
+   * Obtener descripción de la escala
+   */
+  getDescripcionEscala(): string {
+    return ITRDInterpretacionHelper.getDescripcionEscala();
+  }
+
+  /**
+   * Obtener badge de tipo de test
+   */
+  getTipoBadge(nombreTest: string): { text: string, class: string } {
+    if (this.esITRDPasado(nombreTest)) {
+      return { text: 'Única aplicación', class: 'bg-warning' };
+    } else if (this.esITRDPresente(nombreTest)) {
+      return { text: 'Aplicación múltiple', class: 'bg-success' };
+    }
+    return { text: 'Test psicológico', class: 'bg-info' };
   }
 }
