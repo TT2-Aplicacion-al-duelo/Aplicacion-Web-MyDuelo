@@ -64,7 +64,6 @@ export class PdfGeneratorService {
       ['Tipo', aplicacion.tipo === 'inicial' ? 'Inicial' : 'Seguimiento']
     ];
 
-    // ✅ CORRECCIÓN: Usar sintaxis correcta para autoTable
     autoTable(doc, {
       startY: yPosition,
       head: [],
@@ -102,7 +101,6 @@ export class PdfGeneratorService {
       headStyles: { fillColor: [13, 110, 253], fontSize: 10 },
       styles: { fontSize: 9, cellPadding: 3 },
       columnStyles: {
-        // ✅ CORRECCIÓN: Especificar ancho sin 'as number'
         0: { cellWidth: 10, halign: 'center' },
         1: { cellWidth: 120 },
         2: { cellWidth: 50 }
@@ -113,7 +111,8 @@ export class PdfGeneratorService {
           if (this.esRespuestaEscala(respuesta)) {
             const valor = parseInt(respuesta);
             if (valor >= 4) {
-              data.cell.styles.fillColor = [255, 193, 7, 0.3];
+              // ✅ CORRECCIÓN: Solo RGB sin alpha
+              data.cell.styles.fillColor = [255, 243, 205];
             }
           }
         }
@@ -158,12 +157,13 @@ export class PdfGeneratorService {
             const maxPuntaje = this.obtenerPuntajeMaximo(aplicacion.test?.nombre || '');
             const porcentaje = (puntaje / maxPuntaje) * 100;
             
+            // ✅ CORRECCIÓN: Solo RGB sin alpha
             if (porcentaje >= 80) {
-              data.cell.styles.fillColor = [220, 53, 69, 0.3];
+              data.cell.styles.fillColor = [255, 205, 210];  // Rojo claro
             } else if (porcentaje >= 60) {
-              data.cell.styles.fillColor = [255, 193, 7, 0.3];
+              data.cell.styles.fillColor = [255, 243, 205];  // Amarillo claro
             } else {
-              data.cell.styles.fillColor = [25, 135, 84, 0.3];
+              data.cell.styles.fillColor = [200, 230, 201];  // Verde claro
             }
           }
         }

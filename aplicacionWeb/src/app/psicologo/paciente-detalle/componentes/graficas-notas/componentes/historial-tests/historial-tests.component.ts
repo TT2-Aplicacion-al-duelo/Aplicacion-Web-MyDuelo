@@ -1,3 +1,6 @@
+// aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/historial-tests/historial-tests.component.ts
+// ✅ CORRECCIÓN FINAL: Manejo correcto de null y eliminación de plugin annotation
+
 import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -103,7 +106,7 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
-   * ✅ CORRECCIÓN: Crear gráfica de barras para ITRD con manejo de null
+   * ✅ CORRECCIÓN FINAL: Crear gráfica de barras para ITRD
    */
   private crearGraficaITRD(): void {
     if (!this.chartCanvas) {
@@ -131,7 +134,7 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
     // Agregar ITRD Pasado (si existe)
     itrdPasado.forEach((app, index) => {
       labels.push(`ITRD Pasado${itrdPasado.length > 1 ? ` (${index + 1})` : ''}`);
-      data.push(app.resultado?.puntaje_total ?? 0);  // ✅ CORRECCIÓN: Usar ?? para null/undefined
+      data.push(app.resultado?.puntaje_total ?? 0);
       backgroundColors.push('rgba(255, 99, 132, 0.5)');
       borderColors.push('rgb(255, 99, 132)');
     });
@@ -140,7 +143,7 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
     itrdPresente.forEach((app, index) => {
       const fecha = new Date(app.fecha).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit' });
       labels.push(`ITRD Presente (${fecha})`);
-      data.push(app.resultado?.puntaje_total ?? 0);  // ✅ CORRECCIÓN: Usar ?? para null/undefined
+      data.push(app.resultado?.puntaje_total ?? 0);
       backgroundColors.push('rgba(54, 162, 235, 0.5)');
       borderColors.push('rgb(54, 162, 235)');
     });
@@ -155,7 +158,6 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
       return;
     }
 
-    // ✅ CORRECCIÓN: Eliminar propiedad duplicada 'plugins'
     this.chart = new Chart(ctx, {
       type: 'bar',
       data: {
@@ -186,14 +188,18 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
           tooltip: {
             callbacks: {
               afterLabel: (context) => {
+                // ✅ CORRECCIÓN: Verificar explícitamente que puntaje no es null
                 const puntaje = context.parsed.y;
-                const label = context.label;
+                if (puntaje === null || puntaje === undefined) {
+                  return ['Sin datos'];
+                }
                 
+                const label = context.label;
                 const esPasado = label.includes('Pasado');
                 const maxPuntaje = esPasado ? 40 : 65;
                 const porcentaje = Math.round((puntaje / maxPuntaje) * 100);
                 
-                // ✅ CORRECCIÓN: Pasar puntaje como number (ya verificado que no es null)
+                // ✅ CORRECCIÓN: Ahora puntaje es definitivamente number
                 const resultado = esPasado ?
                   ITRDInterpretacionHelper.interpretarITRDPasado(puntaje) :
                   ITRDInterpretacionHelper.interpretarITRDPresente(puntaje);
@@ -204,8 +210,10 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
                 ];
               }
             }
-          },
-          // Líneas de referencia para umbrales
+          }
+          // ✅ CORRECCIÓN: Comentar annotation ya que no está instalado el plugin
+          // Si quieres las líneas de referencia, instala: npm install chartjs-plugin-annotation
+          /*
           annotation: {
             annotations: {
               linePasado50: {
@@ -235,7 +243,8 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
                 }
               }
             }
-          } as any
+          }
+          */
         },
         scales: {
           y: {
