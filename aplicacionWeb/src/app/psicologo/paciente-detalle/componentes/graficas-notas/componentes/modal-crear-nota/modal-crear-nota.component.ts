@@ -1,10 +1,11 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
 import { ToastrService } from 'ngx-toastr';
 import { ActualizarNotaRequest, CrearNotaRequest, Nota } from '../../../../../../interfaces/nota';
 import { NotasService } from '../../../../../../services/notas.service';
+import { TestsService } from '../../../../../../services/tests.service';
+import { AplicacionTest } from '../../../../../../interfaces/test';
 
 @Component({
   selector: 'app-modal-crear-nota',
@@ -25,11 +26,17 @@ export class ModalCrearNotaComponent implements OnInit {
   titulo: string = '';
   contenido: string = '';
   tipo: 'general' | 'test' = 'general';
+  idTestSeleccionado?: number; // ✅ CORREGIDO: Usar undefined en lugar de null
+
+  // Lista de tests disponibles
+  testsDisponibles: AplicacionTest[] = [];
+  cargandoTests: boolean = false;
 
   guardando: boolean = false;
 
   constructor(
     private notasService: NotasService,
+    private testsService: TestsService,
     private toastr: ToastrService
   ) {}
 
@@ -39,11 +46,43 @@ export class ModalCrearNotaComponent implements OnInit {
       this.titulo = this.nota.titulo;
       this.contenido = this.nota.contenido;
       this.tipo = this.nota.tipo;
+      this.idTestSeleccionado = this.nota.id_aplicacion;
     }
 
-    // Si hay id_aplicacion, es una nota de test
+    // Si hay id_aplicacion proporcionado, es una nota de test
     if (this.idAplicacion) {
       this.tipo = 'test';
+      this.idTestSeleccionado = this.idAplicacion;
+    }
+
+    // Cargar tests disponibles del paciente
+    this.cargarTestsDisponibles();
+  }
+
+  /**
+   * Cargar tests completados del paciente
+   */
+  cargarTestsDisponibles(): void {
+    this.cargandoTests = true;
+    this.testsService.getHistorialTests(this.idPaciente).subscribe({
+      next: (tests) => {
+        // Solo tests completados
+        this.testsDisponibles = tests.filter(t => t.estado === 'completado');
+        this.cargandoTests = false;
+      },
+      error: (error) => {
+        console.error('Error al cargar tests:', error);
+        this.cargandoTests = false;
+      }
+    });
+  }
+
+  /**
+   * Cambiar tipo de nota (general o test)
+   */
+  onTipoChange(): void {
+    if (this.tipo === 'general') {
+      this.idTestSeleccionado = undefined; // ✅ CORREGIDO: Usar undefined
     }
   }
 
@@ -59,6 +98,12 @@ export class ModalCrearNotaComponent implements OnInit {
 
     if (!this.contenido.trim()) {
       this.toastr.warning('Por favor ingresa contenido para la nota');
+      return;
+    }
+
+    // Validar que si es nota de test, se haya seleccionado un test
+    if (this.tipo === 'test' && !this.idTestSeleccionado && !this.idAplicacion) {
+      this.toastr.warning('Por favor selecciona un test para vincular la nota');
       return;
     }
 
@@ -82,9 +127,9 @@ export class ModalCrearNotaComponent implements OnInit {
       tipo: this.tipo
     };
 
-    // Agregar id_aplicacion si existe
-    if (this.idAplicacion) {
-      notaData.id_aplicacion = this.idAplicacion;
+    // Agregar id_aplicacion si es nota de test
+    if (this.tipo === 'test') {
+      notaData.id_aplicacion = this.idTestSeleccionado || this.idAplicacion;
     }
 
     this.notasService.crearNota(notaData).subscribe({
@@ -145,5 +190,16 @@ export class ModalCrearNotaComponent implements OnInit {
 
   get contadorContenido(): string {
     return `${this.contenido.length}/1000`;
+  }
+
+  /**
+   * Obtener nombre del test seleccionado
+   */
+  getNombreTestSeleccionado(): string {
+    if (!this.idTestSeleccionado && !this.idAplicacion) return '';
+    
+    const idBuscar = this.idTestSeleccionado || this.idAplicacion;
+    const test = this.testsDisponibles.find(t => t.id_aplicacion === idBuscar);
+    return test?.test?.nombre || '';
   }
 }

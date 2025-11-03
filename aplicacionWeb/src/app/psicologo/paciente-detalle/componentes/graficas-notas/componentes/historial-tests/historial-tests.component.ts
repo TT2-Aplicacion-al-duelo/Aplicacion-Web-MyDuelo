@@ -1,4 +1,3 @@
-
 import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,19 +9,20 @@ import { ToastrService } from 'ngx-toastr';
 import { Chart, registerables } from 'chart.js';
 import { ITRDInterpretacionHelper } from '../../../../../../services/helpers/itrd-interpretacion.helper';
 import { DetalleRespuestasComponent } from '../detalle-respuestas/detalle-respuestas.component';
+import { ModalCrearNotaComponent } from '../modal-crear-nota/modal-crear-nota.component';
 
 // Registrar componentes de Chart.js
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-historial-tests',
-  imports: [CommonModule, FormsModule, DetalleRespuestasComponent],
+  imports: [CommonModule, FormsModule, DetalleRespuestasComponent, ModalCrearNotaComponent],
   templateUrl: './historial-tests.component.html',
   styleUrls: ['./historial-tests.component.css']
 })
 export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() idPaciente!: number;
-  @Input() paciente!: Paciente; // ✅ NUEVO: Recibir datos completos del paciente
+  @Input() paciente!: Paciente;
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
 
   historialTests: AplicacionTest[] = [];
@@ -39,9 +39,13 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
   testsFiltro: { id: number; nombre: string }[] = [];
   filtroTestSeleccionado: number | null = null;
 
-  // ✅ NUEVO: Control del modal de respuestas
+  // Control del modal de respuestas
   mostrarModalRespuestas: boolean = false;
   aplicacionSeleccionada: AplicacionTest | null = null;
+
+  // ✅ CORREGIDO: Control del modal de crear nota con undefined
+  mostrarModalNota: boolean = false;
+  idAplicacionParaNota?: number; // Usar undefined en lugar de null
 
   constructor(
     private testsService: TestsService,
@@ -211,7 +215,7 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
-   * ✅ NUEVO: Abrir modal de respuestas
+   * Abrir modal de respuestas
    */
   verRespuestas(aplicacion: AplicacionTest): void {
     this.aplicacionSeleccionada = aplicacion;
@@ -219,7 +223,7 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
-   * ✅ NUEVO: Cerrar modal de respuestas
+   * Cerrar modal de respuestas
    */
   cerrarModalRespuestas(): void {
     this.mostrarModalRespuestas = false;
@@ -227,7 +231,32 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
-   * ✅ CORREGIDO: Descargar PDF con nombre del paciente
+   * ✅ CORREGIDO: Manejar evento de crear nota desde el modal de respuestas
+   */
+  abrirModalCrearNota(idAplicacion: number): void {
+    this.idAplicacionParaNota = idAplicacion;
+    this.mostrarModalRespuestas = false; // Cerrar modal de respuestas
+    this.mostrarModalNota = true; // Abrir modal de nota
+  }
+
+  /**
+   * Cerrar modal de crear nota
+   */
+  cerrarModalNota(): void {
+    this.mostrarModalNota = false;
+    this.idAplicacionParaNota = undefined; // ✅ CORREGIDO: Usar undefined
+  }
+
+  /**
+   * Cuando se guarda la nota, cerrar modal
+   */
+  onNotaGuardada(): void {
+    this.cerrarModalNota();
+    this.toastr.success('Nota creada exitosamente');
+  }
+
+  /**
+   * Descargar PDF con nombre del paciente
    */
   async descargarPDF(aplicacion: AplicacionTest): Promise<void> {
     this.toastr.info('Generando PDF...', '', { timeOut: 2000 });
@@ -245,7 +274,6 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
         chartImageData = this.chart.toBase64Image();
       }
 
-      // ✅ CORREGIDO: Usar nombre completo del paciente
       const nombrePaciente = this.paciente 
         ? `${this.paciente.nombre} ${this.paciente.apellido_paterno} ${this.paciente.apellido_materno}`.trim()
         : 'Paciente';

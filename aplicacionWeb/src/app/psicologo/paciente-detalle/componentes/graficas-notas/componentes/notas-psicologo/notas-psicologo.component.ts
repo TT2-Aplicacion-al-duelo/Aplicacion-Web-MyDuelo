@@ -1,15 +1,16 @@
 // aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/notas-psicologo/notas-psicologo.component.ts
+// ✅ CORREGIDO: Cambiado tipo de null a undefined para compatibilidad
 
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-//import { NotasService } from '../../../../../../services/notas.service';
-//import { Nota } from '../../../../../../interfaces/nota';
 import { ModalCrearNotaComponent } from '../modal-crear-nota/modal-crear-nota.component';
 import { ToastrService } from 'ngx-toastr';
 import Swal from 'sweetalert2';
 import { Nota } from '../../../../../../interfaces/nota';
 import { NotasService } from '../../../../../../services/notas.service';
+import { TestsService } from '../../../../../../services/tests.service';
+import { AplicacionTest } from '../../../../../../interfaces/test';
 
 @Component({
   selector: 'app-notas-psicologo',
@@ -27,17 +28,23 @@ export class NotasPsicologoComponent implements OnInit {
   mostrarModal: boolean = false;
   modoEdicion: boolean = false;
 
+  // ✅ CORREGIDO: Cambiar de null a undefined
+  testsAplicados: AplicacionTest[] = [];
+  idAplicacionParaNota?: number; // Usar undefined en lugar de null
+
   // Filtros
   filtroTipo: 'todas' | 'general' | 'test' = 'todas';
   busqueda: string = '';
 
   constructor(
     private notasService: NotasService,
+    private testsService: TestsService,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
     this.cargarNotas();
+    this.cargarTestsAplicados();
   }
 
   /**
@@ -61,11 +68,37 @@ export class NotasPsicologoComponent implements OnInit {
   }
 
   /**
+   * Cargar tests aplicados al paciente
+   */
+  cargarTestsAplicados(): void {
+    this.testsService.getHistorialTests(this.idPaciente).subscribe({
+      next: (tests) => {
+        // Solo tests completados
+        this.testsAplicados = tests.filter(t => t.estado === 'completado');
+      },
+      error: (error) => {
+        console.error('Error al cargar tests:', error);
+      }
+    });
+  }
+
+  /**
    * Abrir modal para crear nota
    */
   crearNota(): void {
     this.notaSeleccionada = null;
     this.modoEdicion = false;
+    this.idAplicacionParaNota = undefined; // ✅ CORREGIDO: Usar undefined
+    this.mostrarModal = true;
+  }
+
+  /**
+   * Crear nota vinculada a un test específico
+   */
+  crearNotaConTest(idAplicacion: number): void {
+    this.notaSeleccionada = null;
+    this.modoEdicion = false;
+    this.idAplicacionParaNota = idAplicacion;
     this.mostrarModal = true;
   }
 
@@ -75,6 +108,7 @@ export class NotasPsicologoComponent implements OnInit {
   editarNota(nota: Nota): void {
     this.notaSeleccionada = nota;
     this.modoEdicion = true;
+    this.idAplicacionParaNota = nota.id_aplicacion; // Ya es number | undefined
     this.mostrarModal = true;
   }
 
@@ -120,6 +154,7 @@ export class NotasPsicologoComponent implements OnInit {
   onNotaGuardada(): void {
     this.mostrarModal = false;
     this.notaSeleccionada = null;
+    this.idAplicacionParaNota = undefined; // ✅ CORREGIDO: Usar undefined
     this.cargarNotas();
   }
 
@@ -129,6 +164,7 @@ export class NotasPsicologoComponent implements OnInit {
   cerrarModal(): void {
     this.mostrarModal = false;
     this.notaSeleccionada = null;
+    this.idAplicacionParaNota = undefined; // ✅ CORREGIDO: Usar undefined
   }
 
   /**
@@ -136,6 +172,14 @@ export class NotasPsicologoComponent implements OnInit {
    */
   cambiarFiltroTipo(tipo: 'todas' | 'general' | 'test'): void {
     this.filtroTipo = tipo;
+  }
+
+  /**
+   * Obtener información del test asociado a una nota
+   */
+  getTestAsociado(nota: Nota): AplicacionTest | undefined {
+    if (!nota.id_aplicacion) return undefined;
+    return this.testsAplicados.find(t => t.id_aplicacion === nota.id_aplicacion);
   }
 
   /**

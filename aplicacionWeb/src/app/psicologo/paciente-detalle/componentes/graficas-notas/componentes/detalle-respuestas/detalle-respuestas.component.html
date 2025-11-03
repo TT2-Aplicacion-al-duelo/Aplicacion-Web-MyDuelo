@@ -1,18 +1,16 @@
-<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/detalle-respuestas/detalle-respuestas.component.html -->
-
-<div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+<div class="modal fade show d-block" style="background-color: rgba(0,0,0,0.5);" tabindex="-1">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content">
+      
       <!-- Header -->
       <div class="modal-header bg-primary text-white">
         <div>
-          <h5 class="modal-title mb-0">
-            <i class="bi bi-file-text me-2"></i>
+          <h5 class="modal-title mb-1">
+            <i class="bi bi-clipboard-data me-2"></i>
             Respuestas del Test
           </h5>
-          <small class="d-block mt-1">
-            {{ aplicacion.test?.nombre }} - 
-            {{ aplicacion.fecha | date: 'dd/MM/yyyy HH:mm' }}
+          <small class="d-block opacity-75">
+            {{ aplicacion.test?.nombre }}
           </small>
         </div>
         <button 
@@ -24,75 +22,105 @@
 
       <!-- Body -->
       <div class="modal-body">
-        <!-- Resultado general -->
-        <div *ngIf="aplicacion.resultado" class="alert alert-info mb-4">
-          <div class="row align-items-center">
-            <div class="col-md-8">
-              <h6 class="mb-2">
-                <i class="bi bi-clipboard-data me-2"></i>
-                Resultado General
-              </h6>
-              <p class="mb-0">{{ aplicacion.resultado.interpretacion }}</p>
-            </div>
-            <div class="col-md-4 text-center">
-              <div class="puntaje-grande">
-                <span class="display-4 fw-bold text-primary">
-                  {{ aplicacion.resultado.puntaje_total }}
-                </span>
-                <div class="text-muted">Puntaje Total</div>
+        <!-- Información del test -->
+        <div class="card border-info mb-4">
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6">
+                <h6 class="text-primary mb-3">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Información del Test
+                </h6>
+                <div class="mb-2">
+                  <strong>Test:</strong> {{ aplicacion.test?.nombre }}
+                </div>
+                <div class="mb-2">
+                  <strong>Fecha:</strong> {{ aplicacion.fecha | date: 'dd/MM/yyyy HH:mm' }}
+                </div>
+                <div class="mb-2">
+                  <strong>Estado:</strong> 
+                  <span class="badge" 
+                        [class.bg-success]="aplicacion.estado === 'completado'"
+                        [class.bg-warning]="aplicacion.estado !== 'completado'">
+                    {{ aplicacion.estado === 'completado' ? 'Completado' : 'Pendiente' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="col-md-6" *ngIf="aplicacion.resultado">
+                <h6 class="text-primary mb-3">
+                  <i class="bi bi-bar-chart me-2"></i>
+                  Resultado
+                </h6>
+                <div class="text-center">
+                  <div class="display-4 fw-bold text-primary mb-2">
+                    {{ aplicacion.resultado.puntaje_total }}
+                  </div>
+                  <div class="text-muted">Puntaje Total</div>
+                  <div class="mt-2" *ngIf="aplicacion.resultado.interpretacion">
+                    <span class="badge bg-info">
+                      {{ aplicacion.resultado.interpretacion }}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- Estado de carga -->
+        <!-- Loading -->
         <div *ngIf="cargando" class="text-center py-5">
-          <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-3 text-muted">Cargando respuestas...</p>
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Cargando...</span>
+          </div>
+          <p class="text-muted mt-3">Cargando respuestas...</p>
         </div>
 
-        <!-- Respuestas -->
+        <!-- Lista de respuestas -->
         <div *ngIf="!cargando" class="respuestas-container">
-          <div *ngFor="let respuesta of respuestas; let i = index" class="respuesta-item mb-3">
-            <div class="card">
-              <div class="card-body">
-                <div class="d-flex align-items-start">
-                  <!-- Número -->
-                  <div class="numero-pregunta me-3">
-                    <span class="badge bg-primary rounded-circle" 
-                          style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
-                      {{ i + 1 }}
-                    </span>
-                  </div>
+          <h6 class="text-primary mb-3">
+            <i class="bi bi-list-check me-2"></i>
+            Respuestas del Paciente ({{ respuestas.length }} preguntas)
+          </h6>
 
-                  <!-- Pregunta y respuesta -->
-                  <div class="flex-grow-1">
-                    <h6 class="mb-2">{{ respuesta.pregunta?.texto_pregunta }}</h6>
-                    
-                    <!-- Respuesta según tipo -->
-                    <div class="respuesta-valor">
-                      <!-- Respuesta escala -->
-                      <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'escala'">
-                        <span class="badge bg-{{getColorRespuesta(respuesta.respuesta)}} fs-6">
-                          {{ respuesta.respuesta }}
-                        </span>
-                      </div>
+          <div *ngFor="let respuesta of respuestas; let i = index" class="card mb-3">
+            <div class="card-body">
+              <div class="d-flex align-items-start">
+                <!-- Número de pregunta -->
+                <div class="me-3">
+                  <span class="badge bg-primary rounded-circle" 
+                        style="width: 35px; height: 35px; display: flex; align-items: center; justify-content: center;">
+                    {{ i + 1 }}
+                  </span>
+                </div>
 
-                      <!-- Respuesta si/no -->
-                      <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'si_no'">
-                        <span class="badge" 
-                              [class.bg-success]="respuesta.respuesta === 'si'"
-                              [class.bg-danger]="respuesta.respuesta === 'no'">
-                          {{ respuesta.respuesta === 'si' ? 'Sí' : 'No' }}
-                        </span>
-                      </div>
+                <!-- Pregunta y respuesta -->
+                <div class="flex-grow-1">
+                  <h6 class="mb-2">{{ respuesta.pregunta?.texto_pregunta }}</h6>
+                  
+                  <!-- Respuesta según tipo -->
+                  <div class="respuesta-valor">
+                    <!-- Respuesta escala -->
+                    <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'escala'">
+                      <span class="badge bg-{{getColorRespuesta(respuesta.respuesta)}} fs-6">
+                        {{ respuesta.respuesta }}
+                      </span>
+                    </div>
 
-                      <!-- Respuesta texto -->
-                      <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'texto'">
-                        <div class="alert alert-light mb-0">
-                          <i class="bi bi-quote me-2"></i>
-                          {{ respuesta.respuesta }}
-                        </div>
+                    <!-- Respuesta si/no -->
+                    <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'si_no'">
+                      <span class="badge" 
+                            [class.bg-success]="respuesta.respuesta === 'si'"
+                            [class.bg-danger]="respuesta.respuesta === 'no'">
+                        {{ respuesta.respuesta === 'si' ? 'Sí' : 'No' }}
+                      </span>
+                    </div>
+
+                    <!-- Respuesta texto -->
+                    <div *ngIf="respuesta.pregunta?.tipo_respuesta === 'texto'">
+                      <div class="alert alert-light mb-0">
+                        <i class="bi bi-quote me-2"></i>
+                        {{ respuesta.respuesta }}
                       </div>
                     </div>
                   </div>
@@ -111,6 +139,16 @@
 
       <!-- Footer -->
       <div class="modal-footer bg-light">
+        <!-- ✅ NUEVO: Botón para crear nota -->
+        <button 
+          type="button" 
+          class="btn btn-success me-auto"
+          (click)="crearNotaTest()">
+          <i class="bi bi-journal-plus me-2"></i>
+          Crear Nota sobre este Test
+        </button>
+
+        <!-- Botón descargar PDF -->
         <button 
           type="button" 
           class="btn btn-outline-danger"
@@ -118,6 +156,8 @@
           <i class="bi bi-file-pdf me-2"></i>
           Descargar PDF
         </button>
+
+        <!-- Botón cerrar -->
         <button 
           type="button" 
           class="btn btn-secondary" 

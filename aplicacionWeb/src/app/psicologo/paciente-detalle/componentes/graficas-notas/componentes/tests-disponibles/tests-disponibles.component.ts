@@ -145,6 +145,10 @@ export class TestsDisponiblesComponent implements OnInit {
   if (this.testSeleccionado.nombre.toLowerCase().includes('itrd') && 
       this.testSeleccionado.nombre.toLowerCase().includes('pasado')) {
     tipo = 'inicial';
+  }else if((this.testSeleccionado.nombre.toLowerCase().includes('itrd') && 
+      this.testSeleccionado.nombre.toLowerCase().includes('presente')) 
+    ){
+      tipo = 'seguimiento';
   }
 
   const data = {

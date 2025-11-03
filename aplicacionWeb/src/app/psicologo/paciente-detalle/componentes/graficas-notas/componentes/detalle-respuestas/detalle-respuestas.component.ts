@@ -1,8 +1,10 @@
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { AplicacionTest, RespuestaTest } from '../../../../../../interfaces/test';
+import { Paciente } from '../../../../../../interfaces/paciente';
 import { ToastrService } from 'ngx-toastr';
 import { TestsService } from '../../../../../../services/tests.service';
+import { PdfGeneratorService } from '../../../../../../services/pdf-generator.service';
 
 @Component({
   selector: 'app-detalle-respuestas',
@@ -12,13 +14,16 @@ import { TestsService } from '../../../../../../services/tests.service';
 })
 export class DetalleRespuestasComponent implements OnInit {
   @Input() aplicacion!: AplicacionTest;
+  @Input() paciente!: Paciente; // ✅ NUEVO: Recibir datos del paciente
   @Output() cerrar = new EventEmitter<void>();
+  @Output() crearNota = new EventEmitter<number>(); // ✅ NUEVO: Emitir evento para crear nota
 
   respuestas: RespuestaTest[] = [];
   cargando: boolean = false;
 
   constructor(
     private testsService: TestsService,
+    private pdfService: PdfGeneratorService, // ✅ NUEVO: Servicio para generar PDF
     private toastr: ToastrService
   ) {}
 
@@ -52,12 +57,36 @@ export class DetalleRespuestasComponent implements OnInit {
   }
 
   /**
-   * Descargar PDF
+   * ✅ CORREGIDO: Descargar PDF usando el servicio de generación de PDF
    */
-  descargarPDF(): void {
-    const nombreArchivo = `Respuestas_${this.aplicacion.test?.nombre}_${new Date(this.aplicacion.fecha).toLocaleDateString()}.pdf`;
-    this.testsService.descargarPDF(this.aplicacion.id_aplicacion, nombreArchivo);
-    this.toastr.success('Descargando PDF...');
+  async descargarPDF(): Promise<void> {
+    this.toastr.info('Generando PDF...', '', { timeOut: 2000 });
+
+    try {
+      // Obtener nombre completo del paciente
+      const nombrePaciente = this.paciente 
+        ? `${this.paciente.nombre} ${this.paciente.apellido_paterno} ${this.paciente.apellido_materno}`.trim()
+        : 'Paciente';
+
+      // Generar PDF usando el servicio
+      await this.pdfService.generarPDFTest(
+        this.aplicacion,
+        this.respuestas,
+        nombrePaciente
+      );
+
+      this.toastr.success('PDF generado y descargado exitosamente');
+    } catch (error) {
+      console.error('Error al generar PDF:', error);
+      this.toastr.error('Error al generar el PDF');
+    }
+  }
+
+  /**
+   * ✅ NUEVO: Crear nota vinculada a este test
+   */
+  crearNotaTest(): void {
+    this.crearNota.emit(this.aplicacion.id_aplicacion);
   }
 
   /**

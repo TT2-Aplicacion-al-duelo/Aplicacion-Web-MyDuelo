@@ -1,11 +1,9 @@
-<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/modal-crear-nota/modal-crear-nota.component.html -->
-
 <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
       <!-- Header -->
       <div class="modal-header" [class.bg-primary]="!modoEdicion" [class.bg-warning]="modoEdicion" class="text-white">
-        <h5 class="modal-title">
+        <h5 class="modal-title text-white">
           <i class="bi" [class.bi-plus-circle]="!modoEdicion" [class.bi-pencil-square]="modoEdicion"></i>
           {{ modoEdicion ? 'Editar Nota' : 'Nueva Nota' }}
         </h5>
@@ -21,7 +19,7 @@
       <div class="modal-body">
         <form>
           <!-- Tipo de nota -->
-          <div class="mb-4" *ngIf="!modoEdicion">
+          <div class="mb-4" *ngIf="!modoEdicion && !idAplicacion">
             <label class="form-label fw-bold">
               <i class="bi bi-tag me-2"></i>
               Tipo de Nota
@@ -34,7 +32,7 @@
                 id="tipo-general" 
                 value="general"
                 [(ngModel)]="tipo"
-                [disabled]="!!idAplicacion">
+                (change)="onTipoChange()">
               <label class="btn btn-outline-success" for="tipo-general">
                 <i class="bi bi-journal-text me-2"></i>
                 Nota General
@@ -47,7 +45,7 @@
                 id="tipo-test" 
                 value="test"
                 [(ngModel)]="tipo"
-                [disabled]="!!idAplicacion">
+                (change)="onTipoChange()">
               <label class="btn btn-outline-primary" for="tipo-test">
                 <i class="bi bi-clipboard-data me-2"></i>
                 Nota de Test
@@ -57,6 +55,42 @@
               <i class="bi bi-info-circle me-1"></i>
               Las notas de test están vinculadas a evaluaciones específicas
             </small>
+          </div>
+
+          <!-- Selector de test (solo si es nota de test y no se proporcionó idAplicacion) -->
+          <div class="mb-4" *ngIf="tipo === 'test' && !idAplicacion && !modoEdicion">
+            <label for="testSelector" class="form-label fw-bold">
+              <i class="bi bi-clipboard-check me-2"></i>
+              Test a Vincular
+            </label>
+            <select 
+              class="form-select form-select-lg"
+              id="testSelector"
+              [(ngModel)]="idTestSeleccionado"
+              name="testSelector"
+              [disabled]="guardando || cargandoTests">
+              <!-- ✅ CORREGIDO: Usar undefined en lugar de null -->
+              <option [ngValue]="undefined">Selecciona un test...</option>
+              <option *ngFor="let test of testsDisponibles" [ngValue]="test.id_aplicacion">
+                {{ test.test?.nombre }} - {{ test.fecha | date: 'dd/MM/yyyy' }}
+              </option>
+            </select>
+            <small class="text-muted d-block mt-2" *ngIf="cargandoTests">
+              <i class="bi bi-hourglass-split me-1"></i>
+              Cargando tests disponibles...
+            </small>
+            <small class="text-muted d-block mt-2" *ngIf="!cargandoTests && testsDisponibles.length === 0">
+              <i class="bi bi-exclamation-triangle me-1"></i>
+              No hay tests completados para vincular
+            </small>
+          </div>
+
+          <!-- Mostrar test vinculado si ya existe -->
+          <div class="mb-4" *ngIf="tipo === 'test' && (idAplicacion || (modoEdicion && idTestSeleccionado))">
+            <div class="alert alert-info">
+              <i class="bi bi-link-45deg me-2"></i>
+              <strong>Test vinculado:</strong> {{ getNombreTestSeleccionado() }}
+            </div>
           </div>
 
           <!-- Título -->
@@ -75,22 +109,25 @@
               maxlength="100"
               [disabled]="guardando">
             <div class="d-flex justify-content-between mt-2">
-              <small class="text-muted">Título breve y descriptivo</small>
+              <small class="text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                El título debe ser breve y descriptivo
+              </small>
               <small class="text-muted">{{ contadorTitulo }}</small>
             </div>
           </div>
 
           <!-- Contenido -->
-          <div class="mb-3">
+          <div class="mb-4">
             <label for="contenido" class="form-label fw-bold">
-              <i class="bi bi-file-text me-2"></i>
+              <i class="bi bi-textarea-t me-2"></i>
               Contenido
             </label>
             <textarea 
               class="form-control"
               id="contenido"
-              rows="10"
-              placeholder="Escribe aquí tus observaciones, comentarios o notas sobre el paciente..."
+              rows="8"
+              placeholder="Escribe el contenido de la nota aquí..."
               [(ngModel)]="contenido"
               name="contenido"
               maxlength="1000"
@@ -98,8 +135,8 @@
             </textarea>
             <div class="d-flex justify-content-between mt-2">
               <small class="text-muted">
-                <i class="bi bi-lightbulb me-1"></i>
-                Incluye observaciones importantes y recomendaciones
+                <i class="bi bi-info-circle me-1"></i>
+                Describe observaciones, recomendaciones o seguimiento
               </small>
               <small class="text-muted">{{ contadorContenido }}</small>
             </div>
@@ -121,7 +158,7 @@
           type="button" 
           class="btn"
           [class.btn-primary]="!modoEdicion"
-          [class.btn-warning]="modoEdicion"
+          [class.btn-warning]="modoEdicion" 
           (click)="guardarNota()"
           [disabled]="guardando || !titulo.trim() || !contenido.trim()">
           <span *ngIf="guardando">

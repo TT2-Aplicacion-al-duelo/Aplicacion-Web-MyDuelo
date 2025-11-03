@@ -1,4 +1,3 @@
-
 <div class="historial-tests-container">
   <!-- Encabezado -->
   <div class="d-flex justify-content-between align-items-center mb-4">
@@ -100,10 +99,10 @@
               </div>
             </div>
 
-            <!-- ✅ CORREGIDO: Acciones con botón para ver respuestas -->
+            <!-- Acciones -->
             <div class="col-md-3">
               <div class="d-flex gap-2 justify-content-end flex-wrap">
-                <!-- ✅ NUEVO: Botón para ver respuestas -->
+                <!-- Botón para ver respuestas -->
                 <button 
                   class="btn btn-sm btn-outline-primary"
                   (click)="verRespuestas(aplicacion)"
@@ -153,15 +152,20 @@
   </div>
 </div>
 
-<!-- ✅ NUEVO: Modal de detalle de respuestas -->
+<!-- Modal de detalle de respuestas con binding de paciente y evento de crear nota -->
 <app-detalle-respuestas
   *ngIf="mostrarModalRespuestas && aplicacionSeleccionada"
   [aplicacion]="aplicacionSeleccionada"
-  (cerrar)="cerrarModalRespuestas()">
+  [paciente]="paciente"
+  (cerrar)="cerrarModalRespuestas()"
+  (crearNota)="abrirModalCrearNota($event)">
 </app-detalle-respuestas>
 
-
-
-
-
-
+<!-- ✅ CORREGIDO: Modal de crear nota vinculada al test usando operador de navegación segura -->
+<app-modal-crear-nota
+  *ngIf="mostrarModalNota && idAplicacionParaNota !== undefined"
+  [idPaciente]="idPaciente"
+  [idAplicacion]="idAplicacionParaNota"
+  (notaGuardada)="onNotaGuardada()"
+  (cerrar)="cerrarModalNota()">
+</app-modal-crear-nota>
