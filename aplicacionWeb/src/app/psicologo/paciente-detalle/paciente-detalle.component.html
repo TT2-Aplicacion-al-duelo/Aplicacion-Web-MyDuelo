@@ -66,34 +66,32 @@
         </li>
       </ul>
 
-      <!-- Contenido de las tabs -->
+      <!-- Contenido de los tabs -->
       <div class="tab-content">
         <!-- Tab Información -->
-        <div *ngIf="tabActiva === 'info'" class="tab-pane fade show active">
-          <app-paciente-info [paciente]="paciente" [idPaciente]="idPaciente"></app-paciente-info>
+        <div *ngIf="tabActiva === 'info'">
+          <app-paciente-info [paciente]="paciente"></app-paciente-info>
         </div>
 
         <!-- Tab Gráficas y Notas -->
-        <div *ngIf="tabActiva === 'graficas'" class="tab-pane fade show active">
-          <app-graficas-notas [idPaciente]="idPaciente"></app-graficas-notas>
+        <!-- ✅ CORREGIDO: Agregado binding de paciente -->
+        <div *ngIf="tabActiva === 'graficas'">
+          <app-graficas-notas 
+            [idPaciente]="idPaciente"
+            [paciente]="paciente">
+          </app-graficas-notas>
         </div>
 
         <!-- Tab Módulos -->
-        <div *ngIf="tabActiva === 'modulos'" class="tab-pane fade show active">
+        <div *ngIf="tabActiva === 'modulos'">
           <app-modulos-duelo [idPaciente]="idPaciente"></app-modulos-duelo>
         </div>
 
         <!-- Tab Actividades -->
-        <div *ngIf="tabActiva === 'actividades'" class="tab-pane fade show active">
+        <div *ngIf="tabActiva === 'actividades'">
           <app-actividades-personalizadas [idPaciente]="idPaciente"></app-actividades-personalizadas>
         </div>
       </div>
     </div>
-  </div>
-
-  <!-- Estado vacío si no hay paciente -->
-  <div *ngIf="!cargando && !paciente" class="alert alert-warning">
-    <i class="bi bi-exclamation-triangle me-2"></i>
-    No se encontró información del paciente.
   </div>
 </div>

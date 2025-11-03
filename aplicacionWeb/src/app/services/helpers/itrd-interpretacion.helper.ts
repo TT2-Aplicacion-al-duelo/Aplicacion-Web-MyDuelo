@@ -1,5 +1,3 @@
-// frontend/src/app/services/helpers/itrd-interpretacion.helper.ts
-
 /**
  * Helper para la interpretación del ITRD (Inventario Texas del Duelo Revisado)
  * Contiene la lógica de puntuación e interpretación para ITRD Pasado e ITRD Presente
@@ -103,7 +101,6 @@ export class ITRDInterpretacionHelper {
       recomendaciones = [
         'Terapia de duelo estructurada',
         'Evaluación de funcionalidad diaria',
-        'Considerar apoyo farmacológico si hay alteraciones del sueño',
         'Red de apoyo social y familiar'
       ];
     } else { // 81-100%
@@ -112,7 +109,6 @@ export class ITRDInterpretacionHelper {
       recomendaciones = [
         'Intervención psicológica intensiva',
         'Evaluación de riesgo (depresión, ideación suicida)',
-        'Considerar derivación a psiquiatría',
         'Seguimiento cercano y frecuente',
         'Fortalecer red de apoyo inmediata'
       ];
@@ -172,7 +168,6 @@ export class ITRDInterpretacionHelper {
       recomendaciones = [
         'Intervención psicológica intensiva especializada',
         'Evaluación psiquiátrica completa',
-        'Considerar terapia farmacológica',
         'Protocolo para duelo complicado',
         'Seguimiento semanal',
         'Evaluación de riesgo suicida',
@@ -214,7 +209,6 @@ export class ITRDInterpretacionHelper {
       recomendaciones = [
         'Terapia especializada en duelo prolongado',
         'Evaluación de trastorno de duelo prolongado (DSM-5)',
-        'Considerar terapia farmacológica',
         'Técnicas de exposición gradual a recuerdos',
         'Reestructuración cognitiva de pensamientos rumiativos',
         'Seguimiento intensivo'

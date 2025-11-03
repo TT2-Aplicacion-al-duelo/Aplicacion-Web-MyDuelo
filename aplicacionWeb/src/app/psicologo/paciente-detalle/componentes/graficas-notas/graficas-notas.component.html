@@ -1,4 +1,5 @@
 <!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/graficas-notas.component.html -->
+<!-- ✅ CORREGIDO: Agregado binding de paciente para historial-tests -->
 
 <div class="graficas-notas-container">
   <!-- Header con navegación de secciones -->
@@ -55,7 +56,11 @@
   <div class="tab-content">
     <!-- Historial de Tests -->
     <div *ngIf="seccionActiva === 'historial'" class="tab-pane fade show active">
-      <app-historial-tests [idPaciente]="idPaciente"></app-historial-tests>
+      <!-- ✅ CORREGIDO: Agregado binding de paciente -->
+      <app-historial-tests 
+        [idPaciente]="idPaciente"
+        [paciente]="paciente">
+      </app-historial-tests>
     </div>
 
     <!-- Tests Disponibles -->

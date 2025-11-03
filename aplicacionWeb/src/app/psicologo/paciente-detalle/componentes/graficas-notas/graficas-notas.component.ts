@@ -1,10 +1,10 @@
-// aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/graficas-notas.component.ts
 
 import { Component, Input, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { TestsDisponiblesComponent } from './componentes/tests-disponibles/tests-disponibles.component';
 import { HistorialTestsComponent } from './componentes/historial-tests/historial-tests.component';
 import { NotasPsicologoComponent } from './componentes/notas-psicologo/notas-psicologo.component';
+import { Paciente } from '../../../../interfaces/paciente';
 
 @Component({
   selector: 'app-graficas-notas',
@@ -19,6 +19,7 @@ import { NotasPsicologoComponent } from './componentes/notas-psicologo/notas-psi
 })
 export class GraficasNotasComponent implements OnInit {
   @Input() idPaciente!: number;
+  @Input() paciente!: Paciente; // ✅ NUEVO: Recibir datos completos del paciente
 
   // Control de las sub-secciones visibles
   seccionActiva: 'historial' | 'disponibles' | 'notas' = 'historial';

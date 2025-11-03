@@ -1,5 +1,3 @@
-// aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/graficas-notas/componentes/historial-tests/historial-tests.component.ts
-// ✅ CORRECCIÓN FINAL: Manejo correcto de null y eliminación de plugin annotation
 
 import { Component, Input, OnInit, ViewChild, ElementRef, AfterViewInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -7,21 +5,24 @@ import { FormsModule } from '@angular/forms';
 import { TestsService } from '../../../../../../services/tests.service';
 import { PdfGeneratorService } from '../../../../../../services/pdf-generator.service';
 import { AplicacionTest, GraficaTest, RespuestaTest } from '../../../../../../interfaces/test';
+import { Paciente } from '../../../../../../interfaces/paciente';
 import { ToastrService } from 'ngx-toastr';
 import { Chart, registerables } from 'chart.js';
 import { ITRDInterpretacionHelper } from '../../../../../../services/helpers/itrd-interpretacion.helper';
+import { DetalleRespuestasComponent } from '../detalle-respuestas/detalle-respuestas.component';
 
 // Registrar componentes de Chart.js
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-historial-tests',
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DetalleRespuestasComponent],
   templateUrl: './historial-tests.component.html',
   styleUrls: ['./historial-tests.component.css']
 })
 export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy {
   @Input() idPaciente!: number;
+  @Input() paciente!: Paciente; // ✅ NUEVO: Recibir datos completos del paciente
   @ViewChild('chartCanvas') chartCanvas!: ElementRef<HTMLCanvasElement>;
 
   historialTests: AplicacionTest[] = [];
@@ -37,6 +38,10 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
   // Filtros
   testsFiltro: { id: number; nombre: string }[] = [];
   filtroTestSeleccionado: number | null = null;
+
+  // ✅ NUEVO: Control del modal de respuestas
+  mostrarModalRespuestas: boolean = false;
+  aplicacionSeleccionada: AplicacionTest | null = null;
 
   constructor(
     private testsService: TestsService,
@@ -106,7 +111,7 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
-   * ✅ CORRECCIÓN FINAL: Crear gráfica de barras para ITRD
+   * Crear gráfica de barras para ITRD
    */
   private crearGraficaITRD(): void {
     if (!this.chartCanvas) {
@@ -153,17 +158,14 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
     }
 
     const ctx = this.chartCanvas.nativeElement.getContext('2d');
-    if (!ctx) {
-      console.error('No se pudo obtener el contexto del canvas');
-      return;
-    }
+    if (!ctx) return;
 
     this.chart = new Chart(ctx, {
       type: 'bar',
       data: {
         labels: labels,
         datasets: [{
-          label: 'Puntaje',
+          label: 'Puntaje Total',
           data: data,
           backgroundColor: backgroundColors,
           borderColor: borderColors,
@@ -173,96 +175,34 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
       options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: {
-          title: {
-            display: true,
-            text: 'Evolución de ITRD - Comparativa Pasado vs Presente',
-            font: {
-              size: 16,
-              weight: 'bold'
-            }
-          },
-          legend: {
-            display: false
-          },
-          tooltip: {
-            callbacks: {
-              afterLabel: (context) => {
-                // ✅ CORRECCIÓN: Verificar explícitamente que puntaje no es null
-                const puntaje = context.parsed.y;
-                if (puntaje === null || puntaje === undefined) {
-                  return ['Sin datos'];
-                }
-                
-                const label = context.label;
-                const esPasado = label.includes('Pasado');
-                const maxPuntaje = esPasado ? 40 : 65;
-                const porcentaje = Math.round((puntaje / maxPuntaje) * 100);
-                
-                // ✅ CORRECCIÓN: Ahora puntaje es definitivamente number
-                const resultado = esPasado ?
-                  ITRDInterpretacionHelper.interpretarITRDPasado(puntaje) :
-                  ITRDInterpretacionHelper.interpretarITRDPresente(puntaje);
-                
-                return [
-                  `Porcentaje: ${porcentaje}%`,
-                  `Categoría: ${resultado.categoria}`
-                ];
-              }
-            }
-          }
-          // ✅ CORRECCIÓN: Comentar annotation ya que no está instalado el plugin
-          // Si quieres las líneas de referencia, instala: npm install chartjs-plugin-annotation
-          /*
-          annotation: {
-            annotations: {
-              linePasado50: {
-                type: 'line',
-                yMin: 20,
-                yMax: 20,
-                borderColor: 'rgba(255, 206, 86, 0.8)',
-                borderWidth: 2,
-                borderDash: [5, 5],
-                label: {
-                  content: '50% ITRD Pasado (20 pts)',
-                  enabled: true,
-                  position: 'end'
-                }
-              },
-              linePresente50: {
-                type: 'line',
-                yMin: 32.5,
-                yMax: 32.5,
-                borderColor: 'rgba(75, 192, 192, 0.8)',
-                borderWidth: 2,
-                borderDash: [5, 5],
-                label: {
-                  content: '50% ITRD Presente (32.5 pts)',
-                  enabled: true,
-                  position: 'end'
-                }
-              }
-            }
-          }
-          */
-        },
         scales: {
           y: {
             beginAtZero: true,
-            max: 70,
+            max: 100,
             ticks: {
               stepSize: 10
             },
             title: {
               display: true,
-              text: 'Puntaje'
+              text: 'Puntaje (%)'
             }
           },
           x: {
-            ticks: {
-              autoSkip: false,
-              maxRotation: 45,
-              minRotation: 45
+            title: {
+              display: true,
+              text: 'Aplicaciones del Test'
+            }
+          }
+        },
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                return `Puntaje: ${context.parsed.y}%`;
+              }
             }
           }
         }
@@ -271,32 +211,23 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
   }
 
   /**
-   * Aplicar filtro de test
+   * ✅ NUEVO: Abrir modal de respuestas
    */
-  aplicarFiltro(): void {
-    if (this.filtroTestSeleccionado) {
-      const testSeleccionado = this.testsFiltro.find(t => t.id === this.filtroTestSeleccionado);
-      if (testSeleccionado && this.esTestITRD(testSeleccionado.nombre)) {
-        this.mostrarGrafica = true;
-        setTimeout(() => this.crearGraficaITRD(), 100);
-      } else {
-        this.mostrarGrafica = false;
-      }
-    } else {
-      this.verificarYCrearGraficaITRD();
-    }
+  verRespuestas(aplicacion: AplicacionTest): void {
+    this.aplicacionSeleccionada = aplicacion;
+    this.mostrarModalRespuestas = true;
   }
 
   /**
-   * Limpiar filtro
+   * ✅ NUEVO: Cerrar modal de respuestas
    */
-  limpiarFiltro(): void {
-    this.filtroTestSeleccionado = null;
-    this.verificarYCrearGraficaITRD();
+  cerrarModalRespuestas(): void {
+    this.mostrarModalRespuestas = false;
+    this.aplicacionSeleccionada = null;
   }
 
   /**
-   * Descargar PDF de un test
+   * ✅ CORREGIDO: Descargar PDF con nombre del paciente
    */
   async descargarPDF(aplicacion: AplicacionTest): Promise<void> {
     this.toastr.info('Generando PDF...', '', { timeOut: 2000 });
@@ -314,7 +245,10 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
         chartImageData = this.chart.toBase64Image();
       }
 
-      const nombrePaciente = 'Paciente';
+      // ✅ CORREGIDO: Usar nombre completo del paciente
+      const nombrePaciente = this.paciente 
+        ? `${this.paciente.nombre} ${this.paciente.apellido_paterno} ${this.paciente.apellido_materno}`.trim()
+        : 'Paciente';
 
       await this.pdfService.generarPDFTest(
         aplicacion,
@@ -374,3 +308,9 @@ export class HistorialTestsComponent implements OnInit, AfterViewInit, OnDestroy
     }
   }
 }
+
+
+
+
+
+
