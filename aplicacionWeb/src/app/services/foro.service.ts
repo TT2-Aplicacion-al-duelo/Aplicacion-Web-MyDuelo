@@ -96,14 +96,14 @@ export class ForoService {
       .pipe(map(() => undefined));
   }
 
-  unirseAForo(idForo: number): Observable<void> {
-    return this.http.post<ApiResponse<void>>(`${this.AppUrl}${this.APIUrl}/${idForo}/unirse`, {})
-      .pipe(map(() => undefined));
-  }
-
   obtenerParticipantes(idForo: number): Observable<Participante[]> {
     return this.http.get<ApiResponse<Participante[]>>(`${this.AppUrl}${this.APIUrl}/${idForo}/participantes`)
       .pipe(map(r => r.data!));
+  }
+
+  unirseAForo(idForo: number): Observable<any> {
+    return this.http.post<ApiResponse<any>>(`${this.AppUrl}${this.APIUrl}/${idForo}/unirse`, {})
+      .pipe(map(r => r.data));
   }
 
   // INVITACIONES - CORREGIDO LA URL

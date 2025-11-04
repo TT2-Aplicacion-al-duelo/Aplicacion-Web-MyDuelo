@@ -9,10 +9,18 @@
         <div>
           <h2>{{foro.titulo}}</h2>
           <p class="text-muted" *ngIf="foro.descripcion">{{foro.descripcion}}</p>
-          <div class="d-flex gap-3 small text-muted">
+          <div class="d-flex gap-3 small text-muted align-items-center">
             <span><i class="bi bi-people"></i> {{foro.total_participantes}} participantes</span>
             <span><i class="bi bi-chat"></i> {{foro.total_temas}} temas</span>
-            <span [class]="getBadgeRol(foro.rol_usuario!)">{{getTextoRol(foro.rol_usuario!)}}</span>
+            <span *ngIf="esParticipante" [class]="getBadgeRol(foro.rol_usuario!)">
+              {{getTextoRol(foro.rol_usuario!)}}
+            </span>
+            <!-- ✅ Mostrar botón de unirse si NO es participante y el foro es público -->
+            <button *ngIf="!esParticipante && foro.publico" 
+                    class="btn btn-sm btn-primary" 
+                    (click)="unirseAlForo()">
+              <i class="bi bi-plus-circle"></i> Unirse al Foro
+            </button>
           </div>
         </div>
         <div *ngIf="esAdmin">
@@ -39,10 +47,17 @@
     </li>
   </ul>
 
-  <div *ngIf="tabActiva==='temas'">
-    <button class="btn btn-primary mb-3" (click)="crearTema()">
-      <i class="bi bi-plus"></i> Nuevo Tema
-    </button>
+    <div *ngIf="tabActiva==='temas'">
+      <!-- ✅ Solo mostrar botón si es participante -->
+      <button *ngIf="esParticipante" class="btn btn-primary mb-3" (click)="crearTema()">
+        <i class="bi bi-plus"></i> Nuevo Tema
+      </button>
+      
+      <!-- ✅ Mensaje si no es participante -->
+      <div *ngIf="!esParticipante" class="alert alert-info">
+        <i class="bi bi-info-circle"></i>
+        Este es un foro público. Para participar y crear temas, únete haciendo clic en el botón de arriba.
+      </div>
     
     <div class="list-group">
       <a *ngFor="let tema of temas" 

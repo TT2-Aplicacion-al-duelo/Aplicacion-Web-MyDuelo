@@ -9,6 +9,8 @@ import {
   esModeradorOAdmin,
   foroExiste,
   noEstaBaneado,
+  puedeVerContenidoForo,
+  puedeVerMensajesTema,
 } from '../middlewares/foro.middleware';
 
 const router = Router();
@@ -87,12 +89,13 @@ router.post(
 /**
  * GET /api/foros/:idForo/participantes
  * Listar participantes de un foro
+ * 🆕 Permite ver participantes en foros públicos
  */
 router.get(
   '/:idForo/participantes',
   verificarToken,
   foroExiste,
-  esParticipanteForo,
+  puedeVerContenidoForo,  // ✅ NUEVO MIDDLEWARE
   foroController.listarParticipantes.bind(foroController)
 );
 
@@ -139,15 +142,15 @@ router.post(
 // ============================================================================
 
 /**
- * GET /api/foros/:idForo/temas
- * Listar temas de un foro
+ * GET /api/foros/temas/:idTema/mensajes
+ * Listar mensajes de un tema
+ * 🆕 PERMITE VER mensajes en foros públicos (solo lectura)
  */
 router.get(
-  '/:idForo/temas',
+  '/temas/:idTema/mensajes',
   verificarToken,
-  foroExiste,
-  // 🔓 NO requiere ser participante para ver la lista de temas
-  foroController.listarTemas.bind(foroController)
+  puedeVerMensajesTema,  // ✅ NUEVO MIDDLEWARE
+  foroController.listarMensajes.bind(foroController)
 );
 
 /**

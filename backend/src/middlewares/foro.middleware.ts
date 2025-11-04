@@ -498,3 +498,198 @@ export const noEstaBaneado = async (
     });
   }
 };
+
+/**
+ * 🆕 Middleware para permitir ver contenido de foros públicos
+ * Permite acceso si:
+ * - El usuario es participante del foro, O
+ * - El foro es público (solo lectura)
+ */
+export const puedeVerContenidoForo = async (
+  req: RequestWithUser,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const idForo = parseInt(req.params.idForo);
+    const user = req.user;
+
+    console.log('========================================');
+    console.log('🔍 Middleware: puedeVerContenidoForo');
+    console.log('📋 ID Foro:', idForo);
+    console.log('👤 Usuario:', JSON.stringify(user, null, 2));
+
+    if (!user) {
+      console.log('❌ ERROR: Usuario no autenticado');
+      res.status(401).json({
+        success: false,
+        error: 'Usuario no autenticado',
+      });
+      return;
+    }
+
+    if (!idForo || isNaN(idForo)) {
+      console.log('❌ ERROR: ID de foro inválido');
+      res.status(400).json({
+        success: false,
+        error: 'ID de foro inválido',
+      });
+      return;
+    }
+
+    // 1️⃣ Verificar si el foro existe y es público
+    const foro = await Foro.findOne({
+      where: {
+        id_foro: idForo,
+        activo: true,
+      },
+    });
+
+    if (!foro) {
+      console.log('❌ ERROR 404: Foro no encontrado');
+      res.status(404).json({
+        success: false,
+        error: 'Foro no encontrado',
+      });
+      return;
+    }
+
+    // 2️⃣ Verificar si el usuario es participante
+    const whereClause: any = {
+      id_foro: idForo,
+      tipo_usuario: user.tipo
+    };
+
+    if (user.tipo === 'psicologo') {
+      whereClause.id_psicologo = user.id_psicologo || user.id;
+    } else {
+      whereClause.id_paciente = user.id_paciente || user.id;
+    }
+
+    const participante = await ForoParticipante.findOne({
+      where: whereClause,
+    });
+
+    // 3️⃣ Si es participante, permitir acceso completo
+    if (participante) {
+      console.log('✅ Usuario ES participante - Acceso completo');
+      (req as any).participante = participante;
+      (req as any).foro = foro;
+      (req as any).esParticipante = true;
+      next();
+      return;
+    }
+
+    // 4️⃣ Si NO es participante pero el foro es PÚBLICO, permitir SOLO LECTURA
+    if (foro.publico) {
+      console.log('✅ Foro es PÚBLICO - Acceso de solo lectura permitido');
+      (req as any).foro = foro;
+      (req as any).esParticipante = false;
+      next();
+      return;
+    }
+
+    // 5️⃣ Si NO es participante y el foro es PRIVADO, denegar acceso
+    console.log('❌ ERROR 403: Foro privado y no eres participante');
+    res.status(403).json({
+      success: false,
+      error: 'Este foro es privado. Necesitas ser invitado para acceder.',
+    });
+  } catch (error) {
+    console.error('💥 Error en puedeVerContenidoForo:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al verificar acceso al foro',
+    });
+  }
+};
+
+/**
+ * 🆕 Middleware específico para mensajes de temas
+ * Permite ver mensajes si el foro del tema es público o si el usuario es participante
+ */
+export const puedeVerMensajesTema = async (
+  req: RequestWithUser,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const idTema = parseInt(req.params.idTema);
+    const user = req.user;
+
+    console.log('========================================');
+    console.log('🔍 Middleware: puedeVerMensajesTema');
+    console.log('📋 ID Tema:', idTema);
+
+    if (!user) {
+      res.status(401).json({ success: false, error: 'Usuario no autenticado' });
+      return;
+    }
+
+    if (!idTema || isNaN(idTema)) {
+      res.status(400).json({ success: false, error: 'ID de tema inválido' });
+      return;
+    }
+
+    // 1️⃣ Obtener el tema y su foro
+    const tema = await Tema.findByPk(idTema, {
+      attributes: ['id_tema', 'id_foro'],
+    });
+
+    if (!tema) {
+      res.status(404).json({ success: false, error: 'Tema no encontrado' });
+      return;
+    }
+
+    const idForo = tema.id_foro;
+    console.log('📂 Foro del tema:', idForo);
+
+    // 2️⃣ Verificar si el foro es público
+    const foro = await Foro.findOne({
+      where: { id_foro: idForo, activo: true },
+    });
+
+    if (!foro) {
+      res.status(404).json({ success: false, error: 'Foro no encontrado' });
+      return;
+    }
+
+    // 3️⃣ Verificar si es participante
+    const whereClause: any = {
+      id_foro: idForo,
+      tipo_usuario: user.tipo
+    };
+
+    if (user.tipo === 'psicologo') {
+      whereClause.id_psicologo = user.id_psicologo || user.id;
+    } else {
+      whereClause.id_paciente = user.id_paciente || user.id;
+    }
+
+    const participante = await ForoParticipante.findOne({ where: whereClause });
+
+    // 4️⃣ Permitir acceso si es participante o si el foro es público
+    if (participante || foro.publico) {
+      console.log(participante ? '✅ Usuario ES participante' : '✅ Foro es PÚBLICO');
+      (req as any).participante = participante;
+      (req as any).foro = foro;
+      (req as any).tema = tema;
+      (req as any).esParticipante = !!participante;
+      next();
+      return;
+    }
+
+    // 5️⃣ Denegar acceso si el foro es privado y no es participante
+    console.log('❌ ERROR 403: Foro privado');
+    res.status(403).json({
+      success: false,
+      error: 'Este foro es privado. Necesitas ser invitado para acceder.',
+    });
+  } catch (error) {
+    console.error('💥 Error en puedeVerMensajesTema:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Error al verificar acceso al tema',
+    });
+  }
+};

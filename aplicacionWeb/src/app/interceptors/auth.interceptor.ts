@@ -25,11 +25,10 @@ export class AuthInterceptor implements HttpInterceptor {
     return next.handle(req).pipe(
       catchError((error: HttpErrorResponse) => {
         
-        // ✅ Si el servidor responde 401 (No autorizado) o 403 (Prohibido)
-        if (error.status === 401 || error.status === 403) {
-          console.warn('⚠️ Token inválido o expirado (401/403), cerrando sesión');
+        // ✅ Si es 401 (No autorizado) - Token inválido/expirado
+        if (error.status === 401) {
+          console.warn('⚠️ Token inválido o expirado (401), cerrando sesión');
           
-          // Mostrar mensaje solo una vez
           this.toastr.warning(
             'Tu sesión ha expirado. Por favor inicia sesión nuevamente.',
             'Sesión Expirada',
@@ -39,10 +38,27 @@ export class AuthInterceptor implements HttpInterceptor {
             }
           );
           
-          // Cerrar sesión automáticamente
           setTimeout(() => {
             this.authService.logout();
           }, 500);
+        }
+        
+        // ✅ Si es 403 (Prohibido) - NO cerrar sesión automáticamente
+        // Puede ser un error legítimo de permisos (ej: acceder a un foro privado)
+        if (error.status === 403) {
+          console.warn('⚠️ Acceso prohibido (403) - Sin permisos suficientes');
+          
+          // Solo mostrar mensaje si NO es un error de foros
+          const esForo = req.url.includes('/foros/') || req.url.includes('/temas/');
+          
+          if (!esForo) {
+            this.toastr.error(
+              'No tienes permisos para realizar esta acción.',
+              'Acceso Denegado',
+              { timeOut: 3000 }
+            );
+          }
+          // Si es un error de foros, el componente lo manejará
         }
         
         return throwError(() => error);

@@ -61,7 +61,14 @@ export class DetalleForoComponent implements OnInit {
   cargarParticipantes(idForo: number): void {
     this.foroService.obtenerParticipantes(idForo).subscribe({
       next: (p) => this.participantes = p,
-      error: (e) => console.error(e)
+      error: (error) => {
+        console.error('Error al cargar participantes:', error);
+        // Si es 403, significa que no somos participantes pero podemos ver el foro
+        if (error.status === 403 && this.foro?.publico) {
+          console.log('Foro público pero no somos participantes - OK');
+          this.participantes = []; // Lista vacía, se mostrará botón de unirse
+        }
+      }
     });
   }
 
@@ -93,5 +100,25 @@ export class DetalleForoComponent implements OnInit {
 
   getTextoRol(rol: string): string {
     return this.foroService.getTextoRol(rol as any);
+  }
+  unirseAlForo(): void {
+    if (!this.foro) return;
+    
+    if (confirm('¿Deseas unirte a este foro?')) {
+      this.foroService.unirseAForo(this.foro.id_foro).subscribe({
+        next: () => {
+          alert('Te has unido al foro exitosamente');
+          this.cargarForo(this.foro!.id_foro);
+          this.cargarParticipantes(this.foro!.id_foro);
+        },
+        error: (err) => {
+          alert('Error al unirse al foro: ' + (err.error?.error || 'Error desconocido'));
+        }
+      });
+    }
+  }
+
+  get esParticipante(): boolean {
+    return this.foro?.rol_usuario !== null && this.foro?.rol_usuario !== undefined;
   }
 }
