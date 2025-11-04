@@ -4,7 +4,7 @@ import moderacionController from '../controllers/moderacion';
 import { verificarToken, esPsicologo } from '../middlewares/auth.middlewares';
 import {
   esParticipanteForo,
-  esParticipanteForoDelTema, // 🆕 CRÍTICO: Middleware corregido para mensajes
+  esParticipanteForoDelTema,
   esAdminForo,
   esModeradorOAdmin,
   foroExiste,
@@ -14,6 +14,88 @@ import {
 } from '../middlewares/foro.middleware';
 
 const router = Router();
+
+// ============================================================================
+// ⚠️ IMPORTANTE: RUTAS ESPECÍFICAS PRIMERO, GENÉRICAS DESPUÉS
+// ============================================================================
+
+// ============================================================================
+// ENDPOINTS DE INVITACIONES (FASE 1)
+// ============================================================================
+
+/**
+ * GET /api/foros/invitaciones/mis-invitaciones
+ * Ver invitaciones recibidas (psicólogos)
+ */
+router.get(
+  '/invitaciones/mis-invitaciones',
+  verificarToken,
+  esPsicologo,
+  foroController.listarInvitaciones.bind(foroController)
+);
+
+/**
+ * POST /api/foros/invitaciones/:id/responder
+ * Aceptar o rechazar una invitación
+ */
+router.post(
+  '/invitaciones/:id/responder',
+  verificarToken,
+  esPsicologo,
+  foroController.responderInvitacion.bind(foroController)
+);
+
+// ============================================================================
+// ENDPOINTS DE MENSAJES (FASE 1)
+// ============================================================================
+
+/**
+ * GET /api/foros/temas/:idTema/mensajes
+ * Listar mensajes de un tema
+ * 🆕 PERMITE VER mensajes en foros públicos (solo lectura)
+ */
+router.get(
+  '/temas/:idTema/mensajes',
+  verificarToken,
+  puedeVerMensajesTema,
+  foroController.listarMensajes.bind(foroController)
+);
+
+/**
+ * POST /api/foros/temas/:idTema/mensajes
+ * Crear un mensaje en un tema (solo participantes)
+ */
+router.post(
+  '/temas/:idTema/mensajes',
+  verificarToken,
+  esParticipanteForoDelTema,
+  noEstaBaneado,
+  foroController.crearMensaje.bind(foroController)
+);
+
+// ============================================================================
+// ENDPOINTS DE MODERACIÓN (FASE 2)
+// ============================================================================
+
+/**
+ * GET /api/foros/moderar/historial/:tipoUsuario/:idUsuario
+ * Obtener historial de sanciones de un usuario (moderadores y admins)
+ */
+router.get(
+  '/moderar/historial/:tipoUsuario/:idUsuario',
+  verificarToken,
+  moderacionController.obtenerHistorialUsuario.bind(moderacionController)
+);
+
+/**
+ * GET /api/foros/moderar/verificar/:idForo/:tipoUsuario/:idUsuario
+ * Verificar si un usuario está baneado
+ */
+router.get(
+  '/moderar/verificar/:idForo/:tipoUsuario/:idUsuario',
+  verificarToken,
+  moderacionController.verificarBaneo.bind(moderacionController)
+);
 
 // ============================================================================
 // ENDPOINTS DE FOROS (FASE 1)
@@ -30,17 +112,6 @@ router.get(
 );
 
 /**
- * GET /api/foros/:idForo
- * Ver detalles de un foro específico
- */
-router.get(
-  '/:idForo',
-  verificarToken,
-  foroExiste,
-  foroController.obtenerForo.bind(foroController)
-);
-
-/**
  * POST /api/foros
  * Crear un nuevo foro (solo psicólogos)
  */
@@ -49,6 +120,17 @@ router.post(
   verificarToken,
   esPsicologo,
   foroController.crearForo.bind(foroController)
+);
+
+/**
+ * GET /api/foros/:idForo
+ * Ver detalles de un foro específico
+ */
+router.get(
+  '/:idForo',
+  verificarToken,
+  foroExiste,
+  foroController.obtenerForo.bind(foroController)
 );
 
 /**
@@ -95,13 +177,9 @@ router.get(
   '/:idForo/participantes',
   verificarToken,
   foroExiste,
-  puedeVerContenidoForo,  // ✅ NUEVO MIDDLEWARE
+  puedeVerContenidoForo,
   foroController.listarParticipantes.bind(foroController)
 );
-
-// ============================================================================
-// ENDPOINTS DE INVITACIONES (FASE 1)
-// ============================================================================
 
 /**
  * POST /api/foros/:idForo/invitar
@@ -115,47 +193,24 @@ router.post(
   foroController.invitarModerador.bind(foroController)
 );
 
-/**
- * GET /api/invitaciones/mis-invitaciones
- * Ver invitaciones recibidas (psicólogos)
- */
-router.get(
-  '/invitaciones/mis-invitaciones',
-  verificarToken,
-  esPsicologo,
-  foroController.listarInvitaciones.bind(foroController)
-);
-
-/**
- * POST /api/invitaciones/:id/responder
- * Aceptar o rechazar una invitación
- */
-router.post(
-  '/invitaciones/:id/responder',
-  verificarToken,
-  esPsicologo,
-  foroController.responderInvitacion.bind(foroController)
-);
-
 // ============================================================================
 // ENDPOINTS DE TEMAS (FASE 1)
 // ============================================================================
 
 /**
- * GET /api/foros/temas/:idTema/mensajes
- * Listar mensajes de un tema
- * 🆕 PERMITE VER mensajes en foros públicos (solo lectura)
+ * GET /api/foros/:idForo/temas
+ * Listar temas de un foro (público o participantes)
  */
 router.get(
-  '/temas/:idTema/mensajes',
+  '/:idForo/temas',
   verificarToken,
-  puedeVerMensajesTema,  // ✅ NUEVO MIDDLEWARE
-  foroController.listarMensajes.bind(foroController)
+  foroExiste,
+  foroController.listarTemas.bind(foroController)
 );
 
 /**
  * POST /api/foros/:idForo/temas
- * Crear un tema en un foro (participantes)
+ * Crear un tema en un foro (solo participantes)
  */
 router.post(
   '/:idForo/temas',
@@ -167,36 +222,7 @@ router.post(
 );
 
 // ============================================================================
-// ENDPOINTS DE MENSAJES (FASE 1 - CORREGIDO ✅)
-// ============================================================================
-
-/**
- * GET /api/foros/temas/:idTema/mensajes
- * Listar mensajes de un tema
- * 🆕 CORREGIDO: Ahora verifica que el usuario es participante del foro del tema
- */
-router.get(
-  '/temas/:idTema/mensajes',
-  verificarToken,
-  esParticipanteForoDelTema, // ✅ MIDDLEWARE CORREGIDO
-  foroController.listarMensajes.bind(foroController)
-);
-
-/**
- * POST /api/foros/temas/:idTema/mensajes
- * Crear un mensaje en un tema
- * 🆕 CORREGIDO: Ahora verifica que el usuario es participante del foro del tema
- */
-router.post(
-  '/temas/:idTema/mensajes',
-  verificarToken,
-  esParticipanteForoDelTema, // ✅ MIDDLEWARE CORREGIDO
-  noEstaBaneado, // ✅ FASE 2: Verifica que no esté baneado
-  foroController.crearMensaje.bind(foroController)
-);
-
-// ============================================================================
-// 🆕 FASE 2: ENDPOINTS DE MODERACIÓN
+// ENDPOINTS DE MODERACIÓN (FASE 2) - Con :idForo
 // ============================================================================
 
 /**
@@ -245,26 +271,6 @@ router.get(
   foroExiste,
   esModeradorOAdmin,
   moderacionController.obtenerEstadisticas.bind(moderacionController)
-);
-
-/**
- * GET /api/moderar/historial/:tipoUsuario/:idUsuario
- * Obtener historial de sanciones de un usuario (moderadores y admins)
- */
-router.get(
-  '/moderar/historial/:tipoUsuario/:idUsuario',
-  verificarToken,
-  moderacionController.obtenerHistorialUsuario.bind(moderacionController)
-);
-
-/**
- * GET /api/moderar/verificar/:idForo/:tipoUsuario/:idUsuario
- * Verificar si un usuario está baneado
- */
-router.get(
-  '/moderar/verificar/:idForo/:tipoUsuario/:idUsuario',
-  verificarToken,
-  moderacionController.verificarBaneo.bind(moderacionController)
 );
 
 export default router;

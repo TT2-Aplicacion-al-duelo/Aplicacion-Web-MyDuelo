@@ -1,7 +1,7 @@
 // backend/src/controllers/moderacion.controller.ts
 import { Response } from 'express';
 import { RequestWithUser } from '../middlewares/auth.middlewares';
-import moderacionService from '../services/moderacion';
+import moderacionService from '../services/moderacion.service';
 
 class ModeracionController {
   /**
