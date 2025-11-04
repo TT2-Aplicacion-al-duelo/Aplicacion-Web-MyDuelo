@@ -16,6 +16,8 @@ import {
   ListForosQuery,
 } from '../types/foro';
 import sequelize from '../database/connection';
+import { Paciente } from '../models/paciente';
+import { Psicologo } from '../models/psicologo';
 
 export class ForoService {
   /**
@@ -266,9 +268,10 @@ export class ForoService {
           attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'especialidad'],
         },
         {
-          model: sequelize.models.paciente,
+          model: Paciente,  // ✅ Import directo
           as: 'paciente',
-          attributes: ['id_paciente', 'nombre', 'apellido_Paterno'],
+          attributes: ['id_paciente', 'nombre', 'apellido_paterno'],  // ✅ snake_case correcto
+          required: false,
         },
       ],
     });
@@ -590,14 +593,16 @@ export class ForoService {
     const mensaje = await MensajeForo.findByPk(idMensaje, {
       include: [
         {
-          model: sequelize.models.psicologo,
+          model: Psicologo,  // ✅
           as: 'psicologo',
           attributes: ['id_psicologo', 'nombre', 'apellidoPaterno'],
+          required: false,
         },
         {
-          model: sequelize.models.paciente,
+          model: Paciente,  // ✅
           as: 'paciente',
-          attributes: ['id_paciente', 'nombre', 'apellidoPaterno'],
+          attributes: ['id_paciente', 'nombre', 'apellido_paterno'],  // ✅ snake_case
+          required: false,
         },
       ],
     });
@@ -622,8 +627,11 @@ export class ForoService {
           mensaje.tipo_usuario === 'psicologo'
             ? mensaje.id_psicologo!
             : mensaje.id_paciente!,
-        nombre: autor.nombre,
-        apellido: autor.apellidoPaterno,
+        nombre: autor?.nombre || 'Usuario',
+        // ✅ Manejar diferencia entre camelCase y snake_case
+        apellido: mensaje.tipo_usuario === 'psicologo'
+          ? (autor?.apellidoPaterno || 'Desconocido')
+          : (autor?.apellido_paterno || 'Desconocido'),
       },
     };
   }
@@ -632,37 +640,41 @@ export class ForoService {
    * Listar mensajes de un tema
    */
   async listarMensajes(
-    idTema: number,
-    page: number = 1,
-    limit: number = 50
-  ): Promise<PaginatedResponse<MensajeResponse>> {
-    const offset = (page - 1) * limit;
+  idTema: number,
+  page: number = 1,
+  limit: number = 50
+): Promise<PaginatedResponse<MensajeResponse>> {
+  const offset = (page - 1) * limit;
 
-    const { count, rows } = await MensajeForo.findAndCountAll({
-      where: { id_tema: idTema },
-      order: [['fecha_envio', 'ASC']],
-      limit,
-      offset,
-      include: [
-        {
-          model: sequelize.models.psicologo,
-          as: 'psicologo',
-          attributes: ['id_psicologo', 'nombre', 'apellidoPaterno'],
-        },
-        {
-          model: sequelize.models.paciente,
-          as: 'paciente',
-          attributes: ['id_paciente', 'nombre', 'apellidoPaterno'],
-        },
-      ],
-    });
+  const { count, rows } = await MensajeForo.findAndCountAll({
+    where: { id_tema: idTema },
+    order: [['fecha_envio', 'ASC']],
+    limit,
+    offset,
+    include: [
+      {
+        model: Psicologo,  // ✅ Usar import directo
+        as: 'psicologo',
+        attributes: ['id_psicologo', 'nombre', 'apellidoPaterno'],
+        required: false,  // ✅ LEFT JOIN (permite null)
+      },
+      {
+        model: Paciente,  // ✅ Usar import directo
+        as: 'paciente',
+        attributes: ['id_paciente', 'nombre', 'apellido_paterno'],  // ✅ snake_case correcto
+        required: false,  // ✅ LEFT JOIN (permite null)
+      },
+    ],
+  });
 
-    const mensajes = rows.map((mensaje) => {
-      const autor =
-        mensaje.tipo_usuario === 'psicologo'
-          ? (mensaje as any).psicologo
-          : (mensaje as any).paciente;
+  const mensajes = rows.map((mensaje) => {
+    const autor =
+      mensaje.tipo_usuario === 'psicologo'
+        ? (mensaje as any).psicologo
+        : (mensaje as any).paciente;
 
+    // ✅ Manejar caso donde autor puede ser null
+    if (!autor) {
       return {
         id_mensaje_foro: mensaje.id_mensaje_foro,
         id_tema: mensaje.id_tema,
@@ -670,26 +682,43 @@ export class ForoService {
         fecha_envio: mensaje.fecha_envio,
         autor: {
           tipo: mensaje.tipo_usuario,
-          id:
-            mensaje.tipo_usuario === 'psicologo'
-              ? mensaje.id_psicologo!
-              : mensaje.id_paciente!,
-          nombre: autor.nombre,
-          apellido: autor.apellidoPaterno,
+          id: mensaje.tipo_usuario === 'psicologo' ? mensaje.id_psicologo! : mensaje.id_paciente!,
+          nombre: 'Usuario',
+          apellido: 'Desconocido',
         },
       };
-    });
+    }
 
     return {
-      data: mensajes,
-      meta: {
-        total: count,
-        page,
-        limit,
-        totalPages: Math.ceil(count / limit),
+      id_mensaje_foro: mensaje.id_mensaje_foro,
+      id_tema: mensaje.id_tema,
+      contenido: mensaje.contenido,
+      fecha_envio: mensaje.fecha_envio,
+      autor: {
+        tipo: mensaje.tipo_usuario,
+        id:
+          mensaje.tipo_usuario === 'psicologo'
+            ? mensaje.id_psicologo!
+            : mensaje.id_paciente!,
+        nombre: autor.nombre,
+        // ✅ Manejar diferencia entre camelCase y snake_case
+        apellido: mensaje.tipo_usuario === 'psicologo' 
+          ? autor.apellidoPaterno 
+          : autor.apellido_paterno,
       },
     };
-  }
+  });
+
+  return {
+    data: mensajes,
+    meta: {
+      total: count,
+      page,
+      limit,
+      totalPages: Math.ceil(count / limit),
+    },
+  };
+}
 }
 
 export default new ForoService();

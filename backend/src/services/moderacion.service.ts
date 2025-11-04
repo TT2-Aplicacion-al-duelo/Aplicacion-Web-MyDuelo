@@ -286,7 +286,7 @@ class ModeracionService {
           [Op.and]: [
             { activo: true },
             { fecha_expiracion: { [Op.lte]: new Date() } },
-            { fecha_expiracion: { [Op.not]: null } }
+            { fecha_expiracion: { [Op.ne]: null } }  
           ]
         },
       }
