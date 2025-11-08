@@ -53,9 +53,14 @@
         <div class="card-body">
           <div class="d-flex justify-content-between mb-2">
             <h5 class="card-title">{{foro.titulo}}</h5>
+            <span *ngIf="foro.solicitudes_pendientes && foro.solicitudes_pendientes > 0" 
+                  class="badge bg-warning text-dark position-absolute top-0 end-0 m-2">
+              <i class="bi bi-envelope-fill"></i> {{foro.solicitudes_pendientes}} pendiente(s)
+            </span>
             <span class="badge" [ngClass]="foro.publico ? 'bg-success' : 'bg-warning'">
               {{foro.publico ? 'Público' : 'Privado'}}
             </span>
+
           </div>
           <p class="text-muted small" *ngIf="foro.descripcion">
             {{foro.descripcion | slice:0:100}}{{foro.descripcion.length > 100 ? '...' : ''}}

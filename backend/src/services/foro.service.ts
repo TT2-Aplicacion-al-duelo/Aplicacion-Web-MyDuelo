@@ -474,6 +474,8 @@ export class ForoService {
       id_foro: idForo,
       titulo,
       descripcion,
+      cerrado: false,
+      fijado: false
     });
 
     return {
@@ -496,7 +498,7 @@ export class ForoService {
   ): Promise<PaginatedResponse<TemaResponse>> {
     const offset = (page - 1) * limit;
 
-    const { count, rows } = await Tema.findAll({
+    const { count, rows } = await Tema.findAndCountAll({
       where: { id_foro: idForo },
       // ✅ FASE 3: Ordenar por fijados primero, luego por fecha
       order: [
@@ -508,7 +510,7 @@ export class ForoService {
     });
 
     const temasConInfo = await Promise.all(
-      rows.map(async (tema) => {
+      rows.map(async (tema: Tema) => {
         const totalMensajes = await MensajeForo.count({
           where: { 
             id_tema: tema.id_tema,
@@ -597,6 +599,8 @@ export class ForoService {
       id_tema: idTema,
       tipo_usuario: tipoUsuario,
       contenido,
+      editado: false,
+      eliminado: false,
       ...(tipoUsuario === 'psicologo'
         ? { id_psicologo: idUsuario }
         : { id_paciente: idUsuario }),

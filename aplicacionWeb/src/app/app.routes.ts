@@ -32,6 +32,8 @@ import { CrearForoComponent } from './psicologo/foros/crear-foro/crear-foro.comp
 import { InvitacionesComponent } from './psicologo/foros/invitaciones/invitaciones.component';
 import { DetalleForoComponent } from './psicologo/foros/detalle-foro/detalle-foro.component';
 import { TemaForoComponent } from './psicologo/foros/tema-foro/tema-foro.component';
+import { SolicitudesForoComponent } from './psicologo/foros/solicitudes-foro/solicitudes-foro.component';
+import { LogsModeracionComponent } from './psicologo/foros/logs-moderacion/logs-moderacion.component';
 
 // Guard de Autenticación
 const canActivate: CanActivateFn = (route, state) => {
@@ -130,6 +132,16 @@ export const routes: Routes = [
         path: ':idForo/temas/:idTema', 
         component: TemaForoComponent, 
         canActivate: [foroAuthGuard] 
+      },
+      {
+        path: 'foros/:idForo/solicitudes',
+        component: SolicitudesForoComponent,
+        canActivate: [psicologoGuard]
+      },
+      {
+        path: 'foros/:idForo/logs',
+        component: LogsModeracionComponent,
+        canActivate: [psicologoGuard]
       },
     ]
   },

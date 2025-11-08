@@ -5,6 +5,8 @@ import { ActivatedRoute, RouterModule } from '@angular/router';
 import { ForoService } from '../../../services/foro.service';
 import { Mensaje } from '../../../interfaces/foro';
 import { AuthService } from '../../../services/auth.service';
+import { ModeracionAvanzadaService } from '../../../services/moderacion-avanzada.service';
+import { Tema } from '../../../interfaces/foro';
 
 @Component({
   selector: 'app-tema-foro',
@@ -27,10 +29,16 @@ export class TemaForoComponent implements OnInit, AfterViewChecked {
   usuarioActual: any;
   autoScroll = true;
 
+  tema: Tema | null = null;
+  esModerador = false;
+  mensajeEditando: number | null = null;
+  contenidoEditado = '';
+
   constructor(
     private route: ActivatedRoute,
     private foroService: ForoService,
-    private authService: AuthService
+    private authService: AuthService,
+    private moderacionAvanzadaService: ModeracionAvanzadaService
   ) {}
 
   ngOnInit(): void {
@@ -90,5 +98,54 @@ export class TemaForoComponent implements OnInit, AfterViewChecked {
   esMiMensaje(mensaje: Mensaje): boolean {
     const miId = this.usuarioActual?.id_psicologo || this.usuarioActual?.id_paciente;
     return mensaje.autor.id === miId;
+  }
+
+  // Métodos de moderación de mensajes
+
+  eliminarMensaje(mensaje: Mensaje): void {
+    if (!confirm('¿Eliminar este mensaje?')) return;
+
+    this.moderacionAvanzadaService.eliminarMensaje(this.idForo, mensaje.id_mensaje_foro)
+      .subscribe({
+        next: () => {
+          alert('Mensaje eliminado');
+          this.cargarMensajes();
+        },
+        error: () => alert('Error al eliminar mensaje')
+      });
+  }
+
+  iniciarEdicion(mensaje: Mensaje): void {
+    this.mensajeEditando = mensaje.id_mensaje_foro;
+    this.contenidoEditado = mensaje.contenido;
+  }
+
+  cancelarEdicion(): void {
+    this.mensajeEditando = null;
+    this.contenidoEditado = '';
+  }
+
+  guardarEdicion(idMensaje: number): void {
+    if (!this.contenidoEditado.trim()) {
+      alert('El mensaje no puede estar vacío');
+      return;
+    }
+
+    this.moderacionAvanzadaService.editarMensaje(
+      this.idForo,
+      idMensaje,
+      { contenido: this.contenidoEditado.trim() }
+    ).subscribe({
+      next: () => {
+        alert('Mensaje editado');
+        this.mensajeEditando = null;
+        this.cargarMensajes();
+      },
+      error: () => alert('Error al editar mensaje')
+    });
+  }
+
+  puedeModerar(): boolean {
+    return this.esModerador;
   }
 }

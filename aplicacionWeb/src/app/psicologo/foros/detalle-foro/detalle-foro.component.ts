@@ -4,6 +4,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ForoService } from '../../../services/foro.service';
 import { Foro, Tema, Participante } from '../../../interfaces/foro';
 import { AuthService } from '../../../services/auth.service';
+import { ModeracionAvanzadaService } from '../../../services/moderacion-avanzada.service';
 
 @Component({
   selector: 'app-detalle-foro',
@@ -20,21 +21,44 @@ export class DetalleForoComponent implements OnInit {
   cargando = true;
   tabActiva: 'temas' | 'participantes' = 'temas';
   
+  
   usuarioActual: any;
   esAdmin = false;
   esModerador = false;
+
+  totalSolicitudesPendientes = 0;
+  cambiarTab(tab: 'temas' | 'participantes'): void {
+  this.tabActiva = tab;
+}
+
+  cargarSolicitudesPendientes(): void {
+    if (this.esModerador) {
+      this.moderacionAvanzadaService.listarSolicitudes(this.foro!.id_foro)
+        .subscribe({
+          next: (solicitudes) => {
+            this.totalSolicitudesPendientes = solicitudes.length;
+          },
+          error: () => {}
+        });
+    }
+  }
+
+  
+  temaSeleccionado: Tema | null = null;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private foroService: ForoService,
-    private authService: AuthService
+    private authService: AuthService,
+    private moderacionAvanzadaService: ModeracionAvanzadaService  
   ) {}
 
   ngOnInit(): void {
     this.usuarioActual = this.authService.getUserInfo();
     const idForo = parseInt(this.route.snapshot.params['idForo']);
     this.cargarForo(idForo);
+    this.cargarSolicitudesPendientes();
     this.cargarTemas(idForo);
     this.cargarParticipantes(idForo);
   }
@@ -120,5 +144,68 @@ export class DetalleForoComponent implements OnInit {
 
   get esParticipante(): boolean {
     return this.foro?.rol_usuario !== null && this.foro?.rol_usuario !== undefined;
+  }
+  //Gestión de temas
+
+cerrarTema(tema: Tema): void {
+  if (!confirm('¿Cerrar este tema?')) return;
+
+  this.moderacionAvanzadaService.cerrarTema(this.foro!.id_foro, tema.id_tema)
+    .subscribe({
+      next: () => {
+        alert('Tema cerrado');
+        this.cargarTemas(this.foro!.id_foro);
+      },
+      error: () => alert('Error al cerrar tema')
+    });
+}
+
+abrirTema(tema: Tema): void {
+  this.moderacionAvanzadaService.abrirTema(this.foro!.id_foro, tema.id_tema)
+    .subscribe({
+      next: () => {
+        alert('Tema abierto');
+        this.cargarTemas(this.foro!.id_foro);
+      },
+      error: () => alert('Error al abrir tema')
+    });
+}
+
+fijarTema(tema: Tema): void {
+  this.moderacionAvanzadaService.fijarTema(this.foro!.id_foro, tema.id_tema)
+    .subscribe({
+      next: () => {
+        alert('Tema fijado');
+        this.cargarTemas(this.foro!.id_foro);
+      },
+      error: () => alert('Error al fijar tema')
+    });
+}
+
+  desfijarTema(tema: Tema): void {
+    this.moderacionAvanzadaService.desfijarTema(this.foro!.id_foro, tema.id_tema)
+      .subscribe({
+        next: () => {
+          alert('Tema desfijado');
+          this.cargarTemas(this.foro!.id_foro);
+        },
+        error: () => alert('Error al desfijar tema')
+      });
+  }
+
+  solicitarUnion(): void {
+    const mensaje = prompt('Mensaje opcional para los moderadores:');
+    
+    this.moderacionAvanzadaService.crearSolicitud(
+      this.foro!.id_foro,
+      { mensaje: mensaje || undefined }
+    ).subscribe({
+      next: () => {
+        alert('Solicitud enviada. Los moderadores la revisarán pronto.');
+      },
+      error: (err) => {
+        alert(err.error?.error || 'Error al enviar solicitud');
+      }
+    });
   }
 }

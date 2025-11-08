@@ -77,8 +77,8 @@ class ModeracionAvanzadaService {
 
     await mensaje.update({
       eliminado: false,
-      fecha_eliminacion: null,
-      id_moderador_eliminador: null,
+      fecha_eliminacion: undefined,
+      id_moderador_eliminador: undefined,
     });
 
     await this.registrarAccion({
@@ -186,8 +186,8 @@ class ModeracionAvanzadaService {
 
     await tema.update({
       cerrado: false,
-      fecha_cierre: null,
-      id_moderador_cierre: null,
+      fecha_cierre: undefined,
+      id_moderador_cierre: undefined,
     });
 
     await this.registrarAccion({

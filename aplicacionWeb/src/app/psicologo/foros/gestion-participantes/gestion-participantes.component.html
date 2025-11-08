@@ -9,7 +9,19 @@
       <i class="bi bi-arrow-left"></i> Volver al Foro
     </button>
   </div>
-
+  <!-- ✅ FASE 3: Enlaces rápidos a gestión -->
+<div class="btn-group mb-3" role="group">
+  <button 
+    class="btn btn-outline-primary" 
+    [routerLink]="['/foros', foro?.id_foro, 'solicitudes']">
+    <i class="bi bi-envelope"></i> Ver Solicitudes
+  </button>
+  <button 
+    class="btn btn-outline-info" 
+    [routerLink]="['/foros', foro?.id_foro, 'logs']">
+    <i class="bi bi-file-text"></i> Ver Logs
+  </button>
+</div>
   <!-- Tabs -->
   <ul class="nav nav-tabs mb-4">
     <li class="nav-item">

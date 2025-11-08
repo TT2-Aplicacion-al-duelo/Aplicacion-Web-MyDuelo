@@ -15,11 +15,11 @@
             <span *ngIf="esParticipante" [class]="getBadgeRol(foro.rol_usuario!)">
               {{getTextoRol(foro.rol_usuario!)}}
             </span>
-            <!-- ✅ Mostrar botón de unirse si NO es participante y el foro es público -->
+            <!-- Mostrar botón de unirse si NO es participante y el foro es público -->
             <button *ngIf="!esParticipante && foro.publico" 
                     class="btn btn-sm btn-primary" 
-                    (click)="unirseAlForo()">
-              <i class="bi bi-plus-circle"></i> Unirse al Foro
+                    (click)="solicitarUnion()">
+              <i class="bi bi-envelope"></i> Solicitar Unirse
             </button>
           </div>
         </div>
@@ -32,7 +32,7 @@
     </div>
   </div>
 
-  <ul class="nav nav-tabs mb-3">
+  <!-- <ul class="nav nav-tabs mb-3">
     <li class="nav-item">
       <a class="nav-link" [class.active]="tabActiva==='temas'" 
          (click)="tabActiva='temas'" style="cursor:pointer">
@@ -45,32 +45,112 @@
         Participantes
       </a>
     </li>
+  </ul> -->
+  <!-- ✅ FASE 3: Nuevas pestañas para moderadores/admins -->
+  <ul class="nav nav-tabs" *ngIf="foro">
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="tabActiva === 'temas'" (click)="cambiarTab('temas')">
+        <i class="bi bi-chat-text"></i> Temas
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="tabActiva === 'participantes'" (click)="cambiarTab('participantes')">
+        <i class="bi bi-people"></i> Participantes
+      </a>
+    </li>
+    <li class="nav-item" *ngIf="esModerador">
+      <a class="nav-link" [routerLink]="['/foros', foro.id_foro, 'solicitudes']">
+        <i class="bi bi-envelope"></i> Solicitudes
+        <span *ngIf="totalSolicitudesPendientes > 0" class="badge bg-danger ms-1">
+          {{totalSolicitudesPendientes}}
+        </span>
+      </a>
+    </li>
+    <li class="nav-item" *ngIf="esModerador">
+      <a class="nav-link" [routerLink]="['/foros', foro.id_foro, 'logs']">
+        <i class="bi bi-file-text"></i> Logs
+      </a>
+    </li>
   </ul>
 
+
+
+
     <div *ngIf="tabActiva==='temas'">
-      <!-- ✅ Solo mostrar botón si es participante -->
+      <!--Solo mostrar botón si es participante -->
       <button *ngIf="esParticipante" class="btn btn-primary mb-3" (click)="crearTema()">
         <i class="bi bi-plus"></i> Nuevo Tema
       </button>
       
-      <!-- ✅ Mensaje si no es participante -->
+      <!-- Mensaje si no es participante -->
       <div *ngIf="!esParticipante" class="alert alert-info">
         <i class="bi bi-info-circle"></i>
         Este es un foro público. Para participar y crear temas, únete haciendo clic en el botón de arriba.
       </div>
     
     <div class="list-group">
-      <a *ngFor="let tema of temas" 
-         class="list-group-item list-group-item-action"
-         (click)="verTema(tema)" style="cursor:pointer">
-        <div class="d-flex justify-content-between">
-          <h6 class="mb-1">{{tema.titulo}}</h6>
-          <small>{{tema.total_mensajes || 0}} mensajes</small>
+  <a *ngFor="let tema of temas" 
+     class="list-group-item list-group-item-action"
+     (click)="verTema(tema)" 
+     style="cursor:pointer">
+    
+    <!-- FASE 3: Indicadores de tema fijado/cerrado -->
+    <div class="d-flex justify-content-between align-items-start">
+      <div class="flex-grow-1">
+        <!-- Badges de estado -->
+        <span *ngIf="tema.fijado" class="badge bg-primary me-2">
+          <i class="bi bi-pin-angle-fill"></i> Fijado
+        </span>
+        <span *ngIf="tema.cerrado" class="badge bg-danger me-2">
+          <i class="bi bi-lock-fill"></i> Cerrado
+        </span>
+        
+        <h6 class="mb-1">{{tema.titulo}}</h6>
+        <small class="text-muted">{{tema.total_mensajes || 0}} mensajes</small>
+      </div>
+      
+      <!--Botones de moderación (solo para moderadores/admins) -->
+        <div *ngIf="esModerador" class="btn-group btn-group-sm" (click)="$event.stopPropagation()">
+          <button 
+            *ngIf="!tema.cerrado"
+            class="btn btn-outline-danger" 
+            (click)="cerrarTema(tema)"
+            title="Cerrar tema">
+            <i class="bi bi-lock"></i>
+          </button>
+          <button 
+            *ngIf="tema.cerrado"
+            class="btn btn-outline-success" 
+            (click)="abrirTema(tema)"
+            title="Abrir tema">
+            <i class="bi bi-unlock"></i>
+          </button>
+          <button 
+            *ngIf="!tema.fijado"
+            class="btn btn-outline-primary" 
+            (click)="fijarTema(tema)"
+            title="Fijar tema">
+            <i class="bi bi-pin-angle"></i>
+          </button>
+          <button 
+            *ngIf="tema.fijado"
+            class="btn btn-outline-secondary" 
+            (click)="desfijarTema(tema)"
+            title="Desfijar tema">
+            <i class="bi bi-pin-angle-fill"></i>
+          </button>
         </div>
-        <small class="text-muted">{{tema.fecha_creacion | date:'dd/MM/yyyy'}}</small>
-      </a>
-      <div *ngIf="temas.length===0" class="alert alert-info">No hay temas aún</div>
+      </div>
+      
+      <small class="text-muted d-block mt-1">
+        {{tema.fecha_creacion | date:'dd/MM/yyyy'}}
+      </small>
+    </a>
+    
+    <div *ngIf="temas.length===0" class="alert alert-info">
+      No hay temas aún
     </div>
+  </div>
   </div>
 
   <div *ngIf="tabActiva==='participantes'">

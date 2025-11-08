@@ -1,0 +1,154 @@
+<div class="container-fluid py-4">
+  <div class="card">
+    <div class="card-body">
+      <!-- Encabezado -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+          <button class="btn btn-sm btn-outline-secondary mb-2" [routerLink]="['/foros', idForo]">
+            <i class="bi bi-arrow-left"></i> Volver al Foro
+          </button>
+          <h3 class="mb-0">Registro de Moderación</h3>
+          <small class="text-muted">Historial completo de acciones de moderación</small>
+        </div>
+        <button class="btn btn-success" (click)="exportarCSV()" [disabled]="logs.length === 0">
+          <i class="bi bi-download"></i> Exportar CSV
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="card bg-light mb-4">
+        <div class="card-body">
+          <h6 class="card-title">Filtros</h6>
+          <div class="row">
+            <div class="col-md-4">
+              <label class="form-label">Tipo de Acción</label>
+              <select class="form-select" [(ngModel)]="filtros.tipo_accion">
+                <option *ngFor="let tipo of tiposAccion" [value]="tipo.value">
+                  {{tipo.label}}
+                </option>
+              </select>
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Desde</label>
+              <input type="date" class="form-control" [(ngModel)]="filtros.fecha_desde">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Hasta</label>
+              <input type="date" class="form-control" [(ngModel)]="filtros.fecha_hasta">
+            </div>
+            <div class="col-md-2 d-flex align-items-end">
+              <button class="btn btn-primary w-100 me-2" (click)="aplicarFiltros()">
+                <i class="bi bi-search"></i> Filtrar
+              </button>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-outline-secondary mt-2" (click)="limpiarFiltros()">
+            <i class="bi bi-x-circle"></i> Limpiar filtros
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="cargando" class="text-center py-5">
+        <div class="spinner-border" role="status"></div>
+      </div>
+
+      <!-- Sin resultados -->
+      <div *ngIf="!cargando && logs.length === 0" class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No se encontraron registros con los filtros aplicados
+      </div>
+
+      <!-- Tabla de logs -->
+      <div *ngIf="!cargando && logs.length > 0" class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th width="15%">Fecha</th>
+              <th width="25%">Acción</th>
+              <th width="15%">Tipo Objetivo</th>
+              <th width="10%">ID</th>
+              <th width="25%">Moderador</th>
+              <th width="10%">Detalles</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let log of logs">
+              <td>
+                <small>{{log.fecha_accion | date:'dd/MM/yyyy'}}</small><br>
+                <small class="text-muted">{{log.fecha_accion | date:'HH:mm:ss'}}</small>
+              </td>
+              <td>
+                <i [class]="moderacionService.getIconoAccion(log.tipo_accion)" 
+                   [ngClass]="moderacionService.getClaseAccion(log.tipo_accion)"></i>
+                <span [ngClass]="moderacionService.getClaseAccion(log.tipo_accion)">
+                  {{moderacionService.getTextoAccion(log.tipo_accion)}}
+                </span>
+              </td>
+              <td>
+                <span class="badge bg-secondary">{{log.tipo_objetivo}}</span>
+              </td>
+              <td>
+                <code>#{{log.id_objetivo}}</code>
+              </td>
+              <td>
+                <span *ngIf="log.moderador">
+                  {{log.moderador.nombre}} {{log.moderador.apellido}}
+                </span>
+                <span *ngIf="!log.moderador" class="text-muted">
+                  <i>Sistema</i>
+                </span>
+              </td>
+              <td>
+                <button 
+                  *ngIf="log.detalles"
+                  class="btn btn-sm btn-outline-info" 
+                  type="button"
+                  data-bs-toggle="collapse" 
+                  [attr.data-bs-target]="'#detalles' + log.id_log">
+                  <i class="bi bi-eye"></i>
+                </button>
+              </td>
+            </tr>
+            <!-- Detalles expandibles -->
+            <tr *ngFor="let log of logs">
+              <td colspan="6" class="p-0">
+                <div class="collapse" [id]="'detalles' + log.id_log">
+                  <div class="card card-body bg-light m-2">
+                    <strong>Detalles adicionales:</strong>
+                    <pre class="mb-0 mt-2">{{log.detalles | json}}</pre>
+                  </div>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Paginación -->
+      <nav *ngIf="!cargando && totalPages > 1" aria-label="Paginación de logs">
+        <ul class="pagination justify-content-center">
+          <li class="page-item" [class.disabled]="page === 1">
+            <a class="page-link" (click)="cambiarPagina(page - 1)" style="cursor:pointer">
+              Anterior
+            </a>
+          </li>
+          <li class="page-item active">
+            <span class="page-link">
+              Página {{page}} de {{totalPages}}
+            </span>
+          </li>
+          <li class="page-item" [class.disabled]="page === totalPages">
+            <a class="page-link" (click)="cambiarPagina(page + 1)" style="cursor:pointer">
+              Siguiente
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <!-- Resumen -->
+      <div *ngIf="!cargando && logs.length > 0" class="text-center text-muted mt-3">
+        <small>Mostrando {{logs.length}} de {{total}} registros</small>
+      </div>
+    </div>
+  </div>
+</div>

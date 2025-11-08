@@ -124,3 +124,83 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
 }
+// ✅ FASE 3: Nuevas interfaces
+
+export interface Tema {
+  id_tema: number;
+  id_foro: number;
+  titulo: string;
+  descripcion?: string;
+  fecha_creacion: string | Date;
+  total_mensajes?: number;
+  ultimo_mensaje?: {
+    contenido: string;
+    fecha_envio: Date;
+    autor: string;
+  };
+  // ✅ FASE 3: Nuevos campos
+  cerrado: boolean;
+  fijado: boolean;
+  fecha_cierre?: Date;
+}
+
+export interface Mensaje {
+  id_mensaje_foro: number;
+  id_tema: number;
+  contenido: string;
+  fecha_envio: string | Date;
+  autor: {
+    tipo: 'psicologo' | 'paciente';
+    id: number;
+    nombre: string;
+    apellido: string;
+  };
+  // ✅ FASE 3: Nuevos campos
+  editado?: boolean;
+  fecha_edicion?: Date;
+  eliminado?: boolean;
+}
+
+export interface SolicitudUnion {
+  id_solicitud: number;
+  id_foro: number;
+  tipo_usuario: 'psicologo' | 'paciente';
+  mensaje?: string;
+  estado: 'pendiente' | 'aprobada' | 'rechazada';
+  fecha_solicitud: Date;
+  fecha_respuesta?: Date;
+  razon_rechazo?: string;
+  usuario: {
+    id: number;
+    nombre: string;
+    apellido: string;
+    especialidad?: string;
+  };
+  moderador?: {
+    id: number;
+    nombre: string;
+    apellido: string;
+  };
+}
+
+export interface LogModeracion {
+  id_log: number;
+  tipo_accion: string;
+  tipo_objetivo: 'mensaje' | 'tema' | 'usuario' | 'solicitud';
+  id_objetivo: number;
+  detalles?: any;
+  fecha_accion: Date;
+  moderador: {
+    id: number;
+    nombre: string;
+    apellido: string;
+  } | null;
+}
+
+export interface CrearSolicitudDTO {
+  mensaje?: string;
+}
+
+export interface EditarMensajeDTO {
+  contenido: string;
+}
