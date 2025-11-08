@@ -133,15 +133,15 @@ export const routes: Routes = [
         component: TemaForoComponent, 
         canActivate: [foroAuthGuard] 
       },
-      {
-        path: 'foros/:idForo/solicitudes',
-        component: SolicitudesForoComponent,
-        canActivate: [psicologoGuard]
+      { 
+        path: ':idForo/solicitudes',  // ✅ CORRECTO
+        component: SolicitudesForoComponent, 
+        canActivate: [psicologoGuard] 
       },
-      {
-        path: 'foros/:idForo/logs',
-        component: LogsModeracionComponent,
-        canActivate: [psicologoGuard]
+      { 
+        path: ':idForo/logs',  // ✅ CORRECTO
+        component: LogsModeracionComponent, 
+        canActivate: [psicologoGuard] 
       },
     ]
   },

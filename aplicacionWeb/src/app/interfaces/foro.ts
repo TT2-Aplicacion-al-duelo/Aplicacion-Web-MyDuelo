@@ -1,4 +1,4 @@
-// aplicacionWeb/src/app/interfaces/foro.interface.ts
+// aplicacionWeb/src/app/interfaces/foro.ts
 
 export interface Foro {
   id_foro: number;
@@ -20,31 +20,41 @@ export interface Foro {
   rol_usuario?: 'admin' | 'moderador' | 'miembro' | null;
 }
 
+// Tema con todos los campos necesarios
 export interface Tema {
   id_tema: number;
   id_foro: number;
   titulo: string;
   descripcion?: string;
-  fecha_creacion: Date | string;
+  fecha_creacion: string | Date;
   total_mensajes?: number;
   ultimo_mensaje?: {
     contenido: string;
-    fecha_envio: Date | string;
+    fecha_envio: Date;
     autor: string;
   };
+
+  cerrado: boolean;
+  fijado: boolean;
+  fecha_cierre?: Date;
 }
 
+//  Mensaje con campos de edición y eliminación
 export interface Mensaje {
   id_mensaje_foro: number;
   id_tema: number;
   contenido: string;
-  fecha_envio: Date | string;
+  fecha_envio: string | Date;
   autor: {
     tipo: 'psicologo' | 'paciente';
     id: number;
     nombre: string;
-    apellido?: string;
+    apellido: string;
   };
+
+  editado?: boolean;
+  fecha_edicion?: Date;
+  eliminado?: boolean;
 }
 
 export interface Participante {
@@ -78,87 +88,6 @@ export interface Invitacion {
     nombre: string;
     apellidoPaterno: string;
   };
-}
-
-// DTOs para requests
-export interface CreateForoDTO {
-  titulo: string;
-  descripcion?: string;
-  publico: boolean;
-}
-
-export interface CreateTemaDTO {
-  titulo: string;
-  descripcion?: string;
-}
-
-export interface CreateMensajeDTO {
-  contenido: string;
-}
-
-export interface InvitarModeradorDTO {
-  id_psicologo_invitado: number;
-  mensaje?: string;
-}
-
-export interface ResponderInvitacionDTO {
-  aceptar: boolean;
-}
-
-// Utilidades
-export interface PaginationMeta {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: PaginationMeta;
-}
-
-export interface ApiResponse<T = any> {
-  success: boolean;
-  message?: string;
-  data?: T;
-  error?: string;
-}
-// ✅ FASE 3: Nuevas interfaces
-
-export interface Tema {
-  id_tema: number;
-  id_foro: number;
-  titulo: string;
-  descripcion?: string;
-  fecha_creacion: string | Date;
-  total_mensajes?: number;
-  ultimo_mensaje?: {
-    contenido: string;
-    fecha_envio: Date;
-    autor: string;
-  };
-  // ✅ FASE 3: Nuevos campos
-  cerrado: boolean;
-  fijado: boolean;
-  fecha_cierre?: Date;
-}
-
-export interface Mensaje {
-  id_mensaje_foro: number;
-  id_tema: number;
-  contenido: string;
-  fecha_envio: string | Date;
-  autor: {
-    tipo: 'psicologo' | 'paciente';
-    id: number;
-    nombre: string;
-    apellido: string;
-  };
-  // ✅ FASE 3: Nuevos campos
-  editado?: boolean;
-  fecha_edicion?: Date;
-  eliminado?: boolean;
 }
 
 export interface SolicitudUnion {
@@ -197,10 +126,56 @@ export interface LogModeracion {
   } | null;
 }
 
+// DTOs para requests
+export interface CreateForoDTO {
+  titulo: string;
+  descripcion?: string;
+  publico: boolean;
+}
+
+export interface CreateTemaDTO {
+  titulo: string;
+  descripcion?: string;
+}
+
+export interface CreateMensajeDTO {
+  contenido: string;
+}
+
+export interface InvitarModeradorDTO {
+  id_psicologo_invitado: number;
+  mensaje?: string;
+}
+
+export interface ResponderInvitacionDTO {
+  aceptar: boolean;
+}
+
+// ✅ FASE 3: Nuevos DTOs
 export interface CrearSolicitudDTO {
   mensaje?: string;
 }
 
 export interface EditarMensajeDTO {
   contenido: string;
+}
+
+// Utilidades
+export interface PaginationMeta {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
+export interface ApiResponse<T = any> {
+  success: boolean;
+  message?: string;
+  data?: T;
+  error?: string;
 }

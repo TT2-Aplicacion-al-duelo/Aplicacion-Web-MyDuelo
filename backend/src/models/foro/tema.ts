@@ -14,7 +14,7 @@ interface TemaAttributes {
   id_moderador_cierre?: number;
 }
 
-interface TemaCreationAttributes extends Optional<TemaAttributes, 'id_tema' | 'fecha_creacion' | 'descripcion'> {}
+interface TemaCreationAttributes extends Optional<TemaAttributes, 'id_tema' | 'fecha_creacion' | 'descripcion' | 'cerrado' | 'fijado' | 'fecha_cierre' | 'id_moderador_cierre'> {}
 
 class Tema extends Model<TemaAttributes, TemaCreationAttributes> implements TemaAttributes {
   public id_tema!: number;

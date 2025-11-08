@@ -10,7 +10,7 @@ import { Baneo, BanearUsuarioDTO } from '../../../interfaces/moderacion';
 
 @Component({
   selector: 'app-gestion-participantes',
-  standalone: true,
+  
   imports: [CommonModule, FormsModule],
   templateUrl: './gestion-participantes.component.html',
   styleUrls: ['./gestion-participantes.component.css'],

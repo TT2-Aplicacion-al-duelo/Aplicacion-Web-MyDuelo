@@ -18,7 +18,7 @@ interface MensajeForoAttributes {
 }
 
 interface MensajeForoCreationAttributes 
-  extends Optional<MensajeForoAttributes, 'id_mensaje_foro' | 'fecha_envio'> {}
+  extends Optional<MensajeForoAttributes, 'id_mensaje_foro' | 'fecha_envio' | 'editado' | 'fecha_edicion' | 'eliminado' | 'fecha_eliminacion' | 'id_moderador_eliminador'> {}
 
 class MensajeForo extends Model<MensajeForoAttributes, MensajeForoCreationAttributes> 
   implements MensajeForoAttributes {

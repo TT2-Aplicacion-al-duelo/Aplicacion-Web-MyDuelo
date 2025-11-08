@@ -17,6 +17,8 @@ import MensajeForo from "./foro/mensaje-foro";
 import Tema from "./foro/tema";
 import ForoParticipante from "./foro/foro-participante";
 import ForoBaneo from "./foro/foro-baneo";
+import SolicitudUnion from "./foro/solicitud-union";
+import ModeracionLog from "./foro/moderacion-log";
 
 export function setupAssociations() {
   console.log('🔧 Iniciando configuración de asociaciones...');
@@ -388,10 +390,108 @@ console.log('✅ Asociaciones de ForoBaneo (Fase 2) configuradas');
 
 export {
   // ... exportaciones existentes
-  ForoBaneo, // 🆕 Agregar esta exportación
+  ForoBaneo, 
+  ModeracionLog,  
+  SolicitudUnion, 
 };
 
 console.log('🎉 TODAS las asociaciones configuradas exitosamente (Fase 1 + Fase 2)');
+
+
+// ============================================================================
+// ASOCIACIONES DE MODERACIÓN AVANZADA (FASE 3)
+// ============================================================================
+console.log('🔧 Configurando asociaciones de Moderación Avanzada (Fase 3)...');
+
+// ==================== MODERACION_LOG <-> FORO ====================
+ModeracionLog.belongsTo(Foro, {
+  foreignKey: 'id_foro',
+  as: 'foro',
+});
+
+Foro.hasMany(ModeracionLog, {
+  foreignKey: 'id_foro',
+  as: 'logs_moderacion',
+});
+
+// ==================== MODERACION_LOG <-> PSICOLOGO (MODERADOR) ====================
+ModeracionLog.belongsTo(Psicologo, {
+  foreignKey: 'id_moderador',
+  as: 'moderador',
+});
+
+Psicologo.hasMany(ModeracionLog, {
+  foreignKey: 'id_moderador',
+  as: 'acciones_moderacion',
+});
+
+// ==================== SOLICITUD_UNION <-> FORO ====================
+SolicitudUnion.belongsTo(Foro, {
+  foreignKey: 'id_foro',
+  as: 'foro',
+});
+
+Foro.hasMany(SolicitudUnion, {
+  foreignKey: 'id_foro',
+  as: 'solicitudes_union',
+});
+
+// ==================== SOLICITUD_UNION <-> PSICOLOGO (SOLICITANTE) ====================
+SolicitudUnion.belongsTo(Psicologo, {
+  foreignKey: 'id_psicologo',
+  as: 'psicologo_solicitante',
+});
+
+Psicologo.hasMany(SolicitudUnion, {
+  foreignKey: 'id_psicologo',
+  as: 'solicitudes_foro_enviadas',
+});
+
+// ==================== SOLICITUD_UNION <-> PACIENTE (SOLICITANTE) ====================
+SolicitudUnion.belongsTo(Paciente, {
+  foreignKey: 'id_paciente',
+  as: 'paciente_solicitante',
+});
+
+Paciente.hasMany(SolicitudUnion, {
+  foreignKey: 'id_paciente',
+  as: 'solicitudes_foro_enviadas',
+});
+
+// ==================== SOLICITUD_UNION <-> PSICOLOGO (MODERADOR RESPUESTA) ====================
+SolicitudUnion.belongsTo(Psicologo, {
+  foreignKey: 'id_moderador_respuesta',
+  as: 'moderador_respuesta',
+});
+
+Psicologo.hasMany(SolicitudUnion, {
+  foreignKey: 'id_moderador_respuesta',
+  as: 'solicitudes_foro_procesadas',
+});
+
+// ==================== TEMA <-> PSICOLOGO (MODERADOR CIERRE) ====================
+Tema.belongsTo(Psicologo, {
+  foreignKey: 'id_moderador_cierre',
+  as: 'moderador_cierre',
+});
+
+Psicologo.hasMany(Tema, {
+  foreignKey: 'id_moderador_cierre',
+  as: 'temas_cerrados',
+});
+
+// ==================== MENSAJE_FORO <-> PSICOLOGO (MODERADOR ELIMINADOR) ====================
+MensajeForo.belongsTo(Psicologo, {
+  foreignKey: 'id_moderador_eliminador',
+  as: 'moderador_eliminador',
+});
+
+Psicologo.hasMany(MensajeForo, {
+  foreignKey: 'id_moderador_eliminador',
+  as: 'mensajes_eliminados',
+});
+
+console.log('✅ Asociaciones de Moderación Avanzada (Fase 3) configuradas');
 
 
 

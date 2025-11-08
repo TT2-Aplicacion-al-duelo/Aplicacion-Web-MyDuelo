@@ -35,7 +35,7 @@
           <div *ngIf="mensajes.length===0 && !cargando" class="text-center text-muted py-5">
             No hay mensajes aún. ¡Sé el primero en escribir!
           </div>
-          <!-- ✅ FASE 3: Botones de moderación de mensajes -->
+          <!--Botones de moderación de mensajes -->
           <div *ngIf="puedeModerar() && !mensaje.eliminado" class="mt-2">
             <button 
               *ngIf="mensajeEditando !== mensaje.id_mensaje_foro"
