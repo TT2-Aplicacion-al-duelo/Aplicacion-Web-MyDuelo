@@ -275,7 +275,8 @@ class ModeracionService {
    * Expirar baneos automáticamente (llamado por un cron job)
    */
   async expirarBaneosVencidos(): Promise<number> {
-    // ✅ CORREGIDO: Usar Op.and con condiciones separadas
+    // ✅ SOLUCIÓN: Usar condiciones simples sin Op.and
+    // Sequelize interpreta múltiples condiciones en el mismo objeto como AND implícito
     const [affectedCount] = await ForoBaneo.update(
       {
         activo: false,
@@ -283,11 +284,11 @@ class ModeracionService {
       },
       {
         where: {
-          [Op.and]: [
-            { activo: true },
-            { fecha_expiracion: { [Op.lte]: new Date() } },
-            { fecha_expiracion: { [Op.ne]: null } }  
-          ]
+          activo: true,
+          fecha_expiracion: {
+            [Op.lte]: new Date(),  // fecha <= ahora
+            [Op.ne]: null as any   // fecha != null (cast explícito para TypeScript)
+          }
         },
       }
     );

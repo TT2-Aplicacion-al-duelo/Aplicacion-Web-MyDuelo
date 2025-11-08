@@ -2,6 +2,7 @@ import { Router } from 'express';
 import foroController from '../controllers/foro';
 import moderacionController from '../controllers/moderacion';
 import { verificarToken, esPsicologo } from '../middlewares/auth.middlewares';
+import moderacionAvanzadaController from '../controllers/moderacion-avanzada';
 import {
   esParticipanteForo,
   esParticipanteForoDelTema,
@@ -272,5 +273,154 @@ router.get(
   esModeradorOAdmin,
   moderacionController.obtenerEstadisticas.bind(moderacionController)
 );
+
+// ============================================================================
+// 🆕 FASE 3: ENDPOINTS DE MODERACIÓN AVANZADA
+// ============================================================================
+
+/**
+ * DELETE /api/foros/:idForo/mensajes/:idMensaje
+ * Eliminar mensaje (soft delete) - Solo moderadores y admins
+ */
+router.delete(
+  '/:idForo/mensajes/:idMensaje',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.eliminarMensaje.bind(moderacionAvanzadaController)
+);
+
+/**
+ * POST /api/foros/:idForo/mensajes/:idMensaje/restaurar
+ * Restaurar mensaje eliminado - Solo moderadores y admins
+ */
+router.post(
+  '/:idForo/mensajes/:idMensaje/restaurar',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.restaurarMensaje.bind(moderacionAvanzadaController)
+);
+
+/**
+ * PUT /api/foros/:idForo/mensajes/:idMensaje
+ * Editar mensaje - Solo moderadores y admins
+ */
+router.put(
+  '/:idForo/mensajes/:idMensaje',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.editarMensaje.bind(moderacionAvanzadaController)
+);
+
+/**
+ * POST /api/foros/:idForo/temas/:idTema/cerrar
+ * Cerrar tema - Solo moderadores y admins
+ */
+router.post(
+  '/:idForo/temas/:idTema/cerrar',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.cerrarTema.bind(moderacionAvanzadaController)
+);
+
+/**
+ * POST /api/foros/:idForo/temas/:idTema/abrir
+ * Abrir tema cerrado - Solo moderadores y admins
+ */
+router.post(
+  '/:idForo/temas/:idTema/abrir',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.abrirTema.bind(moderacionAvanzadaController)
+);
+
+/**
+ * POST /api/foros/:idForo/temas/:idTema/fijar
+ * Fijar tema - Solo moderadores y admins
+ */
+router.post(
+  '/:idForo/temas/:idTema/fijar',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.fijarTema.bind(moderacionAvanzadaController)
+);
+
+/**
+ * POST /api/foros/:idForo/temas/:idTema/desfijar
+ * Desfijar tema - Solo moderadores y admins
+ */
+router.post(
+  '/:idForo/temas/:idTema/desfijar',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.desfijarTema.bind(moderacionAvanzadaController)
+);
+
+/**
+ * POST /api/foros/:idForo/solicitar-union
+ * Solicitar unirse a un foro
+ */
+router.post(
+  '/:idForo/solicitar-union',
+  verificarToken,
+  foroExiste,
+  moderacionAvanzadaController.crearSolicitud.bind(moderacionAvanzadaController)
+);
+
+/**
+ * GET /api/foros/:idForo/solicitudes
+ * Listar solicitudes pendientes - Solo moderadores y admins
+ */
+router.get(
+  '/:idForo/solicitudes',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.listarSolicitudes.bind(moderacionAvanzadaController)
+);
+
+/**
+ * POST /api/foros/:idForo/solicitudes/:idSolicitud/aprobar
+ * Aprobar solicitud - Solo moderadores y admins
+ */
+router.post(
+  '/:idForo/solicitudes/:idSolicitud/aprobar',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.aprobarSolicitud.bind(moderacionAvanzadaController)
+);
+
+/**
+ * POST /api/foros/:idForo/solicitudes/:idSolicitud/rechazar
+ * Rechazar solicitud - Solo moderadores y admins
+ */
+router.post(
+  '/:idForo/solicitudes/:idSolicitud/rechazar',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.rechazarSolicitud.bind(moderacionAvanzadaController)
+);
+
+/**
+ * GET /api/foros/:idForo/logs
+ * Obtener logs de moderación - Solo moderadores y admins
+ */
+router.get(
+  '/:idForo/logs',
+  verificarToken,
+  foroExiste,
+  esModeradorOAdmin,
+  moderacionAvanzadaController.obtenerLogs.bind(moderacionAvanzadaController)
+);
+
+
 
 export default router;

@@ -8,6 +8,10 @@ interface TemaAttributes {
   titulo: string;
   descripcion?: string;
   fecha_creacion: Date;
+  cerrado: boolean;
+  fijado: boolean;
+  fecha_cierre?: Date;
+  id_moderador_cierre?: number;
 }
 
 interface TemaCreationAttributes extends Optional<TemaAttributes, 'id_tema' | 'fecha_creacion' | 'descripcion'> {}
@@ -18,6 +22,10 @@ class Tema extends Model<TemaAttributes, TemaCreationAttributes> implements Tema
   public titulo!: string;
   public descripcion?: string;
   public fecha_creacion!: Date;
+  public cerrado!: boolean;
+  public fijado!: boolean;
+  public fecha_cierre?: Date;
+  public id_moderador_cierre?: number;
 }
 
 Tema.init(
@@ -54,6 +62,28 @@ Tema.init(
       type: DataTypes.DATE,
       allowNull: false,
       defaultValue: DataTypes.NOW,
+    },
+    cerrado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    fijado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    fecha_cierre: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    id_moderador_cierre: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'psicologo',
+        key: 'id_psicologo',
+      },
     },
   },
   {

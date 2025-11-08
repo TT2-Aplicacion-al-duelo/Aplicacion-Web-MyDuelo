@@ -10,6 +10,11 @@ interface MensajeForoAttributes {
   id_paciente?: number;
   contenido: string;
   fecha_envio: Date;
+  editado: boolean;
+  fecha_edicion?: Date;
+  eliminado: boolean;
+  fecha_eliminacion?: Date;
+  id_moderador_eliminador?: number;
 }
 
 interface MensajeForoCreationAttributes 
@@ -24,6 +29,11 @@ class MensajeForo extends Model<MensajeForoAttributes, MensajeForoCreationAttrib
   public id_paciente?: number;
   public contenido!: string;
   public fecha_envio!: Date;
+  public editado!: boolean;
+  public fecha_edicion?: Date;
+  public eliminado!: boolean;
+  public fecha_eliminacion?: Date;
+  public id_moderador_eliminador?: number;
 }
 
 MensajeForo.init(
@@ -73,7 +83,34 @@ MensajeForo.init(
       allowNull: false,
       defaultValue: DataTypes.NOW,
     },
+    editado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    fecha_edicion: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    eliminado: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
+    fecha_eliminacion: {
+      type: DataTypes.DATE,
+      allowNull: true,
+    },
+    id_moderador_eliminador: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+      references: {
+        model: 'psicologo',
+        key: 'id_psicologo',
+      },
+    },
   },
+  
   {
     sequelize,
     tableName: 'mensaje_foro',
