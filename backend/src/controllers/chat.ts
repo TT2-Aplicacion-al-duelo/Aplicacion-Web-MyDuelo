@@ -89,12 +89,12 @@ export const getChats = async (req: AuthRequest, res: Response) => {
 
     console.log(`Encontrados ${chatsFormateados.length} chats`);
 
-
-    // Obtener el administrador del sistema (id_psicologo = 4, según tus datos)
-    const adminId = 6; // Cambiar si tu admin tiene otro ID
+const adminId = 6; // ← VERIFICAR QUE ESTE SEA EL ID CORRECTO DEL ADMIN
 
     // Verificar que el psicólogo actual NO sea el admin
     if (id_psicologo !== adminId) {
+      console.log(`🔍 Verificando chat de admin para psicólogo ${id_psicologo}`);
+      
       // Verificar si ya existe un chat_admin con este psicólogo
       const chatAdminExistente = await sequelize.query(`
         SELECT 
@@ -106,26 +106,26 @@ export const getChats = async (req: AuthRequest, res: Response) => {
           p.correo,
           -- Último mensaje del chat admin
           (SELECT m.contenido 
-          FROM mensaje_admin m 
-          WHERE m.id_chat_admin = ca.id_chat_admin 
-          ORDER BY m.fecha_envio DESC 
-          LIMIT 1) as ultimo_mensaje_contenido,
+           FROM mensaje_admin m 
+           WHERE m.id_chat_admin = ca.id_chat_admin 
+           ORDER BY m.fecha_envio DESC 
+           LIMIT 1) as ultimo_mensaje_contenido,
           (SELECT m.remitente 
-          FROM mensaje_admin m 
-          WHERE m.id_chat_admin = ca.id_chat_admin 
-          ORDER BY m.fecha_envio DESC 
-          LIMIT 1) as ultimo_mensaje_remitente,
+           FROM mensaje_admin m 
+           WHERE m.id_chat_admin = ca.id_chat_admin 
+           ORDER BY m.fecha_envio DESC 
+           LIMIT 1) as ultimo_mensaje_remitente,
           (SELECT m.fecha_envio 
-          FROM mensaje_admin m 
-          WHERE m.id_chat_admin = ca.id_chat_admin 
-          ORDER BY m.fecha_envio DESC 
-          LIMIT 1) as ultimo_mensaje_fecha,
+           FROM mensaje_admin m 
+           WHERE m.id_chat_admin = ca.id_chat_admin 
+           ORDER BY m.fecha_envio DESC 
+           LIMIT 1) as ultimo_mensaje_fecha,
           -- Contar mensajes no leídos del admin
           (SELECT COUNT(*) 
-          FROM mensaje_admin m 
-          WHERE m.id_chat_admin = ca.id_chat_admin 
-          AND m.remitente = 'admin' 
-          AND m.leido = 0) as mensajes_no_leidos
+           FROM mensaje_admin m 
+           WHERE m.id_chat_admin = ca.id_chat_admin 
+           AND m.remitente = 'admin' 
+           AND m.leido = 0) as mensajes_no_leidos
         FROM chat_admin ca
         JOIN psicologo p ON p.id_psicologo = ca.id_admin
         WHERE ca.id_admin = ? 
@@ -138,6 +138,8 @@ export const getChats = async (req: AuthRequest, res: Response) => {
 
       // Si NO existe chat con el admin, crear uno automáticamente
       if (chatAdminExistente.length === 0) {
+        console.log('⚠️ No existe chat con admin, creando...');
+        
         await sequelize.query(`
           INSERT INTO chat_admin (id_admin, destinatario_tipo, destinatario_id, fecha_inicio)
           VALUES (?, 'psicologo', ?, NOW())
@@ -165,13 +167,14 @@ export const getChats = async (req: AuthRequest, res: Response) => {
           type: QueryTypes.SELECT
         });
 
-        // PRIMER BLOQUE - Cuando NO existe chat (crear nuevo)
         if (nuevoChat.length > 0) {
           const adminChat: any = nuevoChat[0];
-          // Agregar el chat del admin a la lista en formato compatible
+          console.log('✅ Chat de admin creado:', adminChat.id_chat_admin);
+          
+          // Agregar el chat del admin a la lista
           chatsFormateados.unshift({
-            id_chat: adminChat.id_chat_admin,  // ← CAMBIO: Ya no usar prefijo admin_
-            id_chat_admin: adminChat.id_chat_admin,  // ← NUEVO: Guardar el ID real
+            id_chat: adminChat.id_chat_admin,
+            id_chat_admin: adminChat.id_chat_admin,
             id_psicologo: adminId,
             id_paciente: null,
             fecha_inicio: adminChat.fecha_inicio,
@@ -184,38 +187,39 @@ export const getChats = async (req: AuthRequest, res: Response) => {
             },
             ultimo_mensaje: null,
             mensajes_no_leidos: 0,
-            es_chat_admin: true  // ← NUEVO: Flag para el frontend
+            es_chat_admin: true
           } as any);
         }
-
-        // SEGUNDO BLOQUE - Cuando SÍ existe chat
-        else {
-          const adminChat: any = chatAdminExistente[0];
-          chatsFormateados.unshift({
-            id_chat: adminChat.id_chat_admin,  // ← CAMBIO: Ya no usar prefijo admin_
-            id_chat_admin: adminChat.id_chat_admin,  // ← NUEVO: Guardar el ID real
-            id_psicologo: adminId,
-            id_paciente: null,
-            fecha_inicio: adminChat.fecha_inicio,
-            paciente: {
-              id_paciente: adminId,
-              nombre: adminChat.nombre,
-              apellido_paterno: adminChat.apellidoPaterno,
-              apellido_materno: adminChat.apellidoMaterno,
-              email: adminChat.correo
-            },
-            ultimo_mensaje: adminChat.ultimo_mensaje_contenido ? {
-              contenido: adminChat.ultimo_mensaje_contenido,
-              remitente: adminChat.ultimo_mensaje_remitente,
-              fecha_envio: adminChat.ultimo_mensaje_fecha
-            } : null,
-            mensajes_no_leidos: adminChat.mensajes_no_leidos || 0,
-            es_chat_admin: true  // ← NUEVO: Flag para el frontend
-          } as any);
-        }
+      } else {
+        // Si YA existe el chat, agregarlo a la lista
+        const adminChat: any = chatAdminExistente[0];
+        console.log('✅ Chat de admin existente encontrado:', adminChat.id_chat_admin);
+        
+        chatsFormateados.unshift({
+          id_chat: adminChat.id_chat_admin,
+          id_chat_admin: adminChat.id_chat_admin,
+          id_psicologo: adminId,
+          id_paciente: null,
+          fecha_inicio: adminChat.fecha_inicio,
+          paciente: {
+            id_paciente: adminId,
+            nombre: adminChat.nombre,
+            apellido_paterno: adminChat.apellidoPaterno,
+            apellido_materno: adminChat.apellidoMaterno,
+            email: adminChat.correo
+          },
+          ultimo_mensaje: adminChat.ultimo_mensaje_contenido ? {
+            contenido: adminChat.ultimo_mensaje_contenido,
+            remitente: adminChat.ultimo_mensaje_remitente,
+            fecha_envio: adminChat.ultimo_mensaje_fecha
+          } : null,
+          mensajes_no_leidos: adminChat.mensajes_no_leidos || 0,
+          es_chat_admin: true
+        } as any);
       }
+      
+      console.log(`📊 Total chats (incluyendo admin): ${chatsFormateados.length}`);
     }
-
 
 
     res.json(chatsFormateados);
