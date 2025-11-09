@@ -45,9 +45,9 @@ router.get("/api/psicologo/chat/verificar/:idPaciente", validarToken, verificarC
 // ====================================
 
 // Obtener mensajes de un chat con admin
-router.get("/api/chats/admin/:id_chat_admin/mensajes", validarToken, async (req: AuthRequest, res: Response) => {
+router.get("/api/psicologo/chats/admin/:id_chat_admin/mensajes", validarToken, async (req: AuthRequest, res: Response) => {
   try {
-    const id_chat_admin = parseInt(req.params.id_chat_admin); // ← CORREGIDO: parseInt en lugar de Number
+    const id_chat_admin = parseInt(req.params.id_chat_admin);
     const id_psicologo = req.user?.id_psicologo;
 
     const mensajes = await sequelize.query(`
@@ -74,7 +74,7 @@ router.get("/api/chats/admin/:id_chat_admin/mensajes", validarToken, async (req:
 });
 
 // Enviar mensaje a admin
-router.post("/api/chats/admin/mensajes", validarToken, async (req: AuthRequest, res: Response) => {
+router.post("/api/psicologo/chats/admin/mensajes", validarToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id_chat_admin, contenido } = req.body;
     const id_psicologo = req.user?.id_psicologo;
@@ -92,7 +92,7 @@ router.post("/api/chats/admin/mensajes", validarToken, async (req: AuthRequest, 
       type: QueryTypes.INSERT
     });
 
-    // CORREGIDO: Obtener insertId correctamente
+    // Obtener insertId correctamente
     const insertId = Array.isArray(resultado[0]) ? resultado[0] : (resultado[0] as any);
 
     // Obtener el mensaje recién creado
@@ -115,6 +115,28 @@ router.post("/api/chats/admin/mensajes", validarToken, async (req: AuthRequest, 
   } catch (error: any) {
     console.error('Error al enviar mensaje a admin:', error);
     res.status(500).json({ msg: "Error interno del servidor", error: error.message });
+  }
+});
+
+// Marcar mensajes de admin como leídos
+router.put("/api/psicologo/chats/admin/:id_chat_admin/leer", validarToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const id_chat_admin = parseInt(req.params.id_chat_admin);
+    const id_psicologo = req.user?.id_psicologo;
+
+    await sequelize.query(`
+      UPDATE mensaje_admin 
+      SET leido = 1 
+      WHERE id_chat_admin = ? AND remitente = 'admin' AND leido = 0
+    `, {
+      replacements: [id_chat_admin],
+      type: QueryTypes.UPDATE
+    });
+
+    res.json({ msg: "Mensajes marcados como leídos" });
+  } catch (error) {
+    console.error('Error al marcar como leído:', error);
+    res.status(500).json({ msg: "Error interno del servidor", error });
   }
 });
 

@@ -279,19 +279,39 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  private marcarComoLeido(idChat: number): void {
-    this.chatService.marcarComoLeido(idChat).subscribe({
-      next: () => {
-        // Actualizar el contador visual
-        const chat = this.chats.find(c => c.id_chat === idChat);
-        if (chat) {
-          chat.mensajes_no_leidos = 0;
+  private marcarComoLeido(idChat: number | string): void {
+    // Verificar si es un chat de admin
+    const idChatStr = idChat.toString();
+    
+    if (idChatStr.startsWith('admin_')) {
+      // Extraer el ID numérico del chat admin
+      const idChatAdmin = parseInt(idChatStr.replace('admin_', ''));
+      
+      this.chatService.marcarComoLeidoAdmin(idChatAdmin).subscribe({
+        next: () => {
+          const chat = this.chats.find(c => c.id_chat.toString() === idChatStr);
+          if (chat) {
+            chat.mensajes_no_leidos = 0;
+          }
+        },
+        error: (error) => {
+          console.error('Error al marcar como leído (admin):', error);
         }
-      },
-      error: (error) => {
-        console.error('Error al marcar como leído:', error);
-      }
-    });
+      });
+    } else {
+      // Chat normal con paciente
+      this.chatService.marcarComoLeido(idChat as number).subscribe({
+        next: () => {
+          const chat = this.chats.find(c => c.id_chat === idChat);
+          if (chat) {
+            chat.mensajes_no_leidos = 0;
+          }
+        },
+        error: (error) => {
+          console.error('Error al marcar como leído:', error);
+        }
+      });
+    }
   }
 
   private scrollToBottom(): void {

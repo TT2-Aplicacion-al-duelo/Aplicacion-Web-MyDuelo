@@ -37,10 +37,10 @@ router.get("/api/psicologo/chat/verificar/:idPaciente", validarToken_1.default, 
 // RUTAS PARA MENSAJES CON ADMINISTRADOR
 // ====================================
 // Obtener mensajes de un chat con admin
-router.get("/api/chats/admin/:id_chat_admin/mensajes", validarToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.get("/api/psicologo/chats/admin/:id_chat_admin/mensajes", validarToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const id_chat_admin = parseInt(req.params.id_chat_admin); // ← CORREGIDO: parseInt en lugar de Number
+        const id_chat_admin = parseInt(req.params.id_chat_admin);
         const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
         const mensajes = yield connection_1.default.query(`
       SELECT 
@@ -65,7 +65,7 @@ router.get("/api/chats/admin/:id_chat_admin/mensajes", validarToken_1.default, (
     }
 }));
 // Enviar mensaje a admin
-router.post("/api/chats/admin/mensajes", validarToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+router.post("/api/psicologo/chats/admin/mensajes", validarToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
         const { id_chat_admin, contenido } = req.body;
@@ -81,7 +81,7 @@ router.post("/api/chats/admin/mensajes", validarToken_1.default, (req, res) => _
             replacements: [id_chat_admin, contenido.trim()],
             type: sequelize_1.QueryTypes.INSERT
         });
-        // CORREGIDO: Obtener insertId correctamente
+        // Obtener insertId correctamente
         const insertId = Array.isArray(resultado[0]) ? resultado[0] : resultado[0];
         // Obtener el mensaje recién creado
         const nuevoMensaje = yield connection_1.default.query(`
@@ -103,6 +103,27 @@ router.post("/api/chats/admin/mensajes", validarToken_1.default, (req, res) => _
     catch (error) {
         console.error('Error al enviar mensaje a admin:', error);
         res.status(500).json({ msg: "Error interno del servidor", error: error.message });
+    }
+}));
+// Marcar mensajes de admin como leídos
+router.put("/api/psicologo/chats/admin/:id_chat_admin/leer", validarToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const id_chat_admin = parseInt(req.params.id_chat_admin);
+        const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        yield connection_1.default.query(`
+      UPDATE mensaje_admin 
+      SET leido = 1 
+      WHERE id_chat_admin = ? AND remitente = 'admin' AND leido = 0
+    `, {
+            replacements: [id_chat_admin],
+            type: sequelize_1.QueryTypes.UPDATE
+        });
+        res.json({ msg: "Mensajes marcados como leídos" });
+    }
+    catch (error) {
+        console.error('Error al marcar como leído:', error);
+        res.status(500).json({ msg: "Error interno del servidor", error });
     }
 }));
 exports.default = router;

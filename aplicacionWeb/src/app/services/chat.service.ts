@@ -39,6 +39,13 @@ export class ChatService {
   }
 
   /**
+   * Marcar mensajes de admin como leídos
+   */
+  marcarComoLeidoAdmin(idChatAdmin: number): Observable<any> {
+    return this.http.put(`${this.AppUrl}${this.APIUrl}/chats/admin/${idChatAdmin}/leer`, {});
+  }
+
+  /**
    * Crear un nuevo chat con un paciente
    */
   crearChat(chatData: CrearChatRequest): Observable<Chat> {
