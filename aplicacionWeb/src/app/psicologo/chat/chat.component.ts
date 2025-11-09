@@ -120,16 +120,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   seleccionarChat(chat: Chat): void {
     this.chatActual = chat;
     
-    // Verificar si es un chat con admin
-    if ((chat as any).es_admin) {
-      // Extraer el ID real del chat admin
-      const idChatAdmin = parseInt(chat.id_chat.toString().replace('admin_', ''));
+    // Verificar si es un chat con admin usando la nueva propiedad
+    if ((chat as any).es_chat_admin && (chat as any).id_chat_admin) {
+      // Usar el ID real del chat admin
+      const idChatAdmin = (chat as any).id_chat_admin;
       this.cargarMensajesAdmin(idChatAdmin);
+      this.marcarComoLeido(chat.id_chat);  // Ahora usa el ID numérico
     } else {
       this.cargarMensajes(chat.id_chat);
+      this.marcarComoLeido(chat.id_chat);
     }
-    
-    this.marcarComoLeido(chat.id_chat);
   }
   // AGREGAR ESTA NUEVA FUNCIÓN
   private cargarMensajesAdmin(idChatAdmin: number): void {
@@ -280,16 +280,15 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   private marcarComoLeido(idChat: number | string): void {
-    // Verificar si es un chat de admin
-    const idChatStr = idChat.toString();
+    // Buscar el chat actual para ver si es de admin
+    const chat = this.chats.find(c => c.id_chat === idChat);
     
-    if (idChatStr.startsWith('admin_')) {
-      // Extraer el ID numérico del chat admin
-      const idChatAdmin = parseInt(idChatStr.replace('admin_', ''));
+    if (chat && (chat as any).es_chat_admin && (chat as any).id_chat_admin) {
+      // Es un chat de admin
+      const idChatAdmin = (chat as any).id_chat_admin;
       
       this.chatService.marcarComoLeidoAdmin(idChatAdmin).subscribe({
         next: () => {
-          const chat = this.chats.find(c => c.id_chat.toString() === idChatStr);
           if (chat) {
             chat.mensajes_no_leidos = 0;
           }
@@ -302,7 +301,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       // Chat normal con paciente
       this.chatService.marcarComoLeido(idChat as number).subscribe({
         next: () => {
-          const chat = this.chats.find(c => c.id_chat === idChat);
           if (chat) {
             chat.mensajes_no_leidos = 0;
           }

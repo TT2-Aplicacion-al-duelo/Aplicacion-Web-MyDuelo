@@ -165,11 +165,13 @@ export const getChats = async (req: AuthRequest, res: Response) => {
           type: QueryTypes.SELECT
         });
 
+        // PRIMER BLOQUE - Cuando NO existe chat (crear nuevo)
         if (nuevoChat.length > 0) {
           const adminChat: any = nuevoChat[0];
           // Agregar el chat del admin a la lista en formato compatible
           chatsFormateados.unshift({
-            id_chat: `admin_${adminChat.id_chat_admin}`,
+            id_chat: adminChat.id_chat_admin,  // ← CAMBIO: Ya no usar prefijo admin_
+            id_chat_admin: adminChat.id_chat_admin,  // ← NUEVO: Guardar el ID real
             id_psicologo: adminId,
             id_paciente: null,
             fecha_inicio: adminChat.fecha_inicio,
@@ -181,31 +183,36 @@ export const getChats = async (req: AuthRequest, res: Response) => {
               email: adminChat.correo
             },
             ultimo_mensaje: null,
-            mensajes_no_leidos: 0
-          } as any); 
+            mensajes_no_leidos: 0,
+            es_chat_admin: true  // ← NUEVO: Flag para el frontend
+          } as any);
         }
-      } else {
-        // Si existe, agregarlo a la lista
-        const adminChat: any = chatAdminExistente[0];
-        chatsFormateados.unshift({
-          id_chat: `admin_${adminChat.id_chat_admin}`,
-          id_psicologo: adminId,
-          id_paciente: null,
-          fecha_inicio: adminChat.fecha_inicio,
-          paciente: {
-            id_paciente: adminId,
-            nombre: adminChat.nombre,
-            apellido_paterno: adminChat.apellidoPaterno,
-            apellido_materno: adminChat.apellidoMaterno,
-            email: adminChat.correo
-          },
-          ultimo_mensaje: adminChat.ultimo_mensaje_contenido ? {
-            contenido: adminChat.ultimo_mensaje_contenido,
-            remitente: adminChat.ultimo_mensaje_remitente,
-            fecha_envio: adminChat.ultimo_mensaje_fecha
-          } : null,
-          mensajes_no_leidos: adminChat.mensajes_no_leidos || 0
-        } as any); 
+
+        // SEGUNDO BLOQUE - Cuando SÍ existe chat
+        else {
+          const adminChat: any = chatAdminExistente[0];
+          chatsFormateados.unshift({
+            id_chat: adminChat.id_chat_admin,  // ← CAMBIO: Ya no usar prefijo admin_
+            id_chat_admin: adminChat.id_chat_admin,  // ← NUEVO: Guardar el ID real
+            id_psicologo: adminId,
+            id_paciente: null,
+            fecha_inicio: adminChat.fecha_inicio,
+            paciente: {
+              id_paciente: adminId,
+              nombre: adminChat.nombre,
+              apellido_paterno: adminChat.apellidoPaterno,
+              apellido_materno: adminChat.apellidoMaterno,
+              email: adminChat.correo
+            },
+            ultimo_mensaje: adminChat.ultimo_mensaje_contenido ? {
+              contenido: adminChat.ultimo_mensaje_contenido,
+              remitente: adminChat.ultimo_mensaje_remitente,
+              fecha_envio: adminChat.ultimo_mensaje_fecha
+            } : null,
+            mensajes_no_leidos: adminChat.mensajes_no_leidos || 0,
+            es_chat_admin: true  // ← NUEVO: Flag para el frontend
+          } as any);
+        }
       }
     }
 
