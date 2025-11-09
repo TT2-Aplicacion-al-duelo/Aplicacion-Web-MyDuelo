@@ -12,12 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-// backend/src/routes/chat.ts
 const express_1 = require("express");
-const connection_1 = __importDefault(require("../database/connection"));
-const sequelize_1 = require("sequelize");
 const chat_1 = require("../controllers/chat");
 const validarToken_1 = __importDefault(require("./validarToken"));
+const connection_1 = __importDefault(require("../database/connection")); // ← AGREGAR SI NO ESTÁ
+const sequelize_1 = require("sequelize"); // ← AGREGAR SI NO ESTÁ
 const router = (0, express_1.Router)();
 // ===== RUTAS DE CHAT =====
 // Obtener todos los chats del psicólogo
@@ -41,7 +40,7 @@ router.get("/api/psicologo/chat/verificar/:idPaciente", validarToken_1.default, 
 router.get("/api/chats/admin/:id_chat_admin/mensajes", validarToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
-        const id_chat_admin = Number(req.params.id_chat_admin);
+        const id_chat_admin = parseInt(req.params.id_chat_admin); // ← CORREGIDO: parseInt en lugar de Number
         const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
         const mensajes = yield connection_1.default.query(`
       SELECT 
@@ -82,7 +81,8 @@ router.post("/api/chats/admin/mensajes", validarToken_1.default, (req, res) => _
             replacements: [id_chat_admin, contenido.trim()],
             type: sequelize_1.QueryTypes.INSERT
         });
-        const insertId = resultado[0].insertId || resultado[0];
+        // CORREGIDO: Obtener insertId correctamente
+        const insertId = Array.isArray(resultado[0]) ? resultado[0] : resultado[0];
         // Obtener el mensaje recién creado
         const nuevoMensaje = yield connection_1.default.query(`
       SELECT 

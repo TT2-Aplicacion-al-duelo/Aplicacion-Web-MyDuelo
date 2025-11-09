@@ -166,7 +166,7 @@ const getChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     const adminChat = nuevoChat[0];
                     // Agregar el chat del admin a la lista en formato compatible
                     chatsFormateados.unshift({
-                        id_chat: `admin_${adminChat.id_chat_admin}`, // Identificador especial
+                        id_chat: `admin_${adminChat.id_chat_admin}`,
                         id_psicologo: adminId,
                         id_paciente: null,
                         fecha_inicio: adminChat.fecha_inicio,
@@ -178,8 +178,7 @@ const getChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                             email: adminChat.correo
                         },
                         ultimo_mensaje: null,
-                        mensajes_no_leidos: 0,
-                        es_admin: true // Flag para identificar que es chat de admin
+                        mensajes_no_leidos: 0
                     });
                 }
             }
@@ -187,7 +186,7 @@ const getChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 // Si existe, agregarlo a la lista
                 const adminChat = chatAdminExistente[0];
                 chatsFormateados.unshift({
-                    id_chat: `admin_${adminChat.id_chat_admin}`, // Identificador especial
+                    id_chat: `admin_${adminChat.id_chat_admin}`,
                     id_psicologo: adminId,
                     id_paciente: null,
                     fecha_inicio: adminChat.fecha_inicio,
@@ -203,8 +202,7 @@ const getChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                         remitente: adminChat.ultimo_mensaje_remitente,
                         fecha_envio: adminChat.ultimo_mensaje_fecha
                     } : null,
-                    mensajes_no_leidos: adminChat.mensajes_no_leidos || 0,
-                    es_admin: true // Flag para identificar que es chat de admin
+                    mensajes_no_leidos: adminChat.mensajes_no_leidos || 0
                 });
             }
         }

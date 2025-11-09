@@ -169,7 +169,7 @@ export const getChats = async (req: AuthRequest, res: Response) => {
           const adminChat: any = nuevoChat[0];
           // Agregar el chat del admin a la lista en formato compatible
           chatsFormateados.unshift({
-            id_chat: `admin_${adminChat.id_chat_admin}`, // Identificador especial
+            id_chat: `admin_${adminChat.id_chat_admin}`,
             id_psicologo: adminId,
             id_paciente: null,
             fecha_inicio: adminChat.fecha_inicio,
@@ -181,15 +181,14 @@ export const getChats = async (req: AuthRequest, res: Response) => {
               email: adminChat.correo
             },
             ultimo_mensaje: null,
-            mensajes_no_leidos: 0,
-            es_admin: true // Flag para identificar que es chat de admin
-          });
+            mensajes_no_leidos: 0
+          } as any); 
         }
       } else {
         // Si existe, agregarlo a la lista
         const adminChat: any = chatAdminExistente[0];
         chatsFormateados.unshift({
-          id_chat: `admin_${adminChat.id_chat_admin}`, // Identificador especial
+          id_chat: `admin_${adminChat.id_chat_admin}`,
           id_psicologo: adminId,
           id_paciente: null,
           fecha_inicio: adminChat.fecha_inicio,
@@ -205,9 +204,8 @@ export const getChats = async (req: AuthRequest, res: Response) => {
             remitente: adminChat.ultimo_mensaje_remitente,
             fecha_envio: adminChat.ultimo_mensaje_fecha
           } : null,
-          mensajes_no_leidos: adminChat.mensajes_no_leidos || 0,
-          es_admin: true // Flag para identificar que es chat de admin
-        });
+          mensajes_no_leidos: adminChat.mensajes_no_leidos || 0
+        } as any); 
       }
     }
 

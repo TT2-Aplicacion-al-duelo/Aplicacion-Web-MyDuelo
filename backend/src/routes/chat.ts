@@ -1,7 +1,4 @@
-// backend/src/routes/chat.ts
-import { Router } from "express";
-import sequelize from "../database/connection";
-import { QueryTypes } from 'sequelize';
+import { Router, Request, Response } from "express";
 import { 
   getChats, 
   getMensajes, 
@@ -12,6 +9,13 @@ import {
   verificarChatPaciente
 } from "../controllers/chat";
 import validarToken from "./validarToken";
+import sequelize from "../database/connection";  // ← AGREGAR SI NO ESTÁ
+import { QueryTypes } from 'sequelize';         // ← AGREGAR SI NO ESTÁ
+
+// Definir AuthRequest si no está
+interface AuthRequest extends Request {
+    user?: any;
+}
 
 const router = Router();
 
@@ -41,9 +45,9 @@ router.get("/api/psicologo/chat/verificar/:idPaciente", validarToken, verificarC
 // ====================================
 
 // Obtener mensajes de un chat con admin
-router.get("/api/chats/admin/:id_chat_admin/mensajes", validarToken, async (req: any, res: Response) => {
+router.get("/api/chats/admin/:id_chat_admin/mensajes", validarToken, async (req: AuthRequest, res: Response) => {
   try {
-    const id_chat_admin = Number(req.params.id_chat_admin);
+    const id_chat_admin = parseInt(req.params.id_chat_admin); // ← CORREGIDO: parseInt en lugar de Number
     const id_psicologo = req.user?.id_psicologo;
 
     const mensajes = await sequelize.query(`
@@ -70,7 +74,7 @@ router.get("/api/chats/admin/:id_chat_admin/mensajes", validarToken, async (req:
 });
 
 // Enviar mensaje a admin
-router.post("/api/chats/admin/mensajes", validarToken, async (req: any, res: Response) => {
+router.post("/api/chats/admin/mensajes", validarToken, async (req: AuthRequest, res: Response) => {
   try {
     const { id_chat_admin, contenido } = req.body;
     const id_psicologo = req.user?.id_psicologo;
@@ -88,7 +92,8 @@ router.post("/api/chats/admin/mensajes", validarToken, async (req: any, res: Res
       type: QueryTypes.INSERT
     });
 
-    const insertId = (resultado[0] as any).insertId || resultado[0];
+    // CORREGIDO: Obtener insertId correctamente
+    const insertId = Array.isArray(resultado[0]) ? resultado[0] : (resultado[0] as any);
 
     // Obtener el mensaje recién creado
     const nuevoMensaje = await sequelize.query(`
