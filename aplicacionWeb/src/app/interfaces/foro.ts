@@ -18,6 +18,7 @@ export interface Foro {
   total_temas?: number;
   es_participante?: boolean;
   rol_usuario?: 'admin' | 'moderador' | 'miembro' | null;
+  solicitudes_pendientes?: number;
 }
 
 // Tema con todos los campos necesarios

@@ -2,7 +2,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute, Router, RouterModule  } from '@angular/router';
 import { ForoService } from '../../../services/foro.service';
 import { ModeracionService } from '../../../services/moderacion.service';
 import { Foro, Participante } from '../../../interfaces/foro';
@@ -11,7 +11,7 @@ import { Baneo, BanearUsuarioDTO } from '../../../interfaces/moderacion';
 @Component({
   selector: 'app-gestion-participantes',
   
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule,RouterModule],
   templateUrl: './gestion-participantes.component.html',
   styleUrls: ['./gestion-participantes.component.css'],
 })

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { ForoService } from '../../../services/foro.service';
 import { Foro, PaginationMeta } from '../../../interfaces/foro';
+import {ModeracionAvanzadaService} from '../../../services/moderacion-avanzada.service';
 import { AuthService } from '../../../services/auth.service';
 
 @Component({
@@ -27,6 +28,7 @@ export class ListaForosComponent implements OnInit {
   constructor(
     private foroService: ForoService,
     private authService: AuthService,
+    private moderacionAvanzadaService: ModeracionAvanzadaService,
     private router: Router
   ) {}
 
@@ -47,6 +49,9 @@ export class ListaForosComponent implements OnInit {
     }).subscribe({
       next: (response) => {
         this.foros = response.data;
+        if (this.esPsicologo) {
+        this.cargarSolicitudesPendientes();
+        }
         this.paginacion = response.meta;
         this.forosCargando = false;
       },
@@ -98,5 +103,21 @@ export class ListaForosComponent implements OnInit {
 
   getTextoRol(rol: string): string {
     return this.foroService.getTextoRol(rol as any);
+  }
+
+  private cargarSolicitudesPendientes(): void {
+    this.foros.forEach(foro => {
+      // Solo cargar para foros donde el usuario es moderador o admin
+      if (foro.rol_usuario === 'admin' || foro.rol_usuario === 'moderador') {
+        this.moderacionAvanzadaService.listarSolicitudes(foro.id_foro).subscribe({
+          next: (solicitudes) => {
+            foro.solicitudes_pendientes = solicitudes.length;
+          },
+          error: () => {
+            foro.solicitudes_pendientes = 0;
+          }
+        });
+      }
+    });
   }
 }

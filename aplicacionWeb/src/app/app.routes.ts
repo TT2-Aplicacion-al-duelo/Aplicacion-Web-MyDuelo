@@ -18,7 +18,7 @@ import { PacientesComponent } from './psicologo/pacientes/pacientes.component';
 import { ChatComponent } from './psicologo/chat/chat.component';
 import { PacienteDetalleComponent } from './psicologo/paciente-detalle/paciente-detalle.component';
 import { ActividadesGlobalesComponent } from './psicologo/paciente-detalle/componentes/actividades-globales/actividades-globales.component';
-import { ConfiguracionPerfilComponent } from './psicologo/configuracion-perfil/configuracion-perfil.component';
+import { ConfiguracionPerfilComponent } from './compartidos/configuracion-perfil/configuracion-perfil.component';
 
 // Componentes de Admin
 import { PsicologosAdminComponent } from './admin/psicologos-admin/psicologos-admin.component';
@@ -161,6 +161,11 @@ export const routes: Routes = [
     path: 'admin/chat', 
     component: ChatAdminComponent, 
     canActivate: [canActivateAdmin] 
+  },
+  { 
+    path: 'admin/configuracion', 
+    component: ConfiguracionPerfilComponent, 
+    canActivate: [canActivate] 
   },
 
   // ⚠️ Ruta 404 - DEBE SER LA ÚLTIMA

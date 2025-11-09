@@ -1,91 +1,223 @@
 <div class="container-fluid py-4">
-  <div class="row justify-content-center">
-    <div class="col-lg-10">
-      <div class="card mb-3">
-        <div class="card-body">
+  <!-- Header del tema -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
           <button class="btn btn-sm btn-outline-secondary mb-2" 
                   [routerLink]="['/foros', idForo]">
-            <i class="bi bi-arrow-left"></i> Volver al foro
+            <i class="bi bi-arrow-left"></i> Volver al Foro
           </button>
-          <h4>Conversación</h4>
+          <h3 class="mb-0">
+            {{ tema?.titulo || 'Cargando tema...' }}
+            <span *ngIf="tema?.cerrado" class="badge bg-danger ms-2">
+              <i class="bi bi-lock"></i> Cerrado
+            </span>
+            <span *ngIf="tema?.fijado" class="badge bg-warning text-dark ms-2">
+              <i class="bi bi-pin-angle-fill"></i> Fijado
+            </span>
+          </h3>
+          <p class="text-muted mb-0" *ngIf="tema?.descripcion">
+            {{ tema?.descripcion }}
+          </p>
+        </div>
+        
+        <!-- Botones de moderación del tema -->
+        <div *ngIf="esModerador" class="btn-group">
+          <button *ngIf="!tema?.cerrado" 
+                  class="btn btn-sm btn-warning"
+                  (click)="cerrarTema(tema!)">
+            <i class="bi bi-lock"></i> Cerrar
+          </button>
+          <button *ngIf="tema?.cerrado" 
+                  class="btn btn-sm btn-success"
+                  (click)="abrirTema(tema!)">
+            <i class="bi bi-unlock"></i> Abrir
+          </button>
+          <button *ngIf="!tema?.fijado" 
+                  class="btn btn-sm btn-info"
+                  (click)="fijarTema(tema!)">
+            <i class="bi bi-pin"></i> Fijar
+          </button>
+          <button *ngIf="tema?.fijado" 
+                  class="btn btn-sm btn-secondary"
+                  (click)="desfijarTema(tema!)">
+            <i class="bi bi-pin-fill"></i> Desfijar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenedor de mensajes -->
+  <div class="card">
+    <div class="card-body">
+      <h5 class="card-title mb-3">
+        <i class="bi bi-chat-dots"></i> Mensajes
+      </h5>
+
+      <!-- Loading state -->
+      <div *ngIf="cargando" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-3 text-muted">Cargando mensajes...</p>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!cargando && mensajes.length === 0" class="alert alert-info">
+        <i class="bi bi-info-circle"></i> No hay mensajes aún. ¡Sé el primero en participar!
+      </div>
+
+      <!-- Lista de mensajes -->
+      <div *ngIf="!cargando && mensajes.length > 0" 
+           class="messages-container" 
+           #messagesContainer
+           style="max-height: 600px; overflow-y: auto;">
+        
+        <!-- ✅ CORRECCIÓN: Aquí está el *ngFor iterando sobre "mensajes" -->
+        <div *ngFor="let mensaje of mensajes; let i = index" 
+             class="message-item mb-3 p-3 border rounded"
+             [ngClass]="{
+               'bg-light': esMiMensaje(mensaje),
+               'border-danger': mensaje.eliminado,
+               'opacity-50': mensaje.eliminado
+             }">
+          
+          <!-- Header del mensaje -->
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <strong class="text-primary">
+                {{ mensaje.autor.nombre }} {{ mensaje.autor.apellido }}
+              </strong>
+              <span class="badge ms-2" 
+                    [ngClass]="mensaje.autor.tipo === 'psicologo' ? 'bg-info' : 'bg-success'">
+                {{ mensaje.autor.tipo === 'psicologo' ? 'Psicólogo' : 'Paciente' }}
+              </span>
+            </div>
+            <div class="text-end">
+              <small class="text-muted d-block">
+                {{ mensaje.fecha_envio | date:'dd/MM/yyyy HH:mm' }}
+              </small>
+              <span *ngIf="mensaje.editado" class="badge bg-warning text-dark mt-1">
+                <i class="bi bi-pencil"></i> Editado
+                <small *ngIf="mensaje.fecha_edicion">
+                  {{ mensaje.fecha_edicion | date:'dd/MM HH:mm' }}
+                </small>
+              </span>
+            </div>
+          </div>
+
+          <!-- Contenido del mensaje -->
+          <div class="message-content">
+            
+            <!-- Mensaje eliminado -->
+            <div *ngIf="mensaje.eliminado" class="alert alert-danger mb-0">
+              <i class="bi bi-trash"></i> 
+              <strong>Este mensaje ha sido eliminado por un moderador</strong>
+              <button *ngIf="esModerador" 
+                      class="btn btn-sm btn-outline-primary ms-3"
+                      (click)="restaurarMensaje(mensaje)">
+                <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+              </button>
+            </div>
+
+            <!-- Mensaje normal -->
+            <div *ngIf="!mensaje.eliminado">
+              
+              <!-- Modo edición -->
+              <div *ngIf="mensajeEditando === mensaje.id_mensaje_foro">
+                <textarea class="form-control mb-2" 
+                          [(ngModel)]="contenidoEditado" 
+                          rows="4"
+                          placeholder="Edita tu mensaje..."></textarea>
+                <div class="btn-group">
+                  <button class="btn btn-sm btn-success" 
+                          (click)="guardarEdicion(mensaje)"
+                          [disabled]="!contenidoEditado.trim()">
+                    <i class="bi bi-check-circle"></i> Guardar cambios
+                  </button>
+                  <button class="btn btn-sm btn-secondary" 
+                          (click)="cancelarEdicion()">
+                    <i class="bi bi-x-circle"></i> Cancelar
+                  </button>
+                </div>
+              </div>
+
+              <!-- Modo vista -->
+              <div *ngIf="mensajeEditando !== mensaje.id_mensaje_foro">
+                <p class="mb-2" style="white-space: pre-wrap;">{{ mensaje.contenido }}</p>
+                
+                <!-- Botones de acciones del mensaje -->
+                <div *ngIf="esModerador || esMiMensaje(mensaje)" class="mt-3">
+                  <div class="btn-group btn-group-sm">
+                    <!-- Editar (solo mensajes propios) -->
+                    <button *ngIf="esMiMensaje(mensaje)" 
+                            class="btn btn-outline-primary"
+                            (click)="iniciarEdicion(mensaje)"
+                            title="Editar mensaje">
+                      <i class="bi bi-pencil"></i> Editar
+                    </button>
+                    
+                    <!-- Eliminar (moderadores) -->
+                    <button *ngIf="esModerador" 
+                            class="btn btn-outline-danger"
+                            (click)="eliminarMensaje(mensaje)"
+                            title="Eliminar mensaje">
+                      <i class="bi bi-trash"></i> Eliminar
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Separador visual -->
+          <div *ngIf="i < mensajes.length - 1" class="border-bottom mt-3"></div>
         </div>
       </div>
 
-      <div class="card">
-        <div class="card-body" #messagesContainer 
-             style="height: 500px; overflow-y: auto; background: #f8f9fa;">
-          
-          <div *ngIf="cargando" class="text-center py-5">
-            <div class="spinner-border"></div>
-          </div>
-
-          <div *ngFor="let mensaje of mensajes" class="mb-3">
-            <div class="mensaje" [ngClass]="{'mensaje-propio': esMiMensaje(mensaje)}">
-              <div class="mensaje-autor">
-                <strong>{{mensaje.autor.nombre}} {{mensaje.autor.apellido}}</strong>
-                <span class="badge bg-secondary ms-2">{{mensaje.autor.tipo}}</span>
-              </div>
-              <div class="mensaje-contenido">{{mensaje.contenido}}</div>
-              <small class="text-muted">
-                {{mensaje.fecha_envio | date:'dd/MM/yyyy HH:mm'}}
-              </small>
-            </div>
-          </div>
-
-          <div *ngIf="mensajes.length===0 && !cargando" class="text-center text-muted py-5">
-            No hay mensajes aún. ¡Sé el primero en escribir!
-          </div>
-          <!--Botones de moderación de mensajes -->
-          <div *ngIf="puedeModerar() && !mensaje.eliminado" class="mt-2">
-            <button 
-              *ngIf="mensajeEditando !== mensaje.id_mensaje_foro"
-              class="btn btn-sm btn-outline-warning me-2" 
-              (click)="iniciarEdicion(mensaje)">
-              <i class="bi bi-pencil"></i> Editar
-            </button>
-            <button 
-              class="btn btn-sm btn-outline-danger" 
-              (click)="eliminarMensaje(mensaje)">
-              <i class="bi bi-trash"></i> Eliminar
-            </button>
-          </div>
-
-          <!-- Editor de mensaje -->
-          <div *ngIf="mensajeEditando === mensaje.id_mensaje_foro" class="mt-2">
-            <textarea 
-              class="form-control mb-2" 
-              [(ngModel)]="contenidoEditado" 
-              rows="3">
-            </textarea>
-            <button class="btn btn-sm btn-success me-2" (click)="guardarEdicion(mensaje.id_mensaje_foro)">
-              <i class="bi bi-check"></i> Guardar
-            </button>
-            <button class="btn btn-sm btn-secondary" (click)="cancelarEdicion()">
-              <i class="bi bi-x"></i> Cancelar
-            </button>
-          </div>
-
-          <!-- Indicador de mensaje editado -->
-          <small *ngIf="mensaje.editado" class="text-muted d-block mt-1">
-            <i class="bi bi-pencil-fill"></i> Editado
-            <span *ngIf="mensaje.fecha_edicion">el {{ mensaje.fecha_edicion | date:'dd/MM/yyyy HH:mm' }}</span>
+      <!-- Formulario para nuevo mensaje -->
+      <div class="new-message-form mt-4" *ngIf="!tema?.cerrado">
+        <hr class="mb-3">
+        <h6 class="mb-3">
+          <i class="bi bi-chat-left-text"></i> Escribe un mensaje
+        </h6>
+        <textarea class="form-control mb-3" 
+                  [(ngModel)]="nuevoMensaje" 
+                  placeholder="Comparte tu experiencia, opinión o pregunta..."
+                  rows="4"
+                  [disabled]="enviando"
+                  (keydown.ctrl.enter)="enviarMensaje()"></textarea>
+        <div class="d-flex justify-content-between align-items-center">
+          <small class="text-muted">
+            <i class="bi bi-info-circle"></i> Presiona Ctrl + Enter para enviar
           </small>
+          <button class="btn btn-primary" 
+                  (click)="enviarMensaje()"
+                  [disabled]="!nuevoMensaje.trim() || enviando">
+            <span *ngIf="!enviando">
+              <i class="bi bi-send"></i> Enviar mensaje
+            </span>
+            <span *ngIf="enviando">
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Enviando...
+            </span>
+          </button>
         </div>
-        
-        <div class="card-footer bg-white">
-          <form (submit)="enviarMensaje(); $event.preventDefault()">
-            <div class="input-group">
-              <textarea class="form-control" rows="2" 
-                        [(ngModel)]="nuevoMensaje" name="mensaje"
-                        placeholder="Escribe tu mensaje..."
-                        [disabled]="enviando"></textarea>
-              <button class="btn btn-primary" type="submit"
-                      [disabled]="enviando || !nuevoMensaje.trim()">
-                <i class="bi bi-send"></i> Enviar
-              </button>
-            </div>
-          </form>
-        </div>
+      </div>
+
+      <!-- Aviso de tema cerrado -->
+      <div *ngIf="tema?.cerrado" class="alert alert-warning mt-4 mb-0">
+        <i class="bi bi-lock"></i> 
+        <strong>Este tema está cerrado.</strong> 
+        No se pueden enviar más mensajes.
+        <span *ngIf="esModerador">
+          Como moderador, puedes 
+          <button class="btn btn-sm btn-link p-0" (click)="abrirTema(tema!)">
+            reabrir el tema
+          </button>
+        </span>
       </div>
     </div>
   </div>
