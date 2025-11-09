@@ -15,6 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.verificarChatPaciente = exports.buscarChats = exports.marcarComoLeido = exports.crearChat = exports.enviarMensaje = exports.getMensajes = exports.getChats = void 0;
 const connection_1 = __importDefault(require("../database/connection"));
 const sequelize_1 = require("sequelize");
+const notificaciones_1 = require("./notificaciones");
 /**
  * Obtener todos los chats del psicólogo autenticado
  */
@@ -90,6 +91,123 @@ const getChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             mensajes_no_leidos: chat.mensajes_no_leidos || 0
         }));
         console.log(`Encontrados ${chatsFormateados.length} chats`);
+        // Obtener el administrador del sistema (id_psicologo = 4, según tus datos)
+        const adminId = 6; // Cambiar si tu admin tiene otro ID
+        // Verificar que el psicólogo actual NO sea el admin
+        if (id_psicologo !== adminId) {
+            // Verificar si ya existe un chat_admin con este psicólogo
+            const chatAdminExistente = yield connection_1.default.query(`
+        SELECT 
+          ca.id_chat_admin,
+          ca.fecha_inicio,
+          p.nombre,
+          p.apellidoPaterno,
+          p.apellidoMaterno,
+          p.correo,
+          -- Último mensaje del chat admin
+          (SELECT m.contenido 
+          FROM mensaje_admin m 
+          WHERE m.id_chat_admin = ca.id_chat_admin 
+          ORDER BY m.fecha_envio DESC 
+          LIMIT 1) as ultimo_mensaje_contenido,
+          (SELECT m.remitente 
+          FROM mensaje_admin m 
+          WHERE m.id_chat_admin = ca.id_chat_admin 
+          ORDER BY m.fecha_envio DESC 
+          LIMIT 1) as ultimo_mensaje_remitente,
+          (SELECT m.fecha_envio 
+          FROM mensaje_admin m 
+          WHERE m.id_chat_admin = ca.id_chat_admin 
+          ORDER BY m.fecha_envio DESC 
+          LIMIT 1) as ultimo_mensaje_fecha,
+          -- Contar mensajes no leídos del admin
+          (SELECT COUNT(*) 
+          FROM mensaje_admin m 
+          WHERE m.id_chat_admin = ca.id_chat_admin 
+          AND m.remitente = 'admin' 
+          AND m.leido = 0) as mensajes_no_leidos
+        FROM chat_admin ca
+        JOIN psicologo p ON p.id_psicologo = ca.id_admin
+        WHERE ca.id_admin = ? 
+          AND ca.destinatario_tipo = 'psicologo' 
+          AND ca.destinatario_id = ?
+      `, {
+                replacements: [adminId, id_psicologo],
+                type: sequelize_1.QueryTypes.SELECT
+            });
+            // Si NO existe chat con el admin, crear uno automáticamente
+            if (chatAdminExistente.length === 0) {
+                yield connection_1.default.query(`
+          INSERT INTO chat_admin (id_admin, destinatario_tipo, destinatario_id, fecha_inicio)
+          VALUES (?, 'psicologo', ?, NOW())
+        `, {
+                    replacements: [adminId, id_psicologo],
+                    type: sequelize_1.QueryTypes.INSERT
+                });
+                // Obtener el chat recién creado
+                const nuevoChat = yield connection_1.default.query(`
+          SELECT 
+            ca.id_chat_admin,
+            ca.fecha_inicio,
+            p.nombre,
+            p.apellidoPaterno,
+            p.apellidoMaterno,
+            p.correo
+          FROM chat_admin ca
+          JOIN psicologo p ON p.id_psicologo = ca.id_admin
+          WHERE ca.id_admin = ? 
+            AND ca.destinatario_tipo = 'psicologo' 
+            AND ca.destinatario_id = ?
+        `, {
+                    replacements: [adminId, id_psicologo],
+                    type: sequelize_1.QueryTypes.SELECT
+                });
+                if (nuevoChat.length > 0) {
+                    const adminChat = nuevoChat[0];
+                    // Agregar el chat del admin a la lista en formato compatible
+                    chatsFormateados.unshift({
+                        id_chat: `admin_${adminChat.id_chat_admin}`, // Identificador especial
+                        id_psicologo: adminId,
+                        id_paciente: null,
+                        fecha_inicio: adminChat.fecha_inicio,
+                        paciente: {
+                            id_paciente: adminId,
+                            nombre: adminChat.nombre,
+                            apellido_paterno: adminChat.apellidoPaterno,
+                            apellido_materno: adminChat.apellidoMaterno,
+                            email: adminChat.correo
+                        },
+                        ultimo_mensaje: null,
+                        mensajes_no_leidos: 0,
+                        es_admin: true // Flag para identificar que es chat de admin
+                    });
+                }
+            }
+            else {
+                // Si existe, agregarlo a la lista
+                const adminChat = chatAdminExistente[0];
+                chatsFormateados.unshift({
+                    id_chat: `admin_${adminChat.id_chat_admin}`, // Identificador especial
+                    id_psicologo: adminId,
+                    id_paciente: null,
+                    fecha_inicio: adminChat.fecha_inicio,
+                    paciente: {
+                        id_paciente: adminId,
+                        nombre: adminChat.nombre,
+                        apellido_paterno: adminChat.apellidoPaterno,
+                        apellido_materno: adminChat.apellidoMaterno,
+                        email: adminChat.correo
+                    },
+                    ultimo_mensaje: adminChat.ultimo_mensaje_contenido ? {
+                        contenido: adminChat.ultimo_mensaje_contenido,
+                        remitente: adminChat.ultimo_mensaje_remitente,
+                        fecha_envio: adminChat.ultimo_mensaje_fecha
+                    } : null,
+                    mensajes_no_leidos: adminChat.mensajes_no_leidos || 0,
+                    es_admin: true // Flag para identificar que es chat de admin
+                });
+            }
+        }
         res.json(chatsFormateados);
     }
     catch (error) {
@@ -145,17 +263,94 @@ exports.getMensajes = getMensajes;
 /**
  * Enviar un nuevo mensaje - CORREGIDO
  */
+// export const enviarMensaje = async (req: AuthRequest, res: Response) => {
+//   try {
+//     const { id_chat, contenido } = req.body;
+//     const id_psicologo = req.user?.id_psicologo;
+//     console.log('Datos recibidos:', { id_chat, contenido, id_psicologo });
+//     if (!id_chat || !contenido || !id_psicologo) {
+//       return res.status(400).json({ 
+//         msg: "Faltan campos requeridos",
+//         campos_requeridos: ["id_chat", "contenido"],
+//         datos_recibidos: { id_chat, contenido: !!contenido, id_psicologo }
+//       });
+//     }
+//     if (contenido.trim().length === 0) {
+//       return res.status(400).json({ msg: "El mensaje no puede estar vacío" });
+//     }
+//     if (contenido.length > 1000) {
+//       return res.status(400).json({ msg: "El mensaje es demasiado largo (máximo 1000 caracteres)" });
+//     }
+//     // Verificar que el chat pertenece al psicólogo
+//     const chatExiste = await sequelize.query(`
+//       SELECT COUNT(*) as count FROM chat WHERE id_chat = ? AND id_psicologo = ?
+//     `, {
+//       replacements: [id_chat, id_psicologo],
+//       type: QueryTypes.SELECT
+//     });
+//     if ((chatExiste[0] as any).count === 0) {
+//       return res.status(404).json({ msg: "Chat no encontrado o no autorizado" });
+//     }
+//     // Insertar el mensaje con parámetros correctos
+//     const resultado = await sequelize.query(`
+//       INSERT INTO mensaje (id_chat, remitente, contenido, fecha_envio, leido) 
+//       VALUES (?, ?, ?, NOW(), 1)
+//     `, {
+//       replacements: [id_chat, 'psicologo', contenido.trim()],
+//       type: QueryTypes.INSERT
+//     });
+//     //  Obtener el ID del mensaje insertado
+//     const insertId = (resultado[0] as any).insertId || resultado[0];
+//     console.log('Mensaje insertado con ID:', insertId);
+//     // Obtener el mensaje recién creado
+//     const nuevoMensaje = await sequelize.query(`
+//       SELECT id_mensaje, id_chat, remitente, contenido, fecha_envio, leido
+//       FROM mensaje 
+//       WHERE id_mensaje = ?
+//     `, {
+//       replacements: [insertId],
+//       type: QueryTypes.SELECT
+//     });
+//     if (nuevoMensaje.length === 0) {
+//       // Si no se puede obtener por ID, obtener el último mensaje del chat
+//       const ultimoMensaje = await sequelize.query(`
+//         SELECT id_mensaje, id_chat, remitente, contenido, fecha_envio, leido
+//         FROM mensaje 
+//         WHERE id_chat = ? AND remitente = 'psicologo'
+//         ORDER BY fecha_envio DESC 
+//         LIMIT 1
+//       `, {
+//         replacements: [id_chat],
+//         type: QueryTypes.SELECT
+//       });
+//       console.log(`Mensaje enviado en chat ${id_chat} por psicólogo ${id_psicologo}`);
+//       res.json(ultimoMensaje[0]);
+//     } else {
+//       console.log(`Mensaje enviado en chat ${id_chat} por psicólogo ${id_psicologo}`);
+//       res.json(nuevoMensaje[0]);
+//     }
+//   } catch (error: any) {
+//     console.error('Error al enviar mensaje:', error);
+//     res.status(500).json({ 
+//       msg: "Error interno del servidor", 
+//       error: error.message 
+//     });
+//   }
+// };
+/**
+ * Enviar un nuevo mensaje - VERSIÓN UNIVERSAL
+ */
 const enviarMensaje = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
         const { id_chat, contenido } = req.body;
         const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
-        console.log('Datos recibidos:', { id_chat, contenido, id_psicologo });
-        if (!id_chat || !contenido || !id_psicologo) {
+        const tipoUsuario = (_b = req.user) === null || _b === void 0 ? void 0 : _b.tipo; // 'psicologo' o 'paciente'
+        console.log('Datos recibidos:', { id_chat, contenido, id_psicologo, tipoUsuario });
+        if (!id_chat || !contenido) {
             return res.status(400).json({
                 msg: "Faltan campos requeridos",
-                campos_requeridos: ["id_chat", "contenido"],
-                datos_recibidos: { id_chat, contenido: !!contenido, id_psicologo }
+                campos_requeridos: ["id_chat", "contenido"]
             });
         }
         if (contenido.trim().length === 0) {
@@ -164,55 +359,84 @@ const enviarMensaje = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         if (contenido.length > 1000) {
             return res.status(400).json({ msg: "El mensaje es demasiado largo (máximo 1000 caracteres)" });
         }
-        // Verificar que el chat pertenece al psicólogo
+        // Determinar el remitente según el tipo de usuario
+        const remitente = tipoUsuario === 'paciente' ? 'paciente' : 'psicologo';
+        // Verificar que el chat existe y pertenece al usuario
         const chatExiste = yield connection_1.default.query(`
-      SELECT COUNT(*) as count FROM chat WHERE id_chat = ? AND id_psicologo = ?
-    `, {
-            replacements: [id_chat, id_psicologo],
+        SELECT id_psicologo, id_paciente FROM chat WHERE id_chat = ?
+      `, {
+            replacements: [id_chat],
             type: sequelize_1.QueryTypes.SELECT
         });
-        if (chatExiste[0].count === 0) {
-            return res.status(404).json({ msg: "Chat no encontrado o no autorizado" });
+        if (chatExiste.length === 0) {
+            return res.status(404).json({ msg: "Chat no encontrado" });
         }
-        // ✅ CORREGIDO: Insertar el mensaje con parámetros correctos
+        const chatData = chatExiste[0];
+        // Verificar autorización
+        if (tipoUsuario === 'psicologo' && chatData.id_psicologo !== id_psicologo) {
+            return res.status(403).json({ msg: "No autorizado para este chat" });
+        }
+        // Insertar el mensaje
         const resultado = yield connection_1.default.query(`
-      INSERT INTO mensaje (id_chat, remitente, contenido, fecha_envio, leido) 
-      VALUES (?, ?, ?, NOW(), 1)
-    `, {
-            replacements: [id_chat, 'psicologo', contenido.trim()],
+        INSERT INTO mensaje (id_chat, remitente, contenido, fecha_envio, leido) 
+        VALUES (?, ?, ?, NOW(), ?)
+      `, {
+            replacements: [
+                id_chat,
+                remitente,
+                contenido.trim(),
+                remitente === 'psicologo' ? 1 : 0 // El psicólogo ve sus mensajes como leídos
+            ],
             type: sequelize_1.QueryTypes.INSERT
         });
-        // ✅ CORREGIDO: Obtener el ID del mensaje insertado
         const insertId = resultado[0].insertId || resultado[0];
-        console.log('Mensaje insertado con ID:', insertId);
         // Obtener el mensaje recién creado
         const nuevoMensaje = yield connection_1.default.query(`
-      SELECT id_mensaje, id_chat, remitente, contenido, fecha_envio, leido
-      FROM mensaje 
-      WHERE id_mensaje = ?
-    `, {
+        SELECT id_mensaje, id_chat, remitente, contenido, fecha_envio, leido
+        FROM mensaje 
+        WHERE id_mensaje = ?
+      `, {
             replacements: [insertId],
             type: sequelize_1.QueryTypes.SELECT
         });
-        if (nuevoMensaje.length === 0) {
-            // Si no se puede obtener por ID, obtener el último mensaje del chat
-            const ultimoMensaje = yield connection_1.default.query(`
-        SELECT id_mensaje, id_chat, remitente, contenido, fecha_envio, leido
-        FROM mensaje 
-        WHERE id_chat = ? AND remitente = 'psicologo'
-        ORDER BY fecha_envio DESC 
-        LIMIT 1
-      `, {
-                replacements: [id_chat],
-                type: sequelize_1.QueryTypes.SELECT
-            });
-            console.log(`Mensaje enviado en chat ${id_chat} por psicólogo ${id_psicologo}`);
-            res.json(ultimoMensaje[0]);
+        console.log(`✅ Mensaje enviado en chat ${id_chat} por ${remitente}`);
+        // ✅ Si el remitente es paciente, crear notificación para el psicólogo
+        if (remitente === 'paciente') {
+            try {
+                // Obtener nombre del paciente
+                const paciente = yield connection_1.default.query(`
+            SELECT p.nombre, p.apellido_paterno 
+            FROM paciente p
+            WHERE p.id_paciente = ?
+          `, {
+                    replacements: [chatData.id_paciente],
+                    type: sequelize_1.QueryTypes.SELECT
+                });
+                if (paciente.length > 0) {
+                    const pacienteData = paciente[0];
+                    yield (0, notificaciones_1.crearNotificacion)({
+                        id_psicologo: chatData.id_psicologo,
+                        tipo: 'chat',
+                        titulo: 'Nuevo mensaje',
+                        mensaje: `${pacienteData.nombre} ${pacienteData.apellido_paterno} te envió un mensaje`,
+                        id_relacionado: id_chat,
+                        enlace: '/chat-pacientes-del-psicologo'
+                    });
+                    console.log(`✅ Notificación creada para psicólogo ${chatData.id_psicologo}`);
+                }
+            }
+            catch (notifError) {
+                console.error('Error al crear notificación (no crítico):', notifError);
+            }
         }
-        else {
-            console.log(`Mensaje enviado en chat ${id_chat} por psicólogo ${id_psicologo}`);
-            res.json(nuevoMensaje[0]);
-        }
+        res.json(nuevoMensaje[0] || {
+            id_mensaje: insertId,
+            id_chat,
+            remitente,
+            contenido: contenido.trim(),
+            fecha_envio: new Date(),
+            leido: remitente === 'psicologo' ? 1 : 0
+        });
     }
     catch (error) {
         console.error('Error al enviar mensaje:', error);

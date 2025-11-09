@@ -62,4 +62,19 @@ export class ChatService {
   verificarChatPaciente(idPaciente: number): Observable<any> {
     return this.http.get(`${this.AppUrl}${this.APIUrl}/chat/verificar/${idPaciente}`);
   }
+  
+  /**
+ * Obtener mensajes de chat con administrador
+ */
+getMensajesAdmin(idChatAdmin: number): Observable<Mensaje[]> {
+  return this.http.get<Mensaje[]>(`${this.AppUrl}${this.APIUrl}/chats/admin/${idChatAdmin}/mensajes`);
+}
+
+/**
+ * Enviar mensaje a administrador
+ */
+enviarMensajeAdmin(mensaje: { id_chat_admin: number; contenido: string }): Observable<Mensaje> {
+  return this.http.post<Mensaje>(`${this.AppUrl}${this.APIUrl}/chats/admin/mensajes`, mensaje);
+}
+
 }

@@ -75,7 +75,8 @@ export class AuthService {
         correo: payload.correo,
         nombre: payload.nombre,
         apellido: payload.apellido,
-        rol_admin: payload.rol_admin
+        rol_admin: payload.rol_admin,
+        codigo_vinculacion: payload.codigo_vinculacion
       };
     } catch (error) {
       console.error('Error decodificando token:', error);

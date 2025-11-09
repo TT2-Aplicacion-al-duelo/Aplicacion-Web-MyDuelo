@@ -13,6 +13,9 @@ import modulosRoutes from '../routes/modulos';
 import testRoutes from '../routes/tests';
 import notasRoutes from '../routes/notas';
 import foroRoutes from '../routes/foro';
+import notificacionesRoutes from '../routes/notificaciones';
+import { Notificacion } from './notificacion';
+import { crearNotificacion } from '../controllers/notificaciones';
 import { setupAssociations } from './associations';
 import { Actividad } from './actividad/actividad';
 import { ActividadAsignada } from './actividad/actividad-asignada';
@@ -83,34 +86,98 @@ class Server {
         });
 
         // Programar tarea cron para recordatorios
+        // cron.schedule('0 9 * * *', async () => {
+        //     console.log('Ejecutando tarea de recordatorios...');
+        //     try {
+        //         const hoy = new Date();
+        //         const tresDias = new Date();
+        //         tresDias.setDate(tresDias.getDate() + 3);
+
+        //         const citasProximas = await Cita.findAll({
+        //             where: {
+        //                 fecha: {
+        //                     [Op.between]: [hoy, tresDias]
+        //                 }
+        //             }
+        //         });
+
+        //         for (const cita of citasProximas) {
+        //             await Recordatorio.create({
+        //                 id_cita: (cita as any).id_cita,
+        //                 mensaje: `Recordatorio: Tienes una cita el ${(cita as any).fecha}`,
+        //                 fecha_envio: hoy,
+        //                 tipo: 'email'
+        //             });
+        //         }
+
+        //         console.log(`✅ ${citasProximas.length} recordatorios generados`);
+        //     } catch (error: unknown) {
+        //         console.error('Error en cron de recordatorios:', error);
+        //     }
+        // });
+
+        // En el método midlewares(), modificar el cron existente:
         cron.schedule('0 9 * * *', async () => {
-            console.log('Ejecutando tarea de recordatorios...');
-            try {
-                const hoy = new Date();
-                const tresDias = new Date();
-                tresDias.setDate(tresDias.getDate() + 3);
+        console.log('Ejecutando tarea de recordatorios...');
+        try {
+            const hoy = new Date();
+            const tresDias = new Date();
+            tresDias.setDate(tresDias.getDate() + 3);
 
-                const citasProximas = await Cita.findAll({
-                    where: {
-                        fecha: {
-                            [Op.between]: [hoy, tresDias]
-                        }
-                    }
-                });
-
-                for (const cita of citasProximas) {
-                    await Recordatorio.create({
-                        id_cita: (cita as any).id_cita,
-                        mensaje: `Recordatorio: Tienes una cita el ${(cita as any).fecha}`,
-                        fecha_envio: hoy,
-                        tipo: 'email'
-                    });
+            const citasProximas = await Cita.findAll({
+            where: {
+                fecha: {
+                [Op.between]: [hoy, tresDias]
+                },
+                estado: {
+                [Op.in]: ['pendiente', 'confirmada']
                 }
+            },
+            include: [
+                {
+                model: Agenda,
+                as: 'agenda',
+                attributes: ['id_psicologo']
+                },
+                {
+                model: Paciente,
+                as: 'paciente',
+                attributes: ['nombre', 'apellido_paterno', 'apellido_materno']
+                }
+            ]
+            });
 
-                console.log(`✅ ${citasProximas.length} recordatorios generados`);
-            } catch (error: unknown) {
-                console.error('Error en cron de recordatorios:', error);
+            for (const cita of citasProximas) {
+            const citaData = cita as any;
+            const fechaCita = new Date(citaData.fecha);
+            const diffDias = Math.ceil((fechaCita.getTime() - hoy.getTime()) / (1000 * 60 * 60 * 24));
+            
+            // Crear recordatorio en la tabla
+            await Recordatorio.create({
+                id_cita: citaData.id_cita,
+                mensaje: `Recordatorio: Tienes una cita el ${citaData.fecha}`,
+                id_psicologo: citaData.agenda.id_psicologo,
+                id_paciente: citaData.id_paciente,
+                enviado: false,
+                fecha_programada: hoy
+            });
+
+            // ✅ CREAR NOTIFICACIÓN para el psicólogo
+            const nombrePaciente = `${citaData.paciente.nombre} ${citaData.paciente.apellido_paterno}`;
+            await crearNotificacion({
+                id_psicologo: citaData.agenda.id_psicologo,
+                tipo: 'cita',
+                titulo: diffDias === 0 ? 'Cita hoy' : `Cita en ${diffDias} día(s)`,
+                mensaje: `Tienes una cita con ${nombrePaciente} el ${citaData.fecha} a las ${citaData.hora_inicio}`,
+                id_relacionado: citaData.id_cita,
+                enlace: '/agenda'
+            });
             }
+
+            console.log(`✅ ${citasProximas.length} recordatorios y notificaciones generados`);
+        } catch (error: unknown) {
+            console.error('Error en cron de recordatorios:', error);
+        }
         });
 
         console.log('Cron de recordatorios programado.');
@@ -158,6 +225,7 @@ class Server {
         this.app.use(testRoutes);
         this.app.use(notasRoutes);
         this.app.use('/api/foros', foroRoutes);
+        this.app.use(notificacionesRoutes);
     }
 
     // Método para iniciar el servidor

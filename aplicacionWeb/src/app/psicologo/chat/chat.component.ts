@@ -111,11 +111,42 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
+  // seleccionarChat(chat: Chat): void {
+  //   this.chatActual = chat;
+  //   this.cargarMensajes(chat.id_chat);
+  //   this.marcarComoLeido(chat.id_chat);
+  // }
+
   seleccionarChat(chat: Chat): void {
     this.chatActual = chat;
-    this.cargarMensajes(chat.id_chat);
+    
+    // Verificar si es un chat con admin
+    if ((chat as any).es_admin) {
+      // Extraer el ID real del chat admin
+      const idChatAdmin = parseInt(chat.id_chat.toString().replace('admin_', ''));
+      this.cargarMensajesAdmin(idChatAdmin);
+    } else {
+      this.cargarMensajes(chat.id_chat);
+    }
+    
     this.marcarComoLeido(chat.id_chat);
   }
+  // AGREGAR ESTA NUEVA FUNCIÓN
+  private cargarMensajesAdmin(idChatAdmin: number): void {
+    this.cargandoMensajes = true;
+    this.chatService.getMensajesAdmin(idChatAdmin).subscribe({
+      next: (mensajes) => {
+        this.mensajes = mensajes;
+        this.cargandoMensajes = false;
+        this.shouldScrollToBottom = true;
+      },
+      error: (error) => {
+        console.error('Error al cargar mensajes de admin:', error);
+        this.cargandoMensajes = false;
+      }
+    });
+  }
+
 
   cargarMensajes(idChat: number): void {
     this.cargandoMensajes = true;
@@ -132,29 +163,77 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
+  // enviarMensaje(): void {
+  //   if (!this.nuevoMensaje.trim() || !this.chatActual) {
+  //     return;
+  //   }
+
+  //   const mensajeData = {
+  //     id_chat: this.chatActual.id_chat,
+  //     contenido: this.nuevoMensaje.trim()
+  //   };
+
+  //   this.chatService.enviarMensaje(mensajeData).subscribe({
+  //     next: (mensaje) => {
+  //       this.mensajes.push(mensaje);
+  //       this.nuevoMensaje = '';
+  //       this.shouldScrollToBottom = true;
+  //       // Actualizar la lista de chats para reflejar el último mensaje
+  //       this.cargarChats();
+  //     },
+  //     error: (error) => {
+  //       console.error('Error al enviar mensaje:', error);
+  //       alert('Error al enviar el mensaje. Inténtalo de nuevo.');
+  //     }
+  //   });
+  // }
+
   enviarMensaje(): void {
     if (!this.nuevoMensaje.trim() || !this.chatActual) {
       return;
     }
 
-    const mensajeData = {
-      id_chat: this.chatActual.id_chat,
-      contenido: this.nuevoMensaje.trim()
-    };
+    // Verificar si es un chat con admin
+    if ((this.chatActual as any).es_admin) {
+      const idChatAdmin = parseInt(this.chatActual.id_chat.toString().replace('admin_', ''));
+      
+      const mensajeData = {
+        id_chat_admin: idChatAdmin,
+        contenido: this.nuevoMensaje.trim()
+      };
 
-    this.chatService.enviarMensaje(mensajeData).subscribe({
-      next: (mensaje) => {
-        this.mensajes.push(mensaje);
-        this.nuevoMensaje = '';
-        this.shouldScrollToBottom = true;
-        // Actualizar la lista de chats para reflejar el último mensaje
-        this.cargarChats();
-      },
-      error: (error) => {
-        console.error('Error al enviar mensaje:', error);
-        alert('Error al enviar el mensaje. Inténtalo de nuevo.');
-      }
-    });
+      this.chatService.enviarMensajeAdmin(mensajeData).subscribe({
+        next: (mensaje) => {
+          this.mensajes.push(mensaje);
+          this.nuevoMensaje = '';
+          this.shouldScrollToBottom = true;
+          this.cargarChats();
+        },
+        error: (error) => {
+          console.error('Error al enviar mensaje al admin:', error);
+          alert('Error al enviar el mensaje. Inténtalo de nuevo.');
+        }
+      });
+    } else {
+      // Lógica normal para chat con pacientes
+      const mensajeData = {
+        id_chat: this.chatActual.id_chat,
+        contenido: this.nuevoMensaje.trim()
+      };
+
+      this.chatService.enviarMensaje(mensajeData).subscribe({
+        next: (mensaje) => {
+          this.mensajes.push(mensaje);
+          this.nuevoMensaje = '';
+          this.shouldScrollToBottom = true;
+          this.cargarChats();
+        },
+        error: (error) => {
+          console.error('Error al enviar mensaje:', error);
+          alert('Error al enviar el mensaje. Inténtalo de nuevo.');
+        }
+      });
+    }
   }
 
   crearNuevoChat(): void {
