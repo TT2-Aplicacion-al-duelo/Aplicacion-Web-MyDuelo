@@ -152,15 +152,15 @@ export class PacientesAdminComponent implements OnInit {
   }
 
   deshabilitarCuenta(paciente: PacienteAdmin) {
-    const accion = paciente.status === 'activo' ? 'deshabilitar' : 'habilitar';
-    const nuevoEstado = paciente.status === 'activo' ? 'inactivo' : 'activo';
+    const accion = paciente.email_verificado ? 'deshabilitar' : 'habilitar';
+    const nuevoEstado = !paciente.email_verificado;
     
     if (confirm(`¿Está seguro de ${accion} la cuenta de ${paciente.nombre} ${paciente.apellido_paterno}?`)) {
       this.adminService.cambiarEstadoPaciente(paciente.id_paciente, nuevoEstado).subscribe({
         next: () => {
           this.toastr.success(`Cuenta ${accion}da correctamente`);
-          paciente.status = nuevoEstado;
-          this.cargarPacientes();
+          paciente.email_verificado = nuevoEstado;
+          this.aplicarFiltros(); // Refrescar la vista
         },
         error: (error) => {
           console.error('Error al cambiar estado:', error);
@@ -176,13 +176,16 @@ export class PacientesAdminComponent implements OnInit {
   }
 
   getClaseFilaPaciente(paciente: PacienteAdmin): string {
+    // Prioridad 1: Cuenta no verificada (rojo)
+    if (!paciente.email_verificado) {
+      return 'table-danger'; // Rojo para cuentas no verificadas
+    }
+    // Prioridad 2: Sin psicólogo asignado (amarillo)
     if (!paciente.id_psicologo) {
       return 'table-warning'; // Amarillo para sin psicólogo
     }
-    if (paciente.status === 'inactivo') {
-      return 'table-danger'; // Rojo para inactivos
-    }
-    return 'table-success'; // Verde para activos con psicólogo
+    // Prioridad 3: Todo bien (verde)
+    return 'table-success'; // Verde para verificados con psicólogo
   }
 
   formatearFecha(fecha: string): string {

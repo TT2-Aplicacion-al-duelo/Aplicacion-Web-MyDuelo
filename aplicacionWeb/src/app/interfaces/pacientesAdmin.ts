@@ -7,6 +7,7 @@ export interface PacienteAdmin {
   telefono: string;
   fecha_nacimiento: string;
   id_psicologo: number | null;
+  email_verificado: boolean;
   // Información del psicólogo asignado
   psicologo?: {
     id_psicologo: number;
@@ -16,5 +17,5 @@ export interface PacienteAdmin {
     correo: string;
   };
   createdAt?: string;
-  status?: 'activo' | 'inactivo';
+  //status?: 'activo' | 'inactivo';
 }

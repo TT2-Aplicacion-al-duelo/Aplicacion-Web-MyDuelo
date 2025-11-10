@@ -174,9 +174,9 @@ validarCedulaProfesional(idPsicologo: number, cedula: string): Observable<any> {
   /**
    * Cambiar status de un paciente (activo/inactivo)
    */
-  cambiarEstadoPaciente(idPaciente: number, nuevoEstado: 'activo' | 'inactivo'): Observable<any> {
+  cambiarEstadoPaciente(idPaciente: number, emailVerificado: boolean): Observable<any> {
     return this.http.put(`${this.AppUrl}${this.APIUrl}/pacientes/${idPaciente}/status`, {
-      status: nuevoEstado
+      email_verificado: emailVerificado
     });
   }
 }

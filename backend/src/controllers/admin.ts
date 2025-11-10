@@ -427,8 +427,9 @@ export const getAllPacientesAdmin = async (req: AuthRequest, res: Response) => {
         correo: p.psicologo.correo
       } : null,
       //status: 'activo'
-      status: p.email_verificado ? 'activo' : 'inactivo', //  Status real basado en email_verificado
-      email_verificado: p.email_verificado //  Campo adicional para el frontend
+      // status: p.email_verificado ? 'activo' : 'inactivo', //  Status real basado en email_verificado
+      // email_verificado: p.email_verificado //  Campo adicional para el frontend
+      email_verificado: p.email_verificado //Campo real de la base de datos
     }));
 
     res.json(pacientesFormateados);
@@ -498,14 +499,18 @@ export const reasignarPaciente = async (req: AuthRequest, res: Response) => {
 /**
  * Cambiar status de un paciente (si tienes campo status en la tabla)
  */
+/**
+ * Cambiar email_verificado de un paciente
+ */
 export const cambiarEstadoPaciente = async (req: AuthRequest, res: Response) => {
   try {
     const { id_paciente } = req.params;
-    const { status } = req.body;
+    const { email_verificado } = req.body;
 
-    if (!['activo', 'inactivo'].includes(status)) {
+    // Validar que sea un valor booleano
+    if (typeof email_verificado !== 'boolean') {
       return res.status(400).json({
-        msg: 'Status inválido. Debe ser "activo" o "inactivo"'
+        msg: 'email_verificado debe ser true o false'
       });
     }
 
@@ -517,20 +522,22 @@ export const cambiarEstadoPaciente = async (req: AuthRequest, res: Response) => 
       });
     }
 
-    // Si la tabla paciente no tiene campo status, agrégalo o comenta este método
-    // await paciente.update({ status });
+    // Actualizar el campo email_verificado
+    await paciente.update({ email_verificado });
+
+    console.log(`Paciente ${id_paciente} - email_verificado actualizado a: ${email_verificado}`);
 
     res.json({
-      msg: `Paciente ${status === 'activo' ? 'habilitado' : 'deshabilitado'} exitosamente`,
+      msg: `Cuenta del paciente ${email_verificado ? 'habilitada' : 'deshabilitada'} exitosamente`,
       paciente: {
         id: (paciente as any).id_paciente,
         nombre: (paciente as any).nombre,
-        status
+        email_verificado
       }
     });
 
   } catch (error) {
-    console.error('Error cambiando status del paciente:', error);
+    console.error('Error cambiando email_verificado del paciente:', error);
     res.status(500).json({
       msg: 'Error interno del servidor'
     });

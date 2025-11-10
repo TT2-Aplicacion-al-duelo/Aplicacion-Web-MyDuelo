@@ -384,8 +384,9 @@ const getAllPacientesAdmin = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 correo: p.psicologo.correo
             } : null,
             //status: 'activo'
-            status: p.email_verificado ? 'activo' : 'inactivo', //  Status real basado en email_verificado
-            email_verificado: p.email_verificado //  Campo adicional para el frontend
+            // status: p.email_verificado ? 'activo' : 'inactivo', //  Status real basado en email_verificado
+            // email_verificado: p.email_verificado //  Campo adicional para el frontend
+            email_verificado: p.email_verificado //Campo real de la base de datos
         }));
         res.json(pacientesFormateados);
     }
@@ -446,13 +447,17 @@ exports.reasignarPaciente = reasignarPaciente;
 /**
  * Cambiar status de un paciente (si tienes campo status en la tabla)
  */
+/**
+ * Cambiar email_verificado de un paciente
+ */
 const cambiarEstadoPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { id_paciente } = req.params;
-        const { status } = req.body;
-        if (!['activo', 'inactivo'].includes(status)) {
+        const { email_verificado } = req.body;
+        // Validar que sea un valor booleano
+        if (typeof email_verificado !== 'boolean') {
             return res.status(400).json({
-                msg: 'Status inválido. Debe ser "activo" o "inactivo"'
+                msg: 'email_verificado debe ser true o false'
             });
         }
         const paciente = yield paciente_1.Paciente.findByPk(id_paciente);
@@ -461,19 +466,20 @@ const cambiarEstadoPaciente = (req, res) => __awaiter(void 0, void 0, void 0, fu
                 msg: 'Paciente no encontrado'
             });
         }
-        // Si la tabla paciente no tiene campo status, agrégalo o comenta este método
-        // await paciente.update({ status });
+        // Actualizar el campo email_verificado
+        yield paciente.update({ email_verificado });
+        console.log(`Paciente ${id_paciente} - email_verificado actualizado a: ${email_verificado}`);
         res.json({
-            msg: `Paciente ${status === 'activo' ? 'habilitado' : 'deshabilitado'} exitosamente`,
+            msg: `Cuenta del paciente ${email_verificado ? 'habilitada' : 'deshabilitada'} exitosamente`,
             paciente: {
                 id: paciente.id_paciente,
                 nombre: paciente.nombre,
-                status
+                email_verificado
             }
         });
     }
     catch (error) {
-        console.error('Error cambiando status del paciente:', error);
+        console.error('Error cambiando email_verificado del paciente:', error);
         res.status(500).json({
             msg: 'Error interno del servidor'
         });
