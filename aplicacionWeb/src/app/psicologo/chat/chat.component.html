@@ -40,7 +40,7 @@
       <div 
         *ngFor="let chat of chats" 
         class="chat-item"
-        [class.active]="chatActual?.id_chat === chat.id_chat"
+        [class.active]="esChatActivo(chat)"
         (click)="seleccionarChat(chat)"
       >
         <!-- Avatar -->

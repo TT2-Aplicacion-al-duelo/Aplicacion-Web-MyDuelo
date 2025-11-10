@@ -56,7 +56,38 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.actualizacionSubscription.unsubscribe();
     }
   }
+  /**
+   * Verificar si un chat es el chat actualmente seleccionado
+   */
+  esChatActivo(chat: Chat): boolean {
+    if (!this.chatActual) return false;
+    
+    const esAdminActual = (this.chatActual as any).es_chat_admin;
+    const esAdminComparado = (chat as any).es_chat_admin;
+    
+    // Si ambos son chats de admin, comparar por id_chat_admin
+    if (esAdminActual && esAdminComparado) {
+      return (this.chatActual as any).id_chat_admin === (chat as any).id_chat_admin;
+    }
+    
+    // Si ambos son chats normales, comparar por id_chat
+    if (!esAdminActual && !esAdminComparado) {
+      return this.chatActual.id_chat === chat.id_chat;
+    }
+    
+    // Si uno es admin y otro no, nunca son el mismo
+    return false;
+  }
 
+  /**
+   * Obtener un identificador único para cada chat
+   */
+  getChatId(chat: Chat): string {
+    if ((chat as any).es_chat_admin) {
+      return `admin_${(chat as any).id_chat_admin}`;
+    }
+    return `chat_${chat.id_chat}`;
+  }
   ngAfterViewChecked(): void {
     if (this.shouldScrollToBottom) {
       this.scrollToBottom();
@@ -117,16 +148,44 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   //   this.marcarComoLeido(chat.id_chat);
   // }
 
+  // seleccionarChat(chat: Chat): void {
+  //   this.chatActual = chat;
+    
+  //   // Verificar si es un chat con admin usando la nueva propiedad
+  //   if ((chat as any).es_chat_admin && (chat as any).id_chat_admin) {
+  //     // Usar el ID real del chat admin
+  //     const idChatAdmin = (chat as any).id_chat_admin;
+  //     this.cargarMensajesAdmin(idChatAdmin);
+  //     this.marcarComoLeido(chat.id_chat);  // Ahora usa el ID numérico
+  //   } else {
+  //     this.cargarMensajes(chat.id_chat);
+  //     this.marcarComoLeido(chat.id_chat);
+  //   }
+  // }
+
   seleccionarChat(chat: Chat): void {
+    console.log('🔍 Seleccionando chat:', {
+      id_chat: chat.id_chat,
+      es_chat_admin: (chat as any).es_chat_admin,
+      id_chat_admin: (chat as any).id_chat_admin
+    });
+    
     this.chatActual = chat;
     
     // Verificar si es un chat con admin usando la nueva propiedad
     if ((chat as any).es_chat_admin && (chat as any).id_chat_admin) {
       // Usar el ID real del chat admin
       const idChatAdmin = (chat as any).id_chat_admin;
+      console.log('✅ Es chat de admin, cargando mensajes con ID:', idChatAdmin);
       this.cargarMensajesAdmin(idChatAdmin);
-      this.marcarComoLeido(chat.id_chat);  // Ahora usa el ID numérico
+      
+      // Marcar como leído usando el ID del chat admin
+      if ((chat as any).id_chat_admin) {
+        this.marcarComoLeidoAdmin((chat as any).id_chat_admin);
+      }
     } else {
+      // Chat normal con paciente
+      console.log('✅ Es chat normal, cargando mensajes con ID:', chat.id_chat);
       this.cargarMensajes(chat.id_chat);
       this.marcarComoLeido(chat.id_chat);
     }
@@ -188,14 +247,63 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   //   });
   // }
 
+  // enviarMensaje(): void {
+  //   if (!this.nuevoMensaje.trim() || !this.chatActual) {
+  //     return;
+  //   }
+
+  //   // Verificar si es un chat con admin
+  //   if ((this.chatActual as any).es_admin) {
+  //     const idChatAdmin = parseInt(this.chatActual.id_chat.toString().replace('admin_', ''));
+      
+  //     const mensajeData = {
+  //       id_chat_admin: idChatAdmin,
+  //       contenido: this.nuevoMensaje.trim()
+  //     };
+
+  //     this.chatService.enviarMensajeAdmin(mensajeData).subscribe({
+  //       next: (mensaje) => {
+  //         this.mensajes.push(mensaje);
+  //         this.nuevoMensaje = '';
+  //         this.shouldScrollToBottom = true;
+  //         this.cargarChats();
+  //       },
+  //       error: (error) => {
+  //         console.error('Error al enviar mensaje al admin:', error);
+  //         alert('Error al enviar el mensaje. Inténtalo de nuevo.');
+  //       }
+  //     });
+  //   } else {
+  //     // Lógica normal para chat con pacientes
+  //     const mensajeData = {
+  //       id_chat: this.chatActual.id_chat,
+  //       contenido: this.nuevoMensaje.trim()
+  //     };
+
+  //     this.chatService.enviarMensaje(mensajeData).subscribe({
+  //       next: (mensaje) => {
+  //         this.mensajes.push(mensaje);
+  //         this.nuevoMensaje = '';
+  //         this.shouldScrollToBottom = true;
+  //         this.cargarChats();
+  //       },
+  //       error: (error) => {
+  //         console.error('Error al enviar mensaje:', error);
+  //         alert('Error al enviar el mensaje. Inténtalo de nuevo.');
+  //       }
+  //     });
+  //   }
+  // }
   enviarMensaje(): void {
     if (!this.nuevoMensaje.trim() || !this.chatActual) {
       return;
     }
 
-    // Verificar si es un chat con admin
-    if ((this.chatActual as any).es_admin) {
-      const idChatAdmin = parseInt(this.chatActual.id_chat.toString().replace('admin_', ''));
+    // Verificar si es un chat con admin usando la propiedad correcta
+    if ((this.chatActual as any).es_chat_admin && (this.chatActual as any).id_chat_admin) {
+      const idChatAdmin = (this.chatActual as any).id_chat_admin;
+      
+      console.log('📤 Enviando mensaje a admin, ID:', idChatAdmin);
       
       const mensajeData = {
         id_chat_admin: idChatAdmin,
@@ -216,6 +324,8 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       });
     } else {
       // Lógica normal para chat con pacientes
+      console.log('📤 Enviando mensaje a paciente, ID:', this.chatActual.id_chat);
+      
       const mensajeData = {
         id_chat: this.chatActual.id_chat,
         contenido: this.nuevoMensaje.trim()
@@ -275,6 +385,20 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       },
       error: (error) => {
         console.error('Error en búsqueda:', error);
+      }
+    });
+  }
+
+  private marcarComoLeidoAdmin(idChatAdmin: number): void {
+    this.chatService.marcarComoLeidoAdmin(idChatAdmin).subscribe({
+      next: () => {
+        const chat = this.chats.find(c => (c as any).id_chat_admin === idChatAdmin);
+        if (chat) {
+          chat.mensajes_no_leidos = 0;
+        }
+      },
+      error: (error) => {
+        console.error('Error al marcar como leído (admin):', error);
       }
     });
   }
