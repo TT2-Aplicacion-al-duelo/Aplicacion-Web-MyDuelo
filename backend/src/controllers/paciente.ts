@@ -45,11 +45,25 @@ export const getPacientes = async (req: AuthRequest, res: Response) => {
         console.log(`Buscando pacientes para psicólogo ID: ${id_psicologo}`);
         
         // ✅ FILTRAR PACIENTES POR ID_PSICOLOGO
+        // const listaPacientes = await Paciente.findAll({
+        //     where: { 
+        //         id_psicologo: id_psicologo 
+        //     },
+        //     attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email'] // Solo campos necesarios
+        // });
         const listaPacientes = await Paciente.findAll({
             where: { 
                 id_psicologo: id_psicologo 
             },
-            attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email'] // Solo campos necesarios
+            attributes: [
+                'id_paciente', 
+                'nombre', 
+                'apellido_paterno', 
+                'apellido_materno', 
+                'email',
+                'telefono',           // ✅ AGREGADO
+                'email_verificado'    // ✅ AGREGADO
+            ]
         });
         
         console.log(`Encontrados ${listaPacientes.length} pacientes`);

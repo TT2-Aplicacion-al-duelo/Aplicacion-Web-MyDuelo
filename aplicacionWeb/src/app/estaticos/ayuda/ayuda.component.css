@@ -1,0 +1,266 @@
+/* aplicacionWeb/src/app/estaticos/ayuda/ayuda.component.css */
+
+/* Header de Ayuda */
+.ayuda-header {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+}
+
+/* Navigation Pills */
+.nav-pills .nav-link {
+  border-radius: 50px;
+  padding: 0.75rem 1.5rem;
+  font-weight: 600;
+  color: #6c757d;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+}
+
+.nav-pills .nav-link:hover {
+  background-color: #f8f9fa;
+  color: #495057;
+}
+
+.nav-pills .nav-link.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.nav-pills .nav-link i {
+  margin-right: 0.5rem;
+}
+
+/* Accordion personalizado */
+.accordion-item {
+  border: none;
+  border-radius: 10px !important;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.accordion-item:hover {
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.accordion-button {
+  font-weight: 600;
+  color: #495057;
+  background-color: #ffffff;
+  border: none;
+  padding: 1.25rem 1.5rem;
+}
+
+.accordion-button:not(.collapsed) {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: none;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.accordion-button::after {
+  filter: brightness(0.8);
+}
+
+.accordion-button:not(.collapsed)::after {
+  filter: brightness(0) invert(1);
+}
+
+.accordion-body {
+  padding: 1.5rem;
+  background-color: #f8f9fa;
+}
+
+/* Guía Cards */
+.guia-card {
+  border-radius: 15px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.guia-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+.icon-box {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  flex-shrink: 0;
+}
+
+.pasos-lista {
+  padding-left: 1.5rem;
+  margin-bottom: 0;
+}
+
+.pasos-lista li {
+  padding: 0.5rem 0;
+  line-height: 1.6;
+  color: #495057;
+}
+
+.pasos-lista li::marker {
+  font-weight: 700;
+  color: #667eea;
+}
+
+/* Contacto métodos */
+.contacto-metodo {
+  text-align: center;
+  padding: 2rem;
+  border-radius: 10px;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+}
+
+.contacto-metodo:hover {
+  background-color: #e9ecef;
+  transform: translateY(-5px);
+}
+
+.icon-soporte i {
+  font-size: 4rem;
+}
+
+/* Alertas personalizadas */
+.alert {
+  border-radius: 10px;
+  border: none;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+}
+
+.alert-danger {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  color: white;
+  border: none;
+}
+
+.alert-danger strong {
+  font-weight: 700;
+}
+
+/* Botones */
+.btn-outline-primary {
+  border-radius: 50px;
+  padding: 0.5rem 1.5rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Animaciones */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.ayuda-container > div {
+  animation: fadeInDown 0.6s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .ayuda-header {
+    min-height: 200px;
+  }
+
+  .ayuda-header .display-4 {
+    font-size: 2rem;
+  }
+
+  .nav-pills .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .icon-box {
+    width: 50px;
+    height: 50px;
+  }
+
+  .icon-box i {
+    font-size: 1.5rem !important;
+  }
+
+  .contacto-metodo {
+    padding: 1.5rem;
+  }
+
+  .icon-soporte i {
+    font-size: 3rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .nav-pills {
+    flex-direction: column;
+  }
+
+  .nav-pills .nav-item {
+    margin-bottom: 0.5rem;
+  }
+
+  .accordion-button {
+    font-size: 0.9rem;
+    padding: 1rem;
+  }
+
+  .pasos-lista {
+    font-size: 0.9rem;
+  }
+}
+
+/* Accesibilidad */
+.btn:focus,
+.nav-link:focus,
+.accordion-button:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* Estilos para impresión */
+@media print {
+  .ayuda-header,
+  .nav-pills,
+  .alert {
+    display: none;
+  }
+
+  .accordion-collapse {
+    display: block !important;
+  }
+
+  .accordion-button {
+    background-color: white !important;
+    color: black !important;
+  }
+}

@@ -1,0 +1,237 @@
+<!-- aplicacionWeb/src/app/estaticos/ayuda/ayuda.component.html -->
+<div class="ayuda-container">
+  <!-- Header -->
+  <section class="ayuda-header text-white text-center py-5">
+    <div class="container">
+      <h1 class="display-4 fw-bold mb-3">
+        <i class="bi bi-question-circle-fill"></i> Centro de Ayuda
+      </h1>
+      <p class="lead">
+        Encuentra respuestas a tus preguntas y aprende a usar Mi Duelo Online
+      </p>
+    </div>
+  </section>
+
+  <div class="container my-5">
+    <!-- Tabs de navegación -->
+    <ul class="nav nav-pills nav-fill mb-4" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button 
+          class="nav-link" 
+          [class.active]="categoriaActiva === 'general'"
+          (click)="cambiarCategoria('general')"
+          type="button">
+          <i class="bi bi-info-circle"></i> General
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button 
+          class="nav-link" 
+          [class.active]="categoriaActiva === 'guias'"
+          (click)="cambiarCategoria('guias')"
+          type="button">
+          <i class="bi bi-book"></i> Guías Rápidas
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button 
+          class="nav-link" 
+          [class.active]="categoriaActiva === 'contacto'"
+          (click)="cambiarCategoria('contacto')"
+          type="button">
+          <i class="bi bi-envelope"></i> Contacto
+        </button>
+      </li>
+    </ul>
+
+    <!-- Contenido de General (FAQs) -->
+    @if (categoriaActiva === 'general') {
+      <div class="row">
+        <div class="col-lg-10 mx-auto">
+          <h2 class="mb-4">
+            <i class="bi bi-patch-question-fill text-primary"></i>
+            Preguntas Frecuentes
+          </h2>
+
+          <div class="accordion" id="accordionFAQ">
+            @for (pregunta of preguntasGenerales; track $index) {
+              <div class="accordion-item mb-3">
+                <h3 class="accordion-header">
+                  <button 
+                    class="accordion-button collapsed" 
+                    type="button" 
+                    [attr.data-bs-toggle]="'collapse'"
+                    [attr.data-bs-target]="'#faq' + $index">
+                    <i class="bi bi-question-circle me-2"></i>
+                    {{ pregunta.pregunta }}
+                  </button>
+                </h3>
+                <div 
+                  [id]="'faq' + $index" 
+                  class="accordion-collapse collapse" 
+                  [attr.data-bs-parent]="'#accordionFAQ'">
+                  <div class="accordion-body">
+                    <p class="mb-0">{{ pregunta.respuesta }}</p>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Información adicional -->
+          <div class="alert alert-info mt-4" role="alert">
+            <i class="bi bi-info-circle-fill"></i>
+            <strong>¿No encuentras lo que buscas?</strong>
+            Puedes contactarnos directamente en la sección de 
+            <button class="btn btn-link p-0 align-baseline" (click)="cambiarCategoria('contacto')">
+              Contacto
+            </button>.
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Contenido de Guías Rápidas -->
+    @if (categoriaActiva === 'guias') {
+      <div class="row">
+        <div class="col-lg-10 mx-auto">
+          <div class="mb-4">
+            <h2>
+              <i class="bi bi-book-half text-success"></i>
+              Guías Rápidas
+            </h2>
+            @if (tipoUsuario === 'paciente') {
+              <p class="text-muted">Aprende a usar las funciones principales como paciente</p>
+            } @else if (tipoUsuario === 'psicologo' || tipoUsuario === 'admin') {
+              <p class="text-muted">Aprende a gestionar tu práctica profesional</p>
+            } @else {
+              <p class="text-muted">Guías para comenzar a usar la plataforma</p>
+            }
+          </div>
+
+          <div class="row g-4">
+            @for (guia of getGuiasActuales(); track guia.titulo) {
+              <div class="col-md-6">
+                <div class="card h-100 shadow-sm border-0 guia-card">
+                  <div class="card-body">
+                    <div class="d-flex align-items-center mb-3">
+                      <div class="icon-box me-3">
+                        <i class="bi fs-2" [ngClass]="guia.icono"></i>
+                      </div>
+                      <div>
+                        <h5 class="card-title mb-1 fw-bold">{{ guia.titulo }}</h5>
+                        <p class="card-text text-muted small mb-0">{{ guia.descripcion }}</p>
+                      </div>
+                    </div>
+
+                    <ol class="pasos-lista">
+                      @for (paso of guia.pasos; track $index) {
+                        <li class="mb-2">{{ paso }}</li>
+                      }
+                    </ol>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- Video tutoriales (futuro) -->
+          <div class="alert alert-light border mt-4" role="alert">
+            <i class="bi bi-play-circle-fill text-primary"></i>
+            <strong>Próximamente:</strong> Video tutoriales interactivos para cada función.
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Contenido de Contacto -->
+    @if (categoriaActiva === 'contacto') {
+      <div class="row">
+        <div class="col-lg-8 mx-auto">
+          <h2 class="mb-4">
+            <i class="bi bi-headset text-info"></i>
+            Contactar con Soporte
+          </h2>
+
+          <div class="card shadow-lg border-0">
+            <div class="card-body p-5">
+              <div class="text-center mb-4">
+                <div class="icon-soporte mb-3">
+                  <i class="bi bi-envelope-paper-fill text-primary"></i>
+                </div>
+                <h4 class="fw-bold">Estamos aquí para ayudarte</h4>
+                <p class="text-muted">
+                  Nuestro equipo de soporte está disponible 24/7
+                </p>
+              </div>
+
+              <div class="row g-4">
+                <div class="col-md-6">
+                  <div class="contacto-metodo">
+                    <i class="bi bi-envelope-fill text-primary fs-3"></i>
+                    <h5 class="mt-3">Correo Electrónico</h5>
+                    <a [href]="'mailto:' + emailSoporte" class="btn btn-outline-primary mt-2">
+                      {{ emailSoporte }}
+                    </a>
+                  </div>
+                </div>
+
+                <div class="col-md-6">
+                  <div class="contacto-metodo">
+                    <i class="bi bi-clock-fill text-success fs-3"></i>
+                    <h5 class="mt-3">Tiempo de Respuesta</h5>
+                    <p class="text-muted mb-0">24-48 horas hábiles</p>
+                    <small class="text-muted">Emergencias: respuesta inmediata</small>
+                  </div>
+                </div>
+              </div>
+
+              <hr class="my-4">
+
+              <!-- Información adicional -->
+              <div class="row">
+                <div class="col-12">
+                  <h6 class="fw-bold mb-3">
+                    <i class="bi bi-lightbulb-fill text-warning"></i>
+                    Antes de contactarnos
+                  </h6>
+                  <ul class="list-unstyled">
+                    <li class="mb-2">
+                      <i class="bi bi-check-circle-fill text-success me-2"></i>
+                      Revisa las preguntas frecuentes arriba
+                    </li>
+                    <li class="mb-2">
+                      <i class="bi bi-check-circle-fill text-success me-2"></i>
+                      Consulta las guías rápidas de uso
+                    </li>
+                    <li class="mb-2">
+                      <i class="bi bi-check-circle-fill text-success me-2"></i>
+                      Ten a mano tu información de cuenta
+                    </li>
+                    <li class="mb-2">
+                      <i class="bi bi-check-circle-fill text-success me-2"></i>
+                      Describe tu problema de forma detallada
+                    </li>
+                  </ul>
+                </div>
+              </div>
+
+              <!-- Línea de crisis -->
+              <div class="alert alert-danger mt-4" role="alert">
+                <h6 class="alert-heading">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                  En caso de emergencia
+                </h6>
+                <p class="mb-0">
+                  Si estás experimentando una crisis o pensamientos suicidas, 
+                  llama inmediatamente a la línea de atención en crisis: 
+                  <strong class="d-block mt-2">800-290-0051 (México)</strong>
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

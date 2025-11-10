@@ -1,0 +1,206 @@
+<div class="acerca-de-container">
+  <!-- Hero Section -->
+  <section class="hero-section text-white text-center py-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-8 mx-auto">
+          <h1 class="display-4 fw-bold mb-3">
+            <i class="bi bi-heart-pulse-fill"></i> Mi Duelo App
+          </h1>
+          <p class="lead mb-4">
+            Plataforma integral que conecta a personas en proceso de duelo 
+            con psicólogos especializados para brindar apoyo profesional, 
+            herramientas terapéuticas y una comunidad de apoyo segura.
+          </p>
+          <div class="d-flex gap-3 justify-content-center">
+            <a routerLink="/registro" class="btn btn-light btn-lg">
+              <i class="bi bi-person-plus"></i> Comenzar Ahora
+            </a>
+            <a routerLink="/ayuda" class="btn btn-outline-light btn-lg">
+              <i class="bi bi-question-circle"></i> Ver Guía
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ¿Qué es Mi Duelo? -->
+  <section class="py-5">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-10 mx-auto">
+          <div class="card shadow-lg border-0 mb-5">
+            <div class="card-body p-5">
+              <h2 class="text-center mb-4">
+                <i class="bi bi-info-circle-fill text-primary"></i>
+                ¿Qué es Mi Duelo Online?
+              </h2>
+              <p class="lead text-center mb-4">
+                Mi Duelo Online es una plataforma digital especializada en brindar 
+                apoyo psicológico a personas que atraviesan procesos de duelo y pérdida.
+              </p>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <div class="feature-box">
+                    <i class="bi bi-award-fill text-success fs-1"></i>
+                    <h5 class="mt-3">Profesionales Certificados</h5>
+                    <p class="text-muted">
+                      Todos nuestros psicólogos están certificados y especializados 
+                      en procesos de duelo y salud mental.
+                    </p>
+                  </div>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <div class="feature-box">
+                    <i class="bi bi-shield-fill-check text-primary fs-1"></i>
+                    <h5 class="mt-3">Privacidad Garantizada</h5>
+                    <p class="text-muted">
+                      Tu información está protegida. Cumplimos con todas las 
+                      regulaciones de protección de datos personales.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Funcionalidades Principales -->
+  <section class="py-5 bg-light">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold">
+          <i class="bi bi-stars text-warning"></i>
+          Funcionalidades Principales
+        </h2>
+        <p class="text-muted">
+          Herramientas diseñadas para facilitar tu proceso de sanación
+        </p>
+      </div>
+
+      <div class="row g-4">
+        @for (func of funcionalidades; track func.titulo) {
+          <div class="col-md-6 col-lg-3">
+            <div class="card h-100 shadow-sm border-0 hover-card">
+              <div class="card-body text-center">
+                <div class="icon-circle mb-3" [class]="'bg-' + func.color + '-subtle'">
+                  <i class="bi fs-2" [ngClass]="func.icono" [class]="'text-' + func.color"></i>
+                </div>
+                <h5 class="card-title fw-bold">{{ func.titulo }}</h5>
+                <p class="card-text text-muted small">{{ func.descripcion }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Beneficios por Usuario -->
+  <section class="py-5">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h2 class="fw-bold">
+          <i class="bi bi-gift-fill text-danger"></i>
+          Beneficios de la Plataforma
+        </h2>
+      </div>
+
+      <div class="row g-4">
+        <!-- Para Pacientes -->
+        <div class="col-lg-6">
+          <div class="card h-100 shadow border-0">
+            <div class="card-header bg-gradient-primary text-white text-center py-3">
+              <h4 class="mb-0">
+                <i class="bi bi-person-heart"></i> Para Pacientes
+              </h4>
+            </div>
+            <div class="card-body">
+              <ul class="list-unstyled">
+                @for (beneficio of beneficiosPacientes; track beneficio) {
+                  <li class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <span>{{ beneficio }}</span>
+                  </li>
+                }
+              </ul>
+              <div class="text-center mt-4">
+                <a  class="btn btn-primary">
+                  <i class="bi bi-person-plus"></i> Registrarse como Paciente por medio de la Aplicacion Movil
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Para Psicólogos -->
+        <div class="col-lg-6">
+          <div class="card h-100 shadow border-0">
+            <div class="card-header bg-gradient-success text-white text-center py-3">
+              <h4 class="mb-0">
+                <i class="bi bi-person-badge"></i> Para Psicólogos
+              </h4>
+            </div>
+            <div class="card-body">
+              <ul class="list-unstyled">
+                @for (beneficio of beneficiosPsicologos; track beneficio) {
+                  <li class="mb-3">
+                    <i class="bi bi-check-circle-fill text-success me-2"></i>
+                    <span>{{ beneficio }}</span>
+                  </li>
+                }
+              </ul>
+              <div class="text-center mt-4">
+                <a routerLink="/registro" class="btn btn-success">
+                  <i class="bi bi-person-badge-fill"></i> Registrarse como Psicólogo
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Estadísticas -->
+  <section class="py-5 bg-gradient-stats text-white">
+    <div class="container">
+      <div class="row text-center g-4">
+        @for (stat of estadisticas; track stat.numero) {
+          <div class="col-md-3 col-6">
+            <div class="stat-box">
+              <h2 class="display-4 fw-bold mb-0">{{ stat.numero }}</h2>
+              <p class="mb-0">{{ stat.texto }}</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Call to Action -->
+  <section class="py-5">
+    <div class="container">
+      <div class="card bg-primary text-white shadow-lg border-0">
+        <div class="card-body text-center p-5">
+          <h2 class="fw-bold mb-3">¿Listo para comenzar tu proceso de sanación?</h2>
+          <p class="lead mb-4">
+            Únete a nuestra comunidad y recibe el apoyo profesional que necesitas
+          </p>
+          <div class="d-flex gap-3 justify-content-center">
+            <a routerLink="/registro" class="btn btn-light btn-lg">
+              <i class="bi bi-person-plus"></i> Crear Cuenta Gratis
+            </a>
+            <a routerLink="/ayuda" class="btn btn-outline-light btn-lg">
+              <i class="bi bi-question-circle"></i> ¿Necesitas Ayuda?
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</div>

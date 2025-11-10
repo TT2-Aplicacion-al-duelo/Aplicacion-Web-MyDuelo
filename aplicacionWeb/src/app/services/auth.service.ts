@@ -127,4 +127,58 @@ export class AuthService {
       return null;
     }
   }
+  /* Verifica si el usuario autenticado es un psicólogo
+ * @returns true si es psicólogo, false en caso contrario
+  */
+  isPsicologo(): boolean {
+    const token = localStorage.getItem('token');
+    if (!token) return false;
+
+    try {
+      const payload = this.decodeToken(token);
+      return payload && payload.id_psicologo !== undefined;
+    } catch (error) {
+      return false;
+    }
+  }
+  /**
+   * Obtiene el tipo de usuario actual
+   * @returns 'psicologo' | 'paciente' | 'admin' | null
+   */
+  getTipoUsuario(): 'psicologo' | 'paciente' | 'admin' | null {
+    if (!this.isAuthenticated()) return null;
+    
+    if (this.isAdmin()) return 'admin';
+    if (this.isPsicologo()) return 'psicologo';
+
+    
+    return null;
+  }
+
+  /**
+   * Método auxiliar para decodificar el token JWT
+   * @param token Token JWT a decodificar
+   * @returns Payload del token
+   */
+  private decodeToken(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(
+        atob(base64)
+          .split('')
+          .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+          .join('')
+      );
+      return JSON.parse(jsonPayload);
+    } catch (error) {
+      console.error('Error decodificando token:', error);
+      return null;
+    }
+  }
+
+
+
+
+
 }

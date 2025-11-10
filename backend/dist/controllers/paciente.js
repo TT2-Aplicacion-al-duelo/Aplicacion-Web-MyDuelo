@@ -47,11 +47,25 @@ const getPacientes = (req, res) => __awaiter(void 0, void 0, void 0, function* (
         }
         console.log(`Buscando pacientes para psicólogo ID: ${id_psicologo}`);
         // ✅ FILTRAR PACIENTES POR ID_PSICOLOGO
+        // const listaPacientes = await Paciente.findAll({
+        //     where: { 
+        //         id_psicologo: id_psicologo 
+        //     },
+        //     attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email'] // Solo campos necesarios
+        // });
         const listaPacientes = yield paciente_1.Paciente.findAll({
             where: {
                 id_psicologo: id_psicologo
             },
-            attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email'] // Solo campos necesarios
+            attributes: [
+                'id_paciente',
+                'nombre',
+                'apellido_paterno',
+                'apellido_materno',
+                'email',
+                'telefono', // ✅ AGREGADO
+                'email_verificado' // ✅ AGREGADO
+            ]
         });
         console.log(`Encontrados ${listaPacientes.length} pacientes`);
         res.json(listaPacientes); // ✅ CAMBIO: devolver array directo, no objeto wrapper

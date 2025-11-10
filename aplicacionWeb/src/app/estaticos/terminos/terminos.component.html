@@ -1,0 +1,105 @@
+<!-- aplicacionWeb/src/app/estaticos/terminos/terminos.component.html -->
+<div class="terminos-container">
+  <!-- Header -->
+  <section class="terminos-header text-white text-center py-5">
+    <div class="container">
+      <h1 class="display-4 fw-bold mb-3">
+        <i class="bi bi-file-text-fill"></i> Términos y Condiciones
+      </h1>
+      <p class="lead">Última actualización: {{ fechaActualizacion }}</p>
+    </div>
+  </section>
+
+  <!-- Contenido -->
+  <div class="container my-5">
+    <div class="row">
+      <div class="col-lg-10 mx-auto">
+        <!-- Introducción -->
+        <div class="card shadow-sm border-0 mb-4">
+          <div class="card-body p-4">
+            <div class="alert alert-info" role="alert">
+              <i class="bi bi-info-circle-fill me-2"></i>
+              <strong>Importante:</strong> Por favor, lea estos términos cuidadosamente antes de usar Mi Duelo Online. 
+              Al utilizar nuestros servicios, usted acepta estar sujeto a estos términos y condiciones.
+            </div>
+          </div>
+        </div>
+
+        <!-- Secciones de términos -->
+        @for (seccion of secciones; track $index) {
+          <div class="card shadow-sm border-0 mb-3">
+            <div class="card-header bg-white">
+              <h4 class="mb-0 fw-bold text-primary">
+                {{ seccion.titulo }}
+              </h4>
+            </div>
+            <div class="card-body">
+              <p class="mb-0 text-justify" style="white-space: pre-line;">
+                {{ seccion.contenido }}
+              </p>
+            </div>
+          </div>
+        }
+
+        <!-- Aceptación -->
+        <div class="card shadow-lg border-0 mt-5" style="border-left: 5px solid #667eea !important;">
+          <div class="card-body p-4">
+            <h5 class="fw-bold mb-3">
+              <i class="bi bi-check-circle-fill text-success"></i>
+              Aceptación de Términos
+            </h5>
+            <p class="mb-3">
+              Al hacer clic en "Acepto" durante el registro o al continuar usando nuestros servicios, 
+              usted confirma que:
+            </p>
+            <ul class="mb-3">
+              <li>Ha leído y comprendido estos términos y condiciones</li>
+              <li>Acepta estar legalmente vinculado por ellos</li>
+              <li>Tiene la capacidad legal para aceptar estos términos</li>
+            </ul>
+            <div class="text-center">
+              <a routerLink="/registro" class="btn btn-primary btn-lg">
+                <i class="bi bi-person-plus"></i> Registrarse Ahora
+              </a>
+              <a routerLink="/iniciar-sesion" class="btn btn-outline-secondary btn-lg ms-2">
+                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navegación -->
+        <div class="row mt-5">
+          <div class="col-md-6 mb-3">
+            <div class="card border-0 bg-light">
+              <div class="card-body text-center">
+                <i class="bi bi-shield-check fs-1 text-primary mb-2"></i>
+                <h6 class="fw-bold">Aviso de Privacidad</h6>
+                <p class="small text-muted mb-3">
+                  Conoce cómo protegemos tus datos
+                </p>
+                <a routerLink="/privacidad" class="btn btn-sm btn-outline-primary">
+                  Ver Aviso de Privacidad
+                </a>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6 mb-3">
+            <div class="card border-0 bg-light">
+              <div class="card-body text-center">
+                <i class="bi bi-question-circle fs-1 text-success mb-2"></i>
+                <h6 class="fw-bold">¿Tienes dudas?</h6>
+                <p class="small text-muted mb-3">
+                  Consulta nuestra sección de ayuda
+                </p>
+                <a routerLink="/ayuda" class="btn btn-sm btn-outline-success">
+                  Ir a Centro de Ayuda
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

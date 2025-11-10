@@ -1,0 +1,116 @@
+/* aplicacionWeb/src/app/estaticos/terminos/terminos.component.css */
+
+/* Header */
+.terminos-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  min-height: 250px;
+  display: flex;
+  align-items: center;
+}
+
+/* Cards */
+.card {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+}
+
+.card-header {
+  border-bottom: 2px solid #f0f0f0;
+  padding: 1.25rem 1.5rem;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* Texto justificado */
+.text-justify {
+  text-align: justify;
+  line-height: 1.8;
+  color: #495057;
+}
+
+/* Listas */
+ul {
+  padding-left: 1.5rem;
+}
+
+ul li {
+  margin-bottom: 0.75rem;
+  line-height: 1.6;
+}
+
+/* Alertas */
+.alert-info {
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  color: #0c5460;
+  border-left: 4px solid #17a2b8;
+}
+
+/* Botones */
+.btn-lg {
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-lg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Animación de entrada */
+.terminos-container {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .terminos-header {
+    min-height: 200px;
+  }
+
+  .terminos-header .display-4 {
+    font-size: 2rem;
+  }
+
+  .card-body {
+    padding: 1rem;
+  }
+
+  .btn-lg {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .terminos-header,
+  .btn,
+  .alert {
+    display: none;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+    page-break-inside: avoid;
+  }
+}

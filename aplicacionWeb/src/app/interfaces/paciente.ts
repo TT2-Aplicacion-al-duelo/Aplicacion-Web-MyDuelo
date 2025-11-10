@@ -7,6 +7,6 @@ export interface Paciente {
     email: string,               
     telefono?: string,            
     id_psicologo?: number,
-    email_verificado: string,
+    email_verificado: boolean,
         
 }

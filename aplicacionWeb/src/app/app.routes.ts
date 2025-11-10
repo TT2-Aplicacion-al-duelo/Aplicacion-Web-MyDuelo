@@ -35,6 +35,10 @@ import { TemaForoComponent } from './psicologo/foros/tema-foro/tema-foro.compone
 import { SolicitudesForoComponent } from './psicologo/foros/solicitudes-foro/solicitudes-foro.component';
 import { LogsModeracionComponent } from './psicologo/foros/logs-moderacion/logs-moderacion.component';
 import { PerfilComponent } from './compartidos/perfil/perfil.component';
+import { PrivacidadComponent } from './estaticos/privacidad/privacidad.component';
+import { TerminosComponent } from './estaticos/terminos/terminos.component';
+import { AyudaComponent } from './estaticos/ayuda/ayuda.component';
+import { AcercaDeComponent } from './estaticos/acerca-de/acerca-de.component';
 
 // Guard de Autenticación
 const canActivate: CanActivateFn = (route, state) => {
@@ -176,6 +180,27 @@ export const routes: Routes = [
     path: 'admin/perfil', 
     component: PerfilComponent, 
     canActivate: [canActivate] 
+  },
+  // === PÁGINAS INSTITUCIONALES ===
+  {
+    path: 'acerca-de',
+    component: AcercaDeComponent,
+    title: 'Acerca de - Mi Duelo Online'
+  },
+  {
+    path: 'ayuda',
+    component: AyudaComponent,
+    title: 'Centro de Ayuda - Mi Duelo Online'
+  },
+  {
+    path: 'terminos',
+    component: TerminosComponent,
+    title: 'Términos y Condiciones - Mi Duelo Online'
+  },
+  {
+    path: 'privacidad',
+    component: PrivacidadComponent,
+    title: 'Aviso de Privacidad - Mi Duelo Online'
   },
 
   // ⚠️ Ruta 404 - DEBE SER LA ÚLTIMA

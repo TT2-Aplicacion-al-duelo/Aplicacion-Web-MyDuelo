@@ -1,0 +1,137 @@
+/* Header */
+.privacidad-header {
+  background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+  min-height: 280px;
+  display: flex;
+  align-items: center;
+}
+
+/* Sección Cards */
+.seccion-card {
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  border-left: 5px solid transparent !important;
+}
+
+.seccion-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15) !important;
+  border-left-color: #667eea !important;
+}
+
+.card-header.bg-gradient {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-bottom: 2px solid #dee2e6;
+  padding: 1.25rem 1.5rem;
+}
+
+.icon-circle {
+  width: 45px;
+  height: 45px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.3rem;
+}
+
+/* Derechos ARCO */
+.derecho-box {
+  padding: 1.5rem;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+}
+
+.derecho-box:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* Botones */
+.btn-lg {
+  padding: 0.75rem 2rem;
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-lg:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Cards de seguridad */
+.card {
+  border-radius: 15px;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Animaciones */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.privacidad-container {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .privacidad-header {
+    min-height: 220px;
+  }
+
+  .privacidad-header .display-4 {
+    font-size: 2rem;
+  }
+
+  .icon-circle {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+
+  .derecho-box {
+    padding: 1rem;
+  }
+
+  .btn-lg {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Print styles */
+@media print {
+  .privacidad-header,
+  .btn,
+  .card.bg-light {
+    display: none;
+  }
+
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+    page-break-inside: avoid;
+    margin-bottom: 1rem;
+  }
+
+  .seccion-card {
+    border-left: 3px solid #667eea !important;
+  }
+}
