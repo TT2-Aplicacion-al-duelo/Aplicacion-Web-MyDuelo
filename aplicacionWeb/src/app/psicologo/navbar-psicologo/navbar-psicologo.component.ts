@@ -79,7 +79,7 @@ export class NavbarPsicologoComponent implements OnInit, OnDestroy {
       this.iniciales = (nombre + apellido).toUpperCase();
       
       // Código de vinculación
-      this.codigoVinculacion = `PSI-${this.psicologoInfo.id_psicologo?.toString().padStart(4, '0')}`;
+      this.codigoVinculacion = this.psicologoInfo.codigo_vinculacion || 'N/A';
     }
   }
 

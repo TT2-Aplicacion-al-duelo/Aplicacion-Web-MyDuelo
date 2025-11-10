@@ -101,7 +101,7 @@ export class AuthService {
     }
   }
 
-  // ✅ NUEVO: Verificación periódica del token
+  // Verificación periódica del token
   private iniciarVerificacionToken(): void {
     // Verificar cada minuto si el token ha expirado
     this.tokenCheckInterval = setInterval(() => {
@@ -112,7 +112,7 @@ export class AuthService {
     }, 60000); // Cada 60 segundos
   }
 
-  // ✅ NUEVO: Obtener tiempo restante del token
+  //Obtener tiempo restante del token
   getTimeUntilExpiration(): number | null {
     const token = this.getToken();
     if (!token) return null;

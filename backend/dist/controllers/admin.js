@@ -356,8 +356,8 @@ const getAllPacientesAdmin = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 'email',
                 'telefono',
                 'fecha_nacimiento',
-                'id_psicologo'
-                // ❌ ELIMINADO: 'createdAt' - la tabla no tiene esta columna
+                'id_psicologo',
+                'email_verificado',
             ],
             include: [{
                     model: psicologo_1.Psicologo,
@@ -383,7 +383,9 @@ const getAllPacientesAdmin = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 apellidoMaterno: p.psicologo.apellidoMaterno,
                 correo: p.psicologo.correo
             } : null,
-            status: 'activo' // ✅ CAMPO POR DEFECTO (agregar a tabla si quieres gestionarlo)
+            //status: 'activo'
+            status: p.email_verificado ? 'activo' : 'inactivo', //  Status real basado en email_verificado
+            email_verificado: p.email_verificado //  Campo adicional para el frontend
         }));
         res.json(pacientesFormateados);
     }

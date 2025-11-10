@@ -392,7 +392,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
             apellido: psicologoData.apellidoPaterno,
             rol_admin: psicologoData.rol_admin,
             cedula_validada: false,
-            cuenta_limitada: true
+            cuenta_limitada: true,
+            codigo_vinculacion: psicologoData.codigo_vinculacion
           },
           process.env.SECRET_KEY || 'defaultsecretkey',
           { expiresIn: '24h' }
@@ -435,7 +436,8 @@ export const login = async (req: Request, res: Response): Promise<void> => {
         apellido: psicologoData.apellidoPaterno,
         rol_admin: psicologoData.rol_admin,
         cedula_validada: psicologoData.cedula_validada,
-        cuenta_limitada: false
+        cuenta_limitada: false,
+        codigo_vinculacion: psicologoData.codigo_vinculacion
       },
       process.env.SECRET_KEY || 'defaultsecretkey',
       { expiresIn: '24h' }

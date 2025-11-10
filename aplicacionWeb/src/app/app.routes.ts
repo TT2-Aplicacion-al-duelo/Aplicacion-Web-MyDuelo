@@ -34,6 +34,7 @@ import { DetalleForoComponent } from './psicologo/foros/detalle-foro/detalle-for
 import { TemaForoComponent } from './psicologo/foros/tema-foro/tema-foro.component';
 import { SolicitudesForoComponent } from './psicologo/foros/solicitudes-foro/solicitudes-foro.component';
 import { LogsModeracionComponent } from './psicologo/foros/logs-moderacion/logs-moderacion.component';
+import { PerfilComponent } from './compartidos/perfil/perfil.component';
 
 // Guard de Autenticación
 const canActivate: CanActivateFn = (route, state) => {
@@ -103,6 +104,11 @@ export const routes: Routes = [
     component: ConfiguracionPerfilComponent, 
     canActivate: [canActivate] 
   },
+  { 
+    path: 'perfil', 
+    component: PerfilComponent, 
+    canActivate: [canActivate] 
+  },
 
   // ⚠️ IMPORTANTE: Rutas de Foros ANTES del wildcard
   {
@@ -165,6 +171,10 @@ export const routes: Routes = [
   { 
     path: 'admin/configuracion', 
     component: ConfiguracionPerfilComponent, 
+    canActivate: [canActivate] 
+  },{ 
+    path: 'admin/perfil', 
+    component: PerfilComponent, 
     canActivate: [canActivate] 
   },
 

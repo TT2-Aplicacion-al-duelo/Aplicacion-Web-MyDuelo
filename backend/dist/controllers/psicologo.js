@@ -329,7 +329,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                     apellido: psicologoData.apellidoPaterno,
                     rol_admin: psicologoData.rol_admin,
                     cedula_validada: false,
-                    cuenta_limitada: true
+                    cuenta_limitada: true,
+                    codigo_vinculacion: psicologoData.codigo_vinculacion
                 }, process.env.SECRET_KEY || 'defaultsecretkey', { expiresIn: '24h' });
                 res.json({
                     msg: 'Inicio de sesión exitoso con acceso limitado',
@@ -361,7 +362,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
             apellido: psicologoData.apellidoPaterno,
             rol_admin: psicologoData.rol_admin,
             cedula_validada: psicologoData.cedula_validada,
-            cuenta_limitada: false
+            cuenta_limitada: false,
+            codigo_vinculacion: psicologoData.codigo_vinculacion
         }, process.env.SECRET_KEY || 'defaultsecretkey', { expiresIn: '24h' });
         // Calcular días restantes para validación (si aplica)
         let diasRestantesValidacion = null;

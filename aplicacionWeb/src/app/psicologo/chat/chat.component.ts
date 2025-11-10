@@ -489,7 +489,16 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
+  // esMensajeMio(mensaje: Mensaje): boolean {
+  //   return mensaje.remitente === 'psicologo';
+  // }
   esMensajeMio(mensaje: Mensaje): boolean {
+    // Para chats con admin: el psicólogo envía mensajes como 'usuario'
+    if ((this.chatActual as any).es_chat_admin) {
+      return (mensaje as any).remitente === 'usuario';
+    }
+    
+    // Para chats normales con pacientes
     return mensaje.remitente === 'psicologo';
   }
 
