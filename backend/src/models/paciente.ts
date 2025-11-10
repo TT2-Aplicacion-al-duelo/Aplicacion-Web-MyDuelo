@@ -13,6 +13,7 @@ export const Paciente = sequelize.define(
         contrasena: {type: DataTypes.STRING(255), allowNull: false},  // Agregar campo de BD
         telefono: {type: DataTypes.STRING(15), allowNull: true},      // Agregar campo de BD
         id_psicologo: {type: DataTypes.INTEGER, allowNull: true},     //  CAMPO CLAVE
+        email_verificado: {type: DataTypes.BOOLEAN, allowNull: false, defaultValue: false}, 
     },
     {
         tableName: 'paciente',

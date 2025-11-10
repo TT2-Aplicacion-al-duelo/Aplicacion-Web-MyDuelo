@@ -17,6 +17,7 @@ exports.Paciente = connection_1.default.define('paciente', {
     contrasena: { type: sequelize_1.DataTypes.STRING(255), allowNull: false }, // Agregar campo de BD
     telefono: { type: sequelize_1.DataTypes.STRING(15), allowNull: true }, // Agregar campo de BD
     id_psicologo: { type: sequelize_1.DataTypes.INTEGER, allowNull: true }, //  CAMPO CLAVE
+    email_verificado: { type: sequelize_1.DataTypes.BOOLEAN, allowNull: false, defaultValue: false },
 }, {
     tableName: 'paciente',
     timestamps: false,
