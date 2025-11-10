@@ -133,18 +133,18 @@
                     <span 
                       class="badge"
                       [ngClass]="{
-                        'bg-success': paciente.status === 'activo' || !paciente.status,
-                        'bg-danger': paciente.status === 'inactivo'
+                        'bg-success': paciente.email_verificado,
+                        'bg-danger': !paciente.email_verificado
                       }"
                     >
                       <i 
                         class="bi me-1"
                         [ngClass]="{
-                          'bi-check-circle': paciente.status === 'activo' || !paciente.status,
-                          'bi-x-circle': paciente.status === 'inactivo'
+                          'bi-check-circle': paciente.email_verificado,
+                          'bi-x-circle': !paciente.email_verificado
                         }"
                       ></i>
-                      {{ paciente.status || 'activo' | titlecase }}
+                      {{ paciente.email_verificado ? 'Verificado' : 'No Verificado' }}
                     </span>
                   </td>
 
@@ -281,11 +281,11 @@
               <span 
                 class="badge"
                 [ngClass]="{
-                  'bg-success': pacienteSeleccionado.status === 'activo' || !pacienteSeleccionado.status,
-                  'bg-danger': pacienteSeleccionado.status === 'inactivo'
+                  'bg-success': pacienteSeleccionado.email_verificado,
+                  'bg-danger': !pacienteSeleccionado.email_verificado
                 }"
               >
-                {{ pacienteSeleccionado.status || 'activo' | titlecase }}
+                {{ pacienteSeleccionado.email_verificado ? 'Verificado' : 'No Verificado' }}
               </span>
             </div>
           </div>
@@ -308,8 +308,9 @@
           </button>
 
           <!-- Deshabilitar cuenta -->
+          <!-- Deshabilitar cuenta -->
           <button 
-            *ngIf="pacienteSeleccionado.status === 'activo' || !pacienteSeleccionado.status"
+            *ngIf="pacienteSeleccionado.email_verificado"
             class="btn btn-outline-danger"
             (click)="deshabilitarCuenta(pacienteSeleccionado)"
             title="Deshabilitar cuenta"
@@ -318,7 +319,7 @@
           </button>
 
           <button 
-            *ngIf="pacienteSeleccionado.status === 'inactivo'"
+            *ngIf="!pacienteSeleccionado.email_verificado"
             class="btn btn-outline-success"
             (click)="deshabilitarCuenta(pacienteSeleccionado)"
             title="Habilitar cuenta"
