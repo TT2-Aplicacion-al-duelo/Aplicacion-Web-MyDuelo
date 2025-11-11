@@ -1,8 +1,9 @@
-// backend/src/controllers/chat-admin.ts
+  // backend/src/controllers/chat-admin.ts
 
 import { Request, Response } from "express";
 import sequelize from "../database/connection";
 import { QueryTypes } from 'sequelize';
+import { encryptMessage, decryptMessages, decryptMessage } from "../utils/aes-crypto";
 import { Psicologo } from "../models/psicologo";
 import { Paciente } from "../models/paciente";
 
@@ -105,7 +106,7 @@ export const getChatsAdmin = async (req: AuthRequest, res: Response) => {
         fecha_inicio: chat.fecha_inicio,
         destinatario,
         ultimo_mensaje: chat.ultimo_mensaje_contenido ? {
-          contenido: chat.ultimo_mensaje_contenido,
+          contenido: decryptMessage(chat.ultimo_mensaje_contenido),
           remitente: chat.ultimo_mensaje_remitente,
           fecha_envio: chat.ultimo_mensaje_fecha
         } : null,
@@ -161,7 +162,8 @@ export const getMensajesAdmin = async (req: AuthRequest, res: Response) => {
       type: QueryTypes.SELECT
     });
 
-    res.json(mensajes);
+    const mensajesDescifrados = decryptMessages(mensajes as any[]);
+    res.json(mensajesDescifrados);
   } catch (error) {
     console.error('Error al obtener mensajes de admin:', error);
     res.status(500).json({ msg: "Error interno del servidor", error });
@@ -201,13 +203,15 @@ export const enviarMensajeAdmin = async (req: AuthRequest, res: Response) => {
     if ((chatExiste[0] as any).count === 0) {
       return res.status(404).json({ msg: "Chat no encontrado o no autorizado" });
     }
-
+    // CIFRAR EL MENSAJE
+    const { encrypted: contenidoCifrado } = encryptMessage(contenido.trim());
+    console.log(' Mensaje admin cifrado correctamente');
     // Insertar el mensaje
     const resultado = await sequelize.query(`
       INSERT INTO mensaje_admin (id_chat_admin, remitente, contenido, fecha_envio, leido) 
       VALUES (?, ?, ?, NOW(), 1)
     `, {
-      replacements: [id_chat_admin, 'admin', contenido.trim()],
+      replacements: [id_chat_admin, 'admin', contenidoCifrado,],
       type: QueryTypes.INSERT
     });
 
@@ -215,33 +219,61 @@ export const enviarMensajeAdmin = async (req: AuthRequest, res: Response) => {
     console.log('Mensaje insertado con ID:', insertId);
 
     // Obtener el mensaje recién creado
-    const nuevoMensaje = await sequelize.query(`
-      SELECT id_mensaje, id_chat_admin, remitente, contenido, fecha_envio, leido
+    // const nuevoMensaje = await sequelize.query(`
+    //   SELECT id_mensaje, id_chat_admin, remitente, contenido, fecha_envio, leido
+    //   FROM mensaje_admin 
+    //   WHERE id_mensaje = ?
+    // `, {
+    //   replacements: [insertId],
+    //   type: QueryTypes.SELECT
+    // });
+
+    // if (nuevoMensaje.length === 0) {
+    //   const ultimoMensaje = await sequelize.query(`
+    //     SELECT id_mensaje, id_chat_admin, remitente, contenido, fecha_envio, leido
+    //     FROM mensaje_admin 
+    //     WHERE id_chat_admin = ? AND remitente = 'admin'
+    //     ORDER BY fecha_envio DESC 
+    //     LIMIT 1
+    //   `, {
+    //     replacements: [id_chat_admin],
+    //     type: QueryTypes.SELECT
+    //   });
+
+    //   console.log(`Mensaje enviado en chat ${id_chat_admin} por admin ${id_admin}`);
+    //   res.json(ultimoMensaje[0]);
+    // } else {
+    //   console.log(`Mensaje enviado en chat ${id_chat_admin} por admin ${id_admin}`);
+    //   res.json(nuevoMensaje[0]);
+    // }
+
+    const nuevoMensajeCifrado = await sequelize.query(`
+      SELECT 
+        id_mensaje, 
+        id_chat_admin as id_chat, 
+        remitente, 
+        contenido, 
+        fecha_envio, 
+        leido
       FROM mensaje_admin 
       WHERE id_mensaje = ?
     `, {
       replacements: [insertId],
       type: QueryTypes.SELECT
-    });
+    }) as any[];
 
-    if (nuevoMensaje.length === 0) {
-      const ultimoMensaje = await sequelize.query(`
-        SELECT id_mensaje, id_chat_admin, remitente, contenido, fecha_envio, leido
-        FROM mensaje_admin 
-        WHERE id_chat_admin = ? AND remitente = 'admin'
-        ORDER BY fecha_envio DESC 
-        LIMIT 1
-      `, {
-        replacements: [id_chat_admin],
-        type: QueryTypes.SELECT
-      });
-
-      console.log(`Mensaje enviado en chat ${id_chat_admin} por admin ${id_admin}`);
-      res.json(ultimoMensaje[0]);
-    } else {
-      console.log(`Mensaje enviado en chat ${id_chat_admin} por admin ${id_admin}`);
-      res.json(nuevoMensaje[0]);
+    if (nuevoMensajeCifrado.length === 0) {
+      return res.status(500).json({ msg: "Error al recuperar el mensaje enviado" });
     }
+
+    // ✅ DESCIFRAR ANTES DE ENVIAR AL CLIENTE
+    const mensajeParaCliente = {
+      ...nuevoMensajeCifrado[0],
+      contenido: decryptMessage(nuevoMensajeCifrado[0].contenido)
+    };
+
+    console.log(`✅ Mensaje admin enviado en chat ${id_chat_admin}`);
+    res.json(mensajeParaCliente);
 
   } catch (error: any) {
     console.error('Error al enviar mensaje de admin:', error);

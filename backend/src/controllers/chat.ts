@@ -1,6 +1,7 @@
 // backend/src/controllers/chat.ts - VERSIÓN CORREGIDA
 import { Request, Response } from "express";
 import sequelize from "../database/connection";
+import { encryptMessage, decryptMessages, decryptMessage } from "../utils/aes-crypto";
 import { QueryTypes } from 'sequelize';
 import { crearNotificacion } from "./notificaciones";
 
@@ -269,12 +270,17 @@ export const getMensajes = async (req: AuthRequest, res: Response) => {
       type: QueryTypes.SELECT
     });
 
-    res.json(mensajes);
-  } catch (error) {
-    console.error('Error al obtener mensajes:', error);
-    res.status(500).json({ msg: "Error interno del servidor", error });
-  }
-};
+      // DESCIFRAR MENSAJES ANTES DE ENVIARLOS AL CLIENTE
+    const mensajesDescifrados = decryptMessages(mensajes as any[]);
+    
+    console.log(`Se descifraron ${mensajesDescifrados.length} mensajes del chat ${id_chat}`);
+    
+    res.json(mensajesDescifrados);
+    } catch (error) {
+      console.error('Error al obtener mensajes:', error);
+      res.status(500).json({ msg: "Error interno del servidor", error });
+    }
+  };
 
 /**
  * Enviar un nuevo mensaje - CORREGIDO
@@ -414,15 +420,18 @@ export const getMensajes = async (req: AuthRequest, res: Response) => {
         return res.status(403).json({ msg: "No autorizado para este chat" });
       }
 
+      const { encrypted: contenidoCifrado } = encryptMessage(contenido.trim());
+      console.log('Mensaje cifrado correctamente');
+
       // Insertar el mensaje
       const resultado = await sequelize.query(`
         INSERT INTO mensaje (id_chat, remitente, contenido, fecha_envio, leido) 
-        VALUES (?, ?, ?, NOW(), ?)
+         VALUES (?, ?, ?, NOW(), ?)
       `, {
         replacements: [
           id_chat, 
           remitente, 
-          contenido.trim(),
+          contenidoCifrado,,
           remitente === 'psicologo' ? 1 : 0  // El psicólogo ve sus mensajes como leídos
         ],
         type: QueryTypes.INSERT
@@ -431,18 +440,32 @@ export const getMensajes = async (req: AuthRequest, res: Response) => {
       const insertId = (resultado[0] as any).insertId || resultado[0];
 
       // Obtener el mensaje recién creado
-      const nuevoMensaje = await sequelize.query(`
-        SELECT id_mensaje, id_chat, remitente, contenido, fecha_envio, leido
-        FROM mensaje 
-        WHERE id_mensaje = ?
-      `, {
-        replacements: [insertId],
-        type: QueryTypes.SELECT
-      });
+      // const nuevoMensaje = await sequelize.query(`
+      //   SELECT id_mensaje, id_chat, remitente, contenido, fecha_envio, leido
+      //   FROM mensaje 
+      //   WHERE id_mensaje = ?
+      // `, {
+      //   replacements: [insertId],
+      //   type: QueryTypes.SELECT
+      // });
+       const nuevoMensajeCifrado = await sequelize.query(`
+          SELECT id_mensaje, id_chat, remitente, contenido, fecha_envio, leido
+          FROM mensaje 
+          WHERE id_mensaje = ?
+        `, {
+          replacements: [insertId],
+          type: QueryTypes.SELECT
+        }) as any[];
 
-      console.log(`✅ Mensaje enviado en chat ${id_chat} por ${remitente}`);
+        // ✅ DESCIFRAR EL MENSAJE ANTES DE ENVIARLO AL CLIENTE
+        const mensajeParaCliente = {
+          ...nuevoMensajeCifrado[0],
+          contenido: decryptMessage(nuevoMensajeCifrado[0].contenido)
+        };
 
-      // ✅ Si el remitente es paciente, crear notificación para el psicólogo
+      console.log(`Mensaje enviado en chat ${id_chat} por ${remitente}`);
+
+      //  Si el remitente es paciente, crear notificación para el psicólogo
       if (remitente === 'paciente') {
         try {
           // Obtener nombre del paciente
@@ -465,14 +488,14 @@ export const getMensajes = async (req: AuthRequest, res: Response) => {
               id_relacionado: id_chat,
               enlace: '/chat-pacientes-del-psicologo'
             });
-            console.log(`✅ Notificación creada para psicólogo ${chatData.id_psicologo}`);
+            console.log(` Notificación creada para psicólogo ${chatData.id_psicologo}`);
           }
         } catch (notifError) {
           console.error('Error al crear notificación (no crítico):', notifError);
         }
       }
-
-      res.json(nuevoMensaje[0] || {
+      console.log(`✅ Mensaje enviado y descifrado en chat ${id_chat}`);
+      res.json(mensajeParaCliente || {
         id_mensaje: insertId,
         id_chat,
         remitente,
@@ -708,7 +731,7 @@ export const buscarChats = async (req: AuthRequest, res: Response) => {
         email: chat.email
       },
       ultimo_mensaje: chat.ultimo_mensaje_contenido ? {
-        contenido: chat.ultimo_mensaje_contenido,
+        contenido: decryptMessage(chat.ultimo_mensaje_contenido),
         remitente: chat.ultimo_mensaje_remitente,
         fecha_envio: chat.ultimo_mensaje_fecha
       } : null,
