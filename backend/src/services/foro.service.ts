@@ -19,6 +19,7 @@ import sequelize from '../database/connection';
 import { Paciente } from '../models/paciente';
 import { Psicologo } from '../models/psicologo';
 import ModeracionLog from '../models/foro/moderacion-log';
+import { decryptMessage, encryptMessage } from '../utils/aes-crypto';
 
 export class ForoService {
   /**
@@ -587,18 +588,23 @@ export class ForoService {
   // ========== MENSAJES ==========
 
   /**
-   * Crear un mensaje en un tema
-   */
+ * FUNCIÓN 1: crearMensaje (COMPLETA CON CIFRADO)
+ * Buscar en línea ~220
+ */
   async crearMensaje(
     idTema: number,
     contenido: string,
     tipoUsuario: 'psicologo' | 'paciente',
     idUsuario: number
   ): Promise<MensajeResponse> {
+    // ✅ CIFRAR EL MENSAJE ANTES DE GUARDAR
+    const { encrypted: contenidoCifrado } = encryptMessage(contenido);
+    console.log('🔐 Mensaje de foro cifrado');
+
     const mensaje = await MensajeForo.create({
       id_tema: idTema,
       tipo_usuario: tipoUsuario,
-      contenido,
+      contenido: contenidoCifrado,  // ← Guardar cifrado
       editado: false,
       eliminado: false,
       ...(tipoUsuario === 'psicologo'
@@ -610,21 +616,22 @@ export class ForoService {
   }
 
   /**
-   * Obtener mensaje por ID
-   */
+ * FUNCIÓN 2: obtenerMensajePorId (COMPLETA CON DESCIFRADO)
+ * Buscar en línea ~240
+ */
   async obtenerMensajePorId(idMensaje: number): Promise<MensajeResponse> {
     const mensaje = await MensajeForo.findByPk(idMensaje, {
       include: [
         {
-          model: Psicologo,  // ✅
+          model: Psicologo,
           as: 'psicologo',
           attributes: ['id_psicologo', 'nombre', 'apellidoPaterno'],
           required: false,
         },
         {
-          model: Paciente,  // ✅
+          model: Paciente,
           as: 'paciente',
-          attributes: ['id_paciente', 'nombre', 'apellido_paterno'],  // ✅ snake_case
+          attributes: ['id_paciente', 'nombre', 'apellido_paterno'],
           required: false,
         },
       ],
@@ -639,10 +646,13 @@ export class ForoService {
         ? (mensaje as any).psicologo
         : (mensaje as any).paciente;
 
+    // ✅ DESCIFRAR EL CONTENIDO ANTES DE RETORNAR
+    const contenidoDescifrado = decryptMessage(mensaje.contenido);
+
     return {
       id_mensaje_foro: mensaje.id_mensaje_foro,
       id_tema: mensaje.id_tema,
-      contenido: mensaje.contenido,
+      contenido: contenidoDescifrado,  // ← Retornar descifrado
       fecha_envio: mensaje.fecha_envio,
       autor: {
         tipo: mensaje.tipo_usuario,
@@ -651,7 +661,6 @@ export class ForoService {
             ? mensaje.id_psicologo!
             : mensaje.id_paciente!,
         nombre: autor?.nombre || 'Usuario',
-        // ✅ Manejar diferencia entre camelCase y snake_case
         apellido: mensaje.tipo_usuario === 'psicologo'
           ? (autor?.apellidoPaterno || 'Desconocido')
           : (autor?.apellido_paterno || 'Desconocido'),
@@ -659,10 +668,12 @@ export class ForoService {
     };
   }
 
+
   /**
-   * Listar mensajes de un tema
-   */
-  async listarMensajes(
+ * FUNCIÓN 3: listarMensajes (COMPLETA CON DESCIFRADO)
+ * Buscar en línea ~280
+ */
+async listarMensajes(
   idTema: number,
   page: number = 1,
   limit: number = 50
@@ -670,39 +681,45 @@ export class ForoService {
   const offset = (page - 1) * limit;
 
   const { count, rows } = await MensajeForo.findAndCountAll({
-    where: {   id_tema: idTema,  eliminado: false  // ✅ FASE 3: No mostrar mensajes eliminados
+    where: {
+      id_tema: idTema,
+      eliminado: false  // No mostrar mensajes eliminados
     },
     order: [['fecha_envio', 'ASC']],
     limit,
     offset,
     include: [
       {
-        model: Psicologo,  // ✅ Usar import directo
+        model: Psicologo,
         as: 'psicologo',
         attributes: ['id_psicologo', 'nombre', 'apellidoPaterno'],
-        required: false,  // ✅ LEFT JOIN (permite null)
+        required: false,  // LEFT JOIN (permite null)
       },
       {
-        model: Paciente,  // ✅ Usar import directo
+        model: Paciente,
         as: 'paciente',
-        attributes: ['id_paciente', 'nombre', 'apellido_paterno'],  // ✅ snake_case correcto
-        required: false,  // ✅ LEFT JOIN (permite null)
+        attributes: ['id_paciente', 'nombre', 'apellido_paterno'],
+        required: false,  // LEFT JOIN (permite null)
       },
     ],
   });
 
+  // ✅ DESCIFRAR TODOS LOS MENSAJES
   const mensajes = rows.map((mensaje) => {
     const autor =
       mensaje.tipo_usuario === 'psicologo'
         ? (mensaje as any).psicologo
         : (mensaje as any).paciente;
 
-    // ✅ Manejar caso donde autor puede ser null
+    // Descifrar el contenido
+    const contenidoDescifrado = decryptMessage(mensaje.contenido);
+
+    // Manejar caso donde autor puede ser null
     if (!autor) {
       return {
         id_mensaje_foro: mensaje.id_mensaje_foro,
         id_tema: mensaje.id_tema,
-        contenido: mensaje.contenido,
+        contenido: contenidoDescifrado,  // ← Descifrado
         fecha_envio: mensaje.fecha_envio,
         autor: {
           tipo: mensaje.tipo_usuario,
@@ -716,7 +733,7 @@ export class ForoService {
     return {
       id_mensaje_foro: mensaje.id_mensaje_foro,
       id_tema: mensaje.id_tema,
-      contenido: mensaje.contenido,
+      contenido: contenidoDescifrado,  // ← Descifrado
       fecha_envio: mensaje.fecha_envio,
       autor: {
         tipo: mensaje.tipo_usuario,
@@ -725,10 +742,9 @@ export class ForoService {
             ? mensaje.id_psicologo!
             : mensaje.id_paciente!,
         nombre: autor.nombre,
-        // ✅ Manejar diferencia entre camelCase y snake_case
         apellido: mensaje.tipo_usuario === 'psicologo' 
-          ? autor.apellidoPaterno 
-          : autor.apellido_paterno,
+          ? (autor.apellidoPaterno || 'Desconocido')
+          : (autor.apellido_paterno || 'Desconocido'),
       },
     };
   });

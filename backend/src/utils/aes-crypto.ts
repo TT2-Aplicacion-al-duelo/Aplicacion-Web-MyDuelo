@@ -1,82 +1,71 @@
 import * as crypto from 'crypto';
 
-// ========== CONSTANTES APP MÓVIL ==========
 const ALGORITHM = 'aes-256-gcm';
-const IV_LENGTH_MOBILE = 16;  // App móvil usa 16 bytes
-const SALT_LENGTH = 64;        // App móvil usa salt de 64 bytes
-const TAG_LENGTH = 16;
-const TAG_POSITION = SALT_LENGTH + IV_LENGTH_MOBILE;
-const ENCRYPTED_POSITION = TAG_POSITION + TAG_LENGTH;
-
-// ========== CONSTANTES WEB (opcional) ==========
-const IV_LENGTH_WEB = 12;     // GCM recomienda 12 bytes
+const IV_LENGTH = 12;       // 12 bytes para GCM
+const AUTH_TAG_LENGTH = 16; // 16 bytes
 
 /**
- * Obtener la clave de cifrado desde variables de entorno
+ * Obtener la clave AES desde variable de entorno
  */
-function getChatAESSecret(): string {
-  const secret = process.env.CHAT_AES_KEY;
+function getChatAESKey(): Buffer {
+  const keyHex = process.env.CHAT_AES_KEY;
   
-  if (!secret) {
+  if (!keyHex) {
     throw new Error('❌ CHAT_AES_KEY no está configurada en las variables de entorno');
   }
 
-  // La app móvil usa esta clave como string directamente (no como hex)
-  // Así que la usamos tal cual para PBKDF2
-  return secret;
-}
+  if (keyHex.length !== 64) {
+    throw new Error(`❌ CHAT_AES_KEY debe tener exactamente 64 caracteres hex (tiene ${keyHex.length})`);
+  }
 
-/**
- * Derivar clave usando PBKDF2 (igual que la app móvil)
- */
-function deriveKey(salt: Buffer): Buffer {
-  const secret = getChatAESSecret();
-  return crypto.pbkdf2Sync(secret, salt, 100000, 32, 'sha512');
+  try {
+    return Buffer.from(keyHex, 'hex');
+  } catch (error) {
+    throw new Error('❌ CHAT_AES_KEY debe ser una cadena hexadecimal válida');
+  }
 }
 
 /**
  * ============================================
- * CIFRAR MENSAJE (FORMATO APP MÓVIL)
+ * CIFRAR MENSAJE - RÉPLICA EXACTA DE APP MÓVIL
  * ============================================
  * 
- * Usa el mismo formato que la app móvil para compatibilidad total
+ * Implementación idéntica a cryptoUtils.encryptMessage()
  */
-export function encryptMessage(plainText: string): { 
+export function encryptMessage(text: string): { 
   encrypted: string;
   iv: string;
+  tag: string;
   ciphertext: string;
-  authTag: string;
 } {
   try {
-    // Generar IV y salt aleatorios (igual que app móvil)
-    const iv = crypto.randomBytes(IV_LENGTH_MOBILE);
-    const salt = crypto.randomBytes(SALT_LENGTH);
-
-    // Derivar clave con PBKDF2 (igual que app móvil)
-    const key = deriveKey(salt);
-
-    // Crear cipher
-    const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
-
-    // Cifrar el mensaje
+    const AES_KEY = getChatAESKey();
+    
+    // 1. Generar IV aleatorio de 12 bytes
+    const iv = crypto.randomBytes(IV_LENGTH);
+    
+    // 2. Crear cipher
+    const cipher = crypto.createCipheriv(ALGORITHM, AES_KEY, iv);
+    
+    // 3. Cifrar el texto
     const encrypted = Buffer.concat([
-      cipher.update(String(plainText), 'utf8'),
-      cipher.final(),
+      cipher.update(text, 'utf8'),
+      cipher.final()
     ]);
-
-    // Obtener auth tag
+    
+    // 4. Obtener auth tag
     const tag = cipher.getAuthTag();
-
-    // Formato app móvil: salt + iv + tag + encrypted (todo en Base64)
-    const fullEncrypted = Buffer.concat([salt, iv, tag, encrypted]).toString('base64');
-
+    
+    // 5. Formato app móvil: iv:tag:encrypted (todo en hex)
+    const result = `${iv.toString('hex')}:${tag.toString('hex')}:${encrypted.toString('hex')}`;
+    
     console.log('🔐 Mensaje cifrado (formato app móvil)');
 
     return {
-      encrypted: fullEncrypted,
+      encrypted: result,
       iv: iv.toString('hex'),
-      ciphertext: encrypted.toString('hex'),
-      authTag: tag.toString('hex')
+      tag: tag.toString('hex'),
+      ciphertext: encrypted.toString('hex')
     };
 
   } catch (error: any) {
@@ -87,135 +76,69 @@ export function encryptMessage(plainText: string): {
 
 /**
  * ============================================
- * DESCIFRAR MENSAJE (DETECTA FORMATO AUTOMÁTICAMENTE)
+ * DESCIFRAR MENSAJE - RÉPLICA EXACTA DE APP MÓVIL
  * ============================================
  * 
- * Detecta y descifra:
- * 1. Formato app móvil (Base64 sin separadores)
- * 2. Formato web anterior (hex con :)
- * 3. Mensajes sin cifrar (texto plano)
+ * Implementación idéntica a cryptoUtils.decryptMessage()
  */
-export function decryptMessage(encrypted: string): string {
-  if (!encrypted || typeof encrypted !== 'string') {
-    return encrypted;
-  }
-
+export function decryptMessage(data: string): string {
   try {
-    // ========== DETECTAR FORMATO ==========
-    
-    // Formato 1: Web anterior (tiene ":")
-    if (encrypted.includes(':')) {
-      return decryptWebFormat(encrypted);
-    }
-    
-    // Formato 2: App móvil (Base64 puro, sin ":")
-    // Verificar que parece Base64 y tiene longitud adecuada
-    if (isLikelyBase64(encrypted) && encrypted.length > 100) {
-      return decryptMobileFormat(encrypted);
-    }
-    
-    // Formato 3: Sin cifrar (mensaje antiguo)
-    console.log('⚠️ Mensaje sin formato de cifrado reconocido, retornando tal cual');
-    return encrypted;
-
-  } catch (error: any) {
-    console.error('⚠️ Error al descifrar mensaje, retornando original:', error.message);
-    return encrypted; // Fallback: devolver el mensaje original
-  }
-}
-
-/**
- * Descifrar formato app móvil (Base64 con PBKDF2 + salt)
- */
-function decryptMobileFormat(cipherText: string): string {
-  try {
-    // Decodificar de Base64
-    const buffer = Buffer.from(cipherText, 'base64');
-
-    // Verificar longitud mínima
-    if (buffer.length < ENCRYPTED_POSITION) {
-      throw new Error('Longitud de buffer insuficiente para formato móvil');
+    // Verificar que el mensaje tenga contenido
+    if (!data || typeof data !== 'string') {
+      console.log('⚠️ Mensaje vacío o inválido');
+      return data;
     }
 
-    // Extraer componentes (igual que app móvil)
-    const salt = buffer.slice(0, SALT_LENGTH);
-    const iv = buffer.slice(SALT_LENGTH, TAG_POSITION);
-    const tag = buffer.slice(TAG_POSITION, ENCRYPTED_POSITION);
-    const encrypted = buffer.slice(ENCRYPTED_POSITION);
+    // Verificar que tenga el formato correcto (iv:tag:encrypted)
+    const parts = (data || '').split(':');
+    
+    if (parts.length !== 3) {
+      // Si no tiene el formato de cifrado, es un mensaje sin cifrar
+      console.log('⚠️ Mensaje sin formato de cifrado (no tiene 3 partes), retornando tal cual');
+      return data;
+    }
 
-    // Derivar clave con PBKDF2 (igual que app móvil)
-    const key = deriveKey(salt);
+    const [ivHex, tagHex, encHex] = parts;
+
+    // Validar longitudes esperadas
+    if (ivHex.length !== IV_LENGTH * 2) {
+      console.log(`⚠️ IV con longitud incorrecta: ${ivHex.length} (esperado: ${IV_LENGTH * 2})`);
+      return data;
+    }
+
+    if (tagHex.length !== AUTH_TAG_LENGTH * 2) {
+      console.log(`⚠️ Tag con longitud incorrecta: ${tagHex.length} (esperado: ${AUTH_TAG_LENGTH * 2})`);
+      return data;
+    }
+
+    // Convertir de hex a Buffer
+    const iv = Buffer.from(ivHex, 'hex');
+    const tag = Buffer.from(tagHex, 'hex');
+    const encryptedText = Buffer.from(encHex, 'hex');
+
+    // Obtener clave
+    const AES_KEY = getChatAESKey();
 
     // Crear decipher
-    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
+    const decipher = crypto.createDecipheriv(ALGORITHM, AES_KEY, iv);
     decipher.setAuthTag(tag);
 
     // Descifrar
-    const decrypted = decipher.update(encrypted) + decipher.final('utf8');
+    const decrypted = Buffer.concat([
+      decipher.update(encryptedText),
+      decipher.final()
+    ]);
 
-    console.log('✅ Mensaje descifrado (formato app móvil)');
-    return decrypted;
+    const result = decrypted.toString('utf8');
+    
+    console.log(`✅ Mensaje descifrado exitosamente (${result.length} caracteres)`);
+    return result;
 
   } catch (error: any) {
-    console.error('❌ Error al descifrar formato móvil:', error.message);
-    throw error;
+    console.error('❌ Error al descifrar mensaje:', error.message);
+    console.error('⚠️ Retornando mensaje original: [Mensaje ilegible]');
+    return '[Mensaje ilegible]';
   }
-}
-
-/**
- * Descifrar formato web anterior (hex con separadores :)
- * Mantener por si hay mensajes antiguos del formato anterior
- */
-function decryptWebFormat(encrypted: string): string {
-  try {
-    const parts = encrypted.split(':');
-    
-    if (parts.length !== 3) {
-      throw new Error('Formato web incorrecto (debe tener 3 partes separadas por :)');
-    }
-    
-    const [ivHex, ciphertext, authTagHex] = parts;
-    
-    // Validar longitudes aproximadas
-    if (ivHex.length < 20 || authTagHex.length < 30) {
-      throw new Error('Longitudes de IV o AuthTag incorrectas en formato web');
-    }
-    
-    // Convertir de hex a Buffer
-    const iv = Buffer.from(ivHex, 'hex');
-    const authTag = Buffer.from(authTagHex, 'hex');
-    
-    // Obtener clave directamente (formato web no usa PBKDF2)
-    const keyHex = process.env.CHAT_AES_KEY;
-    if (!keyHex || keyHex.length !== 64) {
-      throw new Error('CHAT_AES_KEY inválida para formato web');
-    }
-    const key = Buffer.from(keyHex, 'hex');
-    
-    // Crear decipher
-    const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
-    decipher.setAuthTag(authTag);
-    
-    // Descifrar
-    let plainText = decipher.update(ciphertext, 'hex', 'utf8');
-    plainText += decipher.final('utf8');
-    
-    console.log('✅ Mensaje descifrado (formato web)');
-    return plainText;
-    
-  } catch (error: any) {
-    console.error('❌ Error al descifrar formato web:', error.message);
-    throw error;
-  }
-}
-
-/**
- * Verificar si un string parece ser Base64
- */
-function isLikelyBase64(str: string): boolean {
-  // Base64 solo contiene: A-Z, a-z, 0-9, +, /, =
-  const base64Regex = /^[A-Za-z0-9+/]+={0,2}$/;
-  return base64Regex.test(str);
 }
 
 /**
@@ -226,18 +149,23 @@ export function isEncrypted(content: string): boolean {
     return false;
   }
   
-  // Es formato web (con :)
-  if (content.includes(':')) {
-    const parts = content.split(':');
-    return parts.length === 3;
-  }
+  const parts = content.split(':');
   
-  // Es formato móvil (Base64 largo)
-  if (isLikelyBase64(content) && content.length > 100) {
-    return true;
+  // Debe tener exactamente 3 partes
+  if (parts.length !== 3) {
+    return false;
   }
+
+  const [ivHex, tagHex, encHex] = parts;
   
-  return false;
+  // Verificar longitudes esperadas
+  if (ivHex.length !== IV_LENGTH * 2 || tagHex.length !== AUTH_TAG_LENGTH * 2) {
+    return false;
+  }
+
+  // Verificar que sean strings hexadecimales válidos
+  const hexRegex = /^[0-9a-fA-F]+$/;
+  return hexRegex.test(ivHex) && hexRegex.test(tagHex) && hexRegex.test(encHex);
 }
 
 /**
@@ -246,15 +174,31 @@ export function isEncrypted(content: string): boolean {
 export function decryptMessages<T extends { contenido: string }>(mensajes: T[]): T[] {
   return mensajes.map(mensaje => {
     try {
+      const contenidoOriginal = mensaje.contenido;
+      
+      if (isEncrypted(contenidoOriginal)) {
+        const descifrado = decryptMessage(contenidoOriginal);
+        
+        // Solo logear si no es "[Mensaje ilegible]"
+        if (descifrado !== '[Mensaje ilegible]') {
+          const preview = descifrado.length > 50 ? descifrado.substring(0, 50) + '...' : descifrado;
+          console.log(`📝 Mensaje descifrado: "${preview}"`);
+        }
+        
+        return {
+          ...mensaje,
+          contenido: descifrado
+        };
+      } else {
+        console.log(`📝 Mensaje sin cifrar (${contenidoOriginal.length} caracteres)`);
+        return mensaje;
+      }
+    } catch (error: any) {
+      console.error('⚠️ Error al descifrar mensaje individual:', error.message);
       return {
         ...mensaje,
-        contenido: isEncrypted(mensaje.contenido) 
-          ? decryptMessage(mensaje.contenido) 
-          : mensaje.contenido
+        contenido: '[Mensaje ilegible]'
       };
-    } catch (error) {
-      console.error('⚠️ Error al descifrar mensaje individual, dejando original:', error);
-      return mensaje; // Si falla, dejar el mensaje sin cambios
     }
   });
 }

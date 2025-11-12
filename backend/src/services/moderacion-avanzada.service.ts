@@ -7,6 +7,7 @@ import SolicitudUnion from '../models/foro/solicitud-union';
 import ForoParticipante from '../models/foro/foro-participante';
 import { Psicologo } from '../models/psicologo';
 import { Paciente } from '../models/paciente';
+import { encryptMessage } from '../utils/aes-crypto';
 
 interface LogAccionDTO {
   id_foro: number;
@@ -111,8 +112,12 @@ class ModeracionAvanzadaService {
 
     const contenidoAnterior = mensaje.contenido;
 
+    // ✅ CIFRAR EL CONTENIDO EDITADO
+    const { encrypted: contenidoCifrado } = encryptMessage(nuevoContenido);
+    console.log('🔐 Mensaje de foro editado y cifrado');
+
     await mensaje.update({
-      contenido: nuevoContenido,
+      contenido: contenidoCifrado,  // ← Cifrado
       editado: true,
       fecha_edicion: new Date(),
     });
