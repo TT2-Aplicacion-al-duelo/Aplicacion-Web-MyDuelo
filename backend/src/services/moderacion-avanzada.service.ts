@@ -112,9 +112,9 @@ class ModeracionAvanzadaService {
 
     const contenidoAnterior = mensaje.contenido;
 
-    // ✅ CIFRAR EL CONTENIDO EDITADO
+    //CIFRAR EL CONTENIDO EDITADO
     const { encrypted: contenidoCifrado } = encryptMessage(nuevoContenido);
-    console.log('🔐 Mensaje de foro editado y cifrado');
+    console.log('Mensaje de foro editado y cifrado');
 
     await mensaje.update({
       contenido: contenidoCifrado,  // ← Cifrado

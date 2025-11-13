@@ -97,7 +97,7 @@ export class PerfilComponent implements OnInit {
           cedula_validada: data.cedula_validada,
           direccionConsultorio: data.direccion_consultorio,
           tipo: 'psicologo',
-          codigoVinculacion: `PSI-${data.id_psicologo?.toString().padStart(4, '0')}`,
+          codigoVinculacion: `${data.codigoVinculacion}`,
           rol_admin: false
         };
         this.cargando = false;
