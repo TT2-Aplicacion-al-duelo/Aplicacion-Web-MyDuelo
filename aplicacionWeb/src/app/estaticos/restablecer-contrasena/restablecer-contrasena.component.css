@@ -1,0 +1,60 @@
+.restablecer-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  padding: 2rem 0;
+}
+
+.card {
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.card-header {
+  border-bottom: none;
+}
+
+.form-control, .input-group-text {
+  border-radius: 8px;
+}
+
+.input-group .form-control {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.input-group .btn {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+.btn {
+  border-radius: 8px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.alert {
+  border-radius: 8px;
+  border-left: 4px solid #0dcaf0;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.bi-exclamation-triangle {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}

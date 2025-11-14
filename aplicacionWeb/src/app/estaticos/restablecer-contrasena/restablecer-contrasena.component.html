@@ -1,1 +1,167 @@
-<p>restablecer-contrasena works!</p>
+<div class="restablecer-container">
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        
+        <!-- Loading State -->
+        <div *ngIf="loading" class="card shadow-lg border-0">
+          <div class="card-body text-center py-5">
+            <div class="spinner-border text-primary mb-3" role="status">
+              <span class="visually-hidden">Cargando...</span>
+            </div>
+            <p class="text-muted">Verificando enlace de recuperación...</p>
+          </div>
+        </div>
+
+        <!-- Token Inválido -->
+        <div *ngIf="!loading && !tokenValido" class="card shadow-lg border-0">
+          <div class="card-body text-center py-5">
+            <div class="mb-4">
+              <i class="bi bi-exclamation-triangle text-danger" style="font-size: 4rem;"></i>
+            </div>
+            <h3 class="mb-3">Enlace Inválido o Expirado</h3>
+            <p class="text-muted mb-4">
+              El enlace de recuperación no es válido o ha expirado. 
+              Por favor solicita un nuevo enlace desde la página de inicio de sesión.
+            </p>
+            <a routerLink="/iniciar-sesion" class="btn btn-primary">
+              <i class="bi bi-arrow-left me-2"></i>
+              Volver a Inicio de Sesión
+            </a>
+          </div>
+        </div>
+
+        <!-- Formulario de Restablecimiento -->
+        <div *ngIf="!loading && tokenValido" class="card shadow-lg border-0">
+          <div class="card-header bg-primary text-white text-center py-4">
+            <div class="mb-3">
+              <i class="bi bi-shield-lock" style="font-size: 3rem;"></i>
+            </div>
+            <h2 class="mb-0">Restablecer Contraseña</h2>
+            <p class="mb-0 opacity-75">Ingresa tu nueva contraseña</p>
+          </div>
+
+          <div class="card-body p-4">
+            <form [formGroup]="restablecerForm" (ngSubmit)="restablecerContrasena()">
+              
+              <!-- Nueva Contraseña -->
+              <div class="mb-4">
+                <label for="nuevaContrasena" class="form-label fw-bold">
+                  Nueva Contraseña <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-key"></i>
+                  </span>
+                  <input 
+                    [type]="mostrarContrasena ? 'text' : 'password'" 
+                    class="form-control" 
+                    id="nuevaContrasena" 
+                    formControlName="nuevaContrasena"
+                    placeholder="Ingresa tu nueva contraseña"
+                    [class.is-invalid]="nuevaContrasena?.invalid && nuevaContrasena?.touched"
+                    [class.is-valid]="nuevaContrasena?.valid && nuevaContrasena?.touched">
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button" 
+                    (click)="toggleMostrarContrasena()">
+                    <i [class]="mostrarContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="nuevaContrasena?.invalid && nuevaContrasena?.touched">
+                  <span *ngIf="nuevaContrasena?.errors?.['required']">La contraseña es obligatoria</span>
+                  <span *ngIf="nuevaContrasena?.errors && !nuevaContrasena?.errors?.['required']">
+                    {{ obtenerMensajeErrorContrasena() }}
+                  </span>
+                </div>
+                <button 
+                  type="button" 
+                  class="btn btn-sm btn-outline-primary mt-2" 
+                  (click)="generarContrasenaSegura()">
+                  <i class="bi bi-lightning"></i> Generar contraseña segura
+                </button>
+              </div>
+
+              <!-- Confirmar Contraseña -->
+              <div class="mb-4">
+                <label for="confirmarContrasena" class="form-label fw-bold">
+                  Confirmar Contraseña <span class="text-danger">*</span>
+                </label>
+                <div class="input-group">
+                  <span class="input-group-text">
+                    <i class="bi bi-shield-check"></i>
+                  </span>
+                  <input 
+                    [type]="mostrarConfirmarContrasena ? 'text' : 'password'" 
+                    class="form-control" 
+                    id="confirmarContrasena" 
+                    formControlName="confirmarContrasena"
+                    placeholder="Confirma tu nueva contraseña"
+                    [class.is-invalid]="confirmarContrasena?.invalid && confirmarContrasena?.touched"
+                    [class.is-valid]="confirmarContrasena?.valid && confirmarContrasena?.touched">
+                  <button 
+                    class="btn btn-outline-secondary" 
+                    type="button" 
+                    (click)="toggleMostrarConfirmarContrasena()">
+                    <i [class]="mostrarConfirmarContrasena ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+                  </button>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="confirmarContrasena?.invalid && confirmarContrasena?.touched">
+                  <span *ngIf="confirmarContrasena?.errors?.['required']">Debes confirmar la contraseña</span>
+                </div>
+                <div class="invalid-feedback d-block" *ngIf="restablecerForm.errors?.['contrasenasNoCoinciden'] && confirmarContrasena?.touched">
+                  <i class="bi bi-x-circle me-1"></i>
+                  Las contraseñas no coinciden
+                </div>
+              </div>
+
+              <!-- Requisitos de Contraseña -->
+              <div class="alert alert-info mb-4">
+                <div class="d-flex align-items-start">
+                  <i class="bi bi-info-circle me-2 mt-1"></i>
+                  <div>
+                    <strong>Requisitos de contraseña:</strong>
+                    <ul class="mb-0 mt-2 small">
+                      <li>Mínimo 8 caracteres</li>
+                      <li>Al menos una letra mayúscula</li>
+                      <li>Al menos una letra minúscula</li>
+                      <li>Al menos un número</li>
+                      <li>Al menos un carácter especial (!&#64;#$%^&*)</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Botones -->
+              <div class="d-grid gap-2">
+                <button 
+                  type="submit" 
+                  class="btn btn-primary btn-lg"
+                  [disabled]="restablecerForm.invalid || procesando">
+                  <span *ngIf="!procesando">
+                    <i class="bi bi-check-circle me-2"></i>
+                    Restablecer Contraseña
+                  </span>
+                  <span *ngIf="procesando">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Procesando...
+                  </span>
+                </button>
+
+                <a 
+                  routerLink="/iniciar-sesion" 
+                  class="btn btn-outline-secondary"
+                  [class.disabled]="procesando">
+                  <i class="bi bi-arrow-left me-2"></i>
+                  Volver a Inicio de Sesión
+                </a>
+              </div>
+
+            </form>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>

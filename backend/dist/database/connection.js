@@ -1,17 +1,8 @@
 "use strict";
-// import { Sequelize, QueryTypes  } from "sequelize";
-// import dotenv from 'dotenv';
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-//  const sequelize = new Sequelize('miduelo','root', 'root',{
-//      host: 'localhost',
-//      dialect: "mysql"
-//  })
-//  export default sequelize;
-// backend/src/database/connection.ts
-// Cargar variables de entorno
 const sequelize_1 = require("sequelize");
 const dotenv_1 = __importDefault(require("dotenv"));
 // Cargar variables de entorno
@@ -22,6 +13,8 @@ const sequelize = new sequelize_1.Sequelize(process.env.DB_NAME || 'miduelo', pr
     dialect: "mysql",
     dialectOptions: {
         connectTimeout: 60000, // 60 segundos
+        charset: 'utf8mb4', //  Especificar charset
+        //collate: 'utf8mb4_unicode_ci', //  Especificar collation
         // SSL requerido para Azure MySQL en producción
         ssl: process.env.NODE_ENV === 'production'
             ? {

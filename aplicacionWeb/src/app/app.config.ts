@@ -1,4 +1,4 @@
-import { ApplicationConfig, importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
+import { ApplicationConfig,LOCALE_ID , importProvidersFrom, provideZoneChangeDetection } from '@angular/core';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { provideToastr } from 'ngx-toastr';
 import { provideRouter } from '@angular/router';
@@ -7,6 +7,11 @@ import { provideHttpClient, withInterceptorsFromDi, HTTP_INTERCEPTORS } from '@a
 import { TokenInterceptor } from './utils/token.interceptor';
 import {SweetAlert2Module} from '@sweetalert2/ngx-sweetalert2';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
+import localeEs from '@angular/common/locales/es-MX';
+import { registerLocaleData } from '@angular/common';
+
+// Registrar locale español
+registerLocaleData(localeEs);
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -17,7 +22,8 @@ export const appConfig: ApplicationConfig = {
       timeOut: 3000,
       positionClass: 'toast-top-right',
       preventDuplicates: true,
-    }),    
+    }),
+    { provide: LOCALE_ID, useValue: 'es-MX' } ,    
     provideHttpClient(withInterceptorsFromDi()),
     {
       provide: HTTP_INTERCEPTORS,

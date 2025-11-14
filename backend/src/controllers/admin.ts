@@ -202,6 +202,49 @@ export const cambiarStatusPsicologo = async (req: AuthRequest, res: Response) =>
 /**
  * Eliminar un psicólogo PERMANENTEMENTE
  */
+// export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
+//     try {
+//         const { id_psicologo } = req.params;
+
+//         const psicologo = await Psicologo.findByPk(id_psicologo);
+
+//         if (!psicologo) {
+//             return res.status(404).json({
+//                 msg: 'Psicólogo no encontrado'
+//             });
+//         }
+
+//         // EVITAR QUE SE ELIMINE A SÍ MISMO
+//         if ((psicologo as any).id_psicologo === req.user?.id_psicologo) {
+//             return res.status(400).json({
+//                 msg: 'No puedes eliminar tu propia cuenta'
+//             });
+//         }
+
+//         const nombrePsicologo = `${(psicologo as any).nombre} ${(psicologo as any).apellidoPaterno}`;
+
+//         // ELIMINACIÓN PERMANENTE (no soft delete)
+//         await psicologo.destroy();
+
+//         res.json({
+//             msg: 'Psicólogo eliminado permanentemente',
+//             psicologo: {
+//                 id: (psicologo as any).id_psicologo,
+//                 nombre: nombrePsicologo
+//             }
+//         });
+
+//     } catch (error) {
+//         console.error('Error eliminando psicólogo:', error);
+//         res.status(500).json({
+//             msg: 'Error interno del servidor',
+//             error: error instanceof Error ? error.message : 'Error desconocido'
+//         });
+//     }
+// };
+/**
+ * Eliminar un psicólogo PERMANENTEMENTE
+ */
 export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
     try {
         const { id_psicologo } = req.params;
@@ -222,27 +265,189 @@ export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
         }
 
         const nombrePsicologo = `${(psicologo as any).nombre} ${(psicologo as any).apellidoPaterno}`;
+        const sequelize = psicologo.sequelize;
+        
+        if (!sequelize) {
+            throw new Error('No se pudo obtener la conexión a la base de datos');
+        }
 
-        // ELIMINACIÓN PERMANENTE (no soft delete)
-        await psicologo.destroy();
+        // ✅ INICIAR TRANSACCIÓN para garantizar atomicidad
+        const transaction = await sequelize.transaction();
 
-        res.json({
-            msg: 'Psicólogo eliminado permanentemente',
-            psicologo: {
-                id: (psicologo as any).id_psicologo,
-                nombre: nombrePsicologo
+        try {
+            console.log(`🗑️ Iniciando eliminación del psicólogo ${id_psicologo}...`);
+
+            // PASO 1: Obtener todos los foros creados por este psicólogo
+            const [forosCreados]: any = await sequelize.query(
+                'SELECT id_foro FROM foro WHERE id_psicologo_creador = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            
+            const idsForosCreados = forosCreados.map((f: any) => f.id_foro);
+            console.log(`📋 Foros creados por el psicólogo: ${idsForosCreados.join(', ') || 'ninguno'}`);
+
+            // PASO 2: Eliminar TODOS los participantes de esos foros
+            if (idsForosCreados.length > 0) {
+                const placeholders = idsForosCreados.map(() => '?').join(',');
+                await sequelize.query(
+                    `DELETE FROM foro_participante WHERE id_foro IN (${placeholders})`,
+                    { replacements: idsForosCreados, transaction }
+                );
+                console.log('✅ Todos los participantes de los foros creados eliminados');
             }
-        });
+
+            // PASO 3: Eliminar participaciones de este psicólogo en otros foros
+            await sequelize.query(
+                'DELETE FROM foro_participante WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            console.log('✅ Participaciones del psicólogo en otros foros eliminadas');
+
+            // PASO 4: Eliminar invitaciones de foros
+            await sequelize.query(
+                'DELETE FROM invitacion_foro WHERE id_psicologo_invitado = ? OR id_psicologo_invitador = ?',
+                { replacements: [id_psicologo, id_psicologo], transaction }
+            );
+            console.log('✅ Invitaciones de foros eliminadas');
+
+            // PASO 5: Eliminar solicitudes de unión a foros
+            await sequelize.query(
+                'DELETE FROM solicitud_union_foro WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            console.log('✅ Solicitudes de unión eliminadas');
+
+            // PASO 6: Eliminar mensajes de foros donde el psicólogo participó
+            if (idsForosCreados.length > 0) {
+                const placeholders = idsForosCreados.map(() => '?').join(',');
+                await sequelize.query(
+                    `DELETE FROM mensaje_foro WHERE id_tema IN (
+                        SELECT id_tema FROM tema WHERE id_foro IN (${placeholders})
+                    )`,
+                    { replacements: idsForosCreados, transaction }
+                );
+                console.log('✅ Mensajes de foros eliminados');
+            }
+
+            // PASO 7: Eliminar temas de los foros creados
+            if (idsForosCreados.length > 0) {
+                const placeholders = idsForosCreados.map(() => '?').join(',');
+                await sequelize.query(
+                    `DELETE FROM tema WHERE id_foro IN (${placeholders})`,
+                    { replacements: idsForosCreados, transaction }
+                );
+                console.log('✅ Temas de foros eliminados');
+            }
+
+            // PASO 8: Eliminar los foros creados
+            if (idsForosCreados.length > 0) {
+                await sequelize.query(
+                    'DELETE FROM foro WHERE id_psicologo_creador = ?',
+                    { replacements: [id_psicologo], transaction }
+                );
+                console.log('✅ Foros creados eliminados');
+            }
+
+            // PASO 9: Actualizar pacientes para desvincularlos
+            await sequelize.query(
+                'UPDATE paciente SET id_psicologo = NULL WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            console.log('✅ Pacientes desvinculados');
+
+            // ✅ PASO 10: Obtener todas las agendas del psicólogo
+            const [agendasPsicologo]: any = await sequelize.query(
+                'SELECT id_agenda FROM agenda WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            
+            const idsAgendas = agendasPsicologo.map((a: any) => a.id_agenda);
+            console.log(`📋 Agendas del psicólogo: ${idsAgendas.join(', ') || 'ninguna'}`);
+
+            // ✅ PASO 11: Eliminar TODAS las citas de esas agendas
+            if (idsAgendas.length > 0) {
+                const placeholders = idsAgendas.map(() => '?').join(',');
+                await sequelize.query(
+                    `DELETE FROM cita WHERE id_agenda IN (${placeholders})`,
+                    { replacements: idsAgendas, transaction }
+                );
+                console.log('✅ Citas eliminadas');
+            }
+
+            // ✅ PASO 12: Eliminar las agendas del psicólogo
+            await sequelize.query(
+                'DELETE FROM agenda WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            console.log('✅ Agendas eliminadas');
+
+            // ✅ PASO 13: Eliminar disponibilidades del psicólogo
+            await sequelize.query(
+                'DELETE FROM disponibilidad WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            console.log('✅ Disponibilidades eliminadas');
+
+            // ✅ PASO 14: Eliminar excepciones de disponibilidad
+            await sequelize.query(
+                'DELETE FROM excepcion_disponibilidad WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            console.log('✅ Excepciones de disponibilidad eliminadas');
+
+            // PASO 15: Eliminar tokens de recuperación/activación
+            await sequelize.query(
+                'DELETE FROM token WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            console.log('✅ Tokens eliminados');
+
+            // PASO 16: FINALMENTE, eliminar el psicólogo
+            await sequelize.query(
+                'DELETE FROM psicologo WHERE id_psicologo = ?',
+                { replacements: [id_psicologo], transaction }
+            );
+            console.log('✅ Psicólogo eliminado');
+
+            // ✅ CONFIRMAR TRANSACCIÓN
+            await transaction.commit();
+
+            res.json({
+                msg: 'Psicólogo eliminado permanentemente junto con todos sus datos asociados',
+                psicologo: {
+                    id: id_psicologo,
+                    nombre: nombrePsicologo
+                },
+                datos_eliminados: {
+                    foros_creados: idsForosCreados.length,
+                    agendas: idsAgendas.length,
+                    citas: true,
+                    disponibilidades: true,
+                    participantes_foros: true,
+                    invitaciones_foro: true,
+                    solicitudes_union: true,
+                    mensajes_foro: true,
+                    temas_foro: true,
+                    pacientes_desvinculados: true,
+                    tokens: true
+                }
+            });
+
+        } catch (error) {
+            // ❌ REVERTIR TRANSACCIÓN en caso de error
+            await transaction.rollback();
+            throw error;
+        }
 
     } catch (error) {
-        console.error('Error eliminando psicólogo:', error);
+        console.error('❌ Error eliminando psicólogo:', error);
         res.status(500).json({
-            msg: 'Error interno del servidor',
-            error: error instanceof Error ? error.message : 'Error desconocido'
+            msg: 'Error interno del servidor al eliminar el psicólogo',
+            error: error instanceof Error ? error.message : 'Error desconocido',
+            detalle: 'No se pudo completar la eliminación. Se revirtieron todos los cambios.'
         });
     }
 };
-
 /**
  *  NUEVO: Validar cédula manualmente (solo por decisión del administrador)
  */

@@ -1,18 +1,3 @@
-// import { Sequelize, QueryTypes  } from "sequelize";
-// import dotenv from 'dotenv';
-
-//  const sequelize = new Sequelize('miduelo','root', 'root',{
-//      host: 'localhost',
-//      dialect: "mysql"
-//  })
-//  export default sequelize;
-
-
-// backend/src/database/connection.ts
-
-
-
-// Cargar variables de entorno
 import { Sequelize, QueryTypes } from "sequelize";
 import dotenv from 'dotenv';
 
@@ -29,6 +14,8 @@ const sequelize = new Sequelize(
         dialect: "mysql",
         dialectOptions: {
             connectTimeout: 60000, // 60 segundos
+            charset: 'utf8mb4', //  Especificar charset
+            //collate: 'utf8mb4_unicode_ci', //  Especificar collation
             // SSL requerido para Azure MySQL en producción
             ssl: process.env.NODE_ENV === 'production' 
                 ? {

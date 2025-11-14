@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { PsicologoService } from '../../services/psicologo.service';
 import { ToastrService } from 'ngx-toastr';
-import { Router } from '@angular/router';
+import { Router, RouterModule } from '@angular/router';
 import { LoadingComponent } from "../../compartidos/loading/loading.component";
 import { FormsModule } from "@angular/forms";
 import { HttpErrorResponse } from '@angular/common/http';
@@ -11,7 +11,7 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-login',
-  imports: [LoadingComponent, FormsModule, CommonModule],
+  imports: [LoadingComponent, FormsModule, CommonModule,RouterModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.css'
 })
