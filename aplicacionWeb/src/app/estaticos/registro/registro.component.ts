@@ -21,6 +21,24 @@ export class RegistroComponent implements OnInit {
   mostrarConfirmarContrasena: boolean = false;
   loading: boolean = false;
 
+   especialidades: string[] = [
+    'Psicología Clínica',
+    'Tanatología',
+    'Psicoterapia',
+    'Psiquiatría',
+    'Trabajo Social',
+    'Consejería/Counseling',
+    'Terapia Familiar y de Pareja',
+    'Psicología de la Salud',
+    'Psicología del Duelo y Pérdida',
+    'Neuropsicología',
+    'Psicooncología',
+    'Terapia Cognitivo-Conductual',
+    'Terapia Humanista',
+    'Enfermería en Salud Mental',
+    'Otra especialidad relacionada'
+  ];
+
   constructor(
     private fb: FormBuilder,
     private userService: PsicologoService,

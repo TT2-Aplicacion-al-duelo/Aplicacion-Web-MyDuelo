@@ -82,21 +82,24 @@
               <small class="text-muted">Debes tener entre 18 y 90 años</small>
             </div>
 
-            <!-- Especialidad -->
             <div class="mb-3">
-              <label for="especialidad" class="form-label">Especialidad <span class="text-danger">*</span></label>
-              <input 
-                type="text" 
-                class="form-control" 
+              <label for="especialidad" class="form-label">Especialidad/Profesión <span class="text-danger">*</span></label>
+              <select 
+                class="form-select" 
                 id="especialidad" 
                 formControlName="especialidad"
-                placeholder="Ej: Psicología Clínica, Tanatología..."
                 [class.is-invalid]="especialidad?.invalid && especialidad?.touched"
                 [class.is-valid]="especialidad?.valid && especialidad?.touched">
+                <option value="" disabled selected>Seleccione su especialidad</option>
+                <option *ngFor="let esp of especialidades" [value]="esp">{{ esp }}</option>
+              </select>
               <div class="invalid-feedback" *ngIf="especialidad?.invalid && especialidad?.touched">
                 <span *ngIf="especialidad?.errors?.['required']">La especialidad es obligatoria</span>
-                <span *ngIf="especialidad?.errors?.['minlength']">Debe tener al menos 3 caracteres</span>
               </div>
+              <small class="form-text text-muted">
+                <i class="bi bi-info-circle me-1"></i>
+                Seleccione la profesión o especialidad con la que atenderá a los pacientes
+              </small>
             </div>
 
             <!-- Cédula Profesional -->
