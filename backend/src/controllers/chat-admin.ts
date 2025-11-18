@@ -254,7 +254,7 @@ export const enviarMensajeAdmin = async (req: AuthRequest, res: Response) => {
 
     const resultado = await sequelize.query(`
       INSERT INTO mensaje_admin (id_chat_admin, remitente, contenido, fecha_envio, leido) 
-      VALUES (?, ?, ?, NOW(), ?)
+      VALUES (?, ?, ?, CONVERT_TZ(NOW(), '+00:00', '-06:00'), ?)
     `, {
       replacements: [id_chat_admin, remitente, contenidoCifrado, leido],
       type: QueryTypes.INSERT

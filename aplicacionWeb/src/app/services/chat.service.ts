@@ -71,17 +71,33 @@ export class ChatService {
   }
   
   /**
- * Obtener mensajes de chat con administrador
- */
-getMensajesAdmin(idChatAdmin: number): Observable<Mensaje[]> {
-  return this.http.get<Mensaje[]>(`${this.AppUrl}${this.APIUrl}/chats/admin/${idChatAdmin}/mensajes`);
-}
+   * Obtener mensajes de chat con administrador
+   */
+  getMensajesAdmin(idChatAdmin: number): Observable<Mensaje[]> {
+    return this.http.get<Mensaje[]>(`${this.AppUrl}${this.APIUrl}/chats/admin/${idChatAdmin}/mensajes`);
+  }
 
-/**
- * Enviar mensaje a administrador
- */
-enviarMensajeAdmin(mensaje: { id_chat_admin: number; contenido: string }): Observable<Mensaje> {
-  return this.http.post<Mensaje>(`${this.AppUrl}${this.APIUrl}/chats/admin/mensajes`, mensaje);
-}
+  /**
+   * Enviar mensaje a administrador
+   */
+  enviarMensajeAdmin(mensaje: { id_chat_admin: number; contenido: string }): Observable<Mensaje> {
+    return this.http.post<Mensaje>(`${this.AppUrl}${this.APIUrl}/chats/admin/mensajes`, mensaje);
+  }
+  /**
+   * Obtener solo mensajes nuevos (polling eficiente)
+   */
+  getMensajesNuevos(idChat: number, ultimoIdMensaje: number): Observable<Mensaje[]> {
+    return this.http.get<Mensaje[]>(
+      `${this.AppUrl}${this.APIUrl}/chats/${idChat}/mensajes/nuevos?ultimoId=${ultimoIdMensaje}`
+    );
+  }
 
+  /**
+   * Obtener mensajes nuevos de admin
+   */
+  getMensajesNuevosAdmin(idChatAdmin: number, ultimoIdMensaje: number): Observable<Mensaje[]> {
+    return this.http.get<Mensaje[]>(
+      `${this.AppUrl}${this.APIUrl}/chats/admin/${idChatAdmin}/mensajes/nuevos?ultimoId=${ultimoIdMensaje}`
+    );
+  }
 }

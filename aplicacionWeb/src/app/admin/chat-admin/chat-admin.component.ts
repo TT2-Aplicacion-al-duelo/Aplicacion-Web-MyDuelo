@@ -1,5 +1,3 @@
-// aplicacionWeb/src/app/admin/chat-admin/chat-admin.component.ts
-
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -37,9 +35,11 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
   // ID del administrador autenticado
   idAdmin: number = 0;
   
-  // Suscripciones
+  // Suscripciones y control de scroll
   private actualizacionSubscription: Subscription | null = null;
   private shouldScrollToBottom: boolean = false;
+  private isUserScrolling: boolean = false; // 🆕 Detectar si el usuario está scrolleando
+  private lastScrollHeight: number = 0;     // 🆕 Para scroll suave
 
   constructor(
     private chatAdminService: ChatAdminService,
@@ -60,8 +60,9 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   ngAfterViewChecked(): void {
-    if (this.shouldScrollToBottom) {
-      this.scrollToBottom();
+    // Solo hacer scroll si es necesario y el usuario no está scrolleando
+    if (this.shouldScrollToBottom && !this.isUserScrolling) {
+      this.scrollToBottomSmooth();
       this.shouldScrollToBottom = false;
     }
   }
@@ -78,13 +79,109 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
+  // 🆕 MÉTODO OPTIMIZADO - Actualización automática inteligente
   private iniciarActualizacionAutomatica(): void {
-    // Actualizar chats cada 30 segundos
-    this.actualizacionSubscription = interval(30000).subscribe(() => {
-      this.cargarChats();
-      if (this.chatActual) {
-        this.cargarMensajes(this.chatActual.id_chat_admin);
+    // Actualizar chats cada 10 segundos
+    this.actualizacionSubscription = interval(10000).subscribe(() => {
+      this.actualizarChatsEnBackground();
+    });
+  }
+
+  // 🆕 MÉTODO NUEVO - Actualizar en background sin interrumpir
+  private actualizarChatsEnBackground(): void {
+    if (this.cargandoChats) return; // Evitar llamadas concurrentes
+    
+    this.chatAdminService.getChatsAdmin().subscribe({
+      next: (chats) => {
+        // Actualizar sin parpadeo
+        this.actualizarChatsConDiferencias(chats);
+        
+        // Si hay un chat activo, verificar nuevos mensajes
+        if (this.chatActual) {
+          this.verificarMensajesNuevos();
+        }
+      },
+      error: (error) => {
+        console.error('Error al actualizar chats:', error);
       }
+    });
+  }
+
+  // 🆕 MÉTODO NUEVO - Actualizar chats sin parpadeo
+  private actualizarChatsConDiferencias(nuevosChats: ChatAdmin[]): void {
+    // Mantener referencia del chat actual
+    const chatActualId = this.chatActual?.id_chat_admin;
+    
+    // Actualizar array manteniendo las referencias donde no haya cambios
+    this.chats = nuevosChats.map(nuevoChat => {
+      const chatExistente = this.chats.find(c => c.id_chat_admin === nuevoChat.id_chat_admin);
+      
+      // Si el chat existe y no ha cambiado, mantener la referencia
+      if (chatExistente && JSON.stringify(chatExistente) === JSON.stringify(nuevoChat)) {
+        return chatExistente;
+      }
+      
+      return nuevoChat;
+    });
+    
+    // Actualizar chatActual si cambió
+    if (chatActualId) {
+      const chatActualizado = this.chats.find(c => c.id_chat_admin === chatActualId);
+      if (chatActualizado) {
+        this.chatActual = chatActualizado;
+      }
+    }
+  }
+
+  // 🆕 MÉTODO NUEVO - Verificar solo mensajes nuevos (polling eficiente)
+  private verificarMensajesNuevos(): void {
+    if (!this.chatActual || this.cargandoMensajes) return;
+    
+    const ultimoIdMensaje = this.mensajes.length > 0 
+      ? Math.max(...this.mensajes.map(m => m.id_mensaje))
+      : 0;
+    
+    this.chatAdminService.getMensajesNuevosAdmin(this.chatActual.id_chat_admin, ultimoIdMensaje).subscribe({
+      next: (mensajesNuevos) => {
+        if (mensajesNuevos.length > 0) {
+          // Agregar nuevos mensajes al array existente
+          this.mensajes = [...this.mensajes, ...mensajesNuevos];
+          
+          // Si estamos cerca del fondo, hacer scroll
+          const container = this.messagesContainer?.nativeElement;
+          if (container) {
+            const threshold = 300;
+            const position = container.scrollTop + container.clientHeight;
+            const height = container.scrollHeight;
+            
+            if ((height - position) < threshold) {
+              this.shouldScrollToBottom = true;
+            }
+          }
+          
+          // Marcar como leído si no son nuestros mensajes
+          const mensajesDelUsuario = mensajesNuevos.filter(m => m.remitente === 'usuario');
+          if (mensajesDelUsuario.length > 0) {
+            this.marcarComoLeidoSilencioso();
+          }
+        }
+      },
+      error: (error) => {
+        console.error('Error al verificar nuevos mensajes:', error);
+      }
+    });
+  }
+
+  // 🆕 MÉTODO NUEVO - Marcar como leído sin recargar
+  private marcarComoLeidoSilencioso(): void {
+    if (!this.chatActual) return;
+    
+    this.chatAdminService.marcarComoLeidoAdmin(this.chatActual.id_chat_admin).subscribe({
+      next: () => {
+        const chat = this.chats.find(c => c.id_chat_admin === this.chatActual!.id_chat_admin);
+        if (chat) chat.mensajes_no_leidos = 0;
+      },
+      error: (error) => console.error('Error al marcar como leído:', error)
     });
   }
 
@@ -115,6 +212,8 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   seleccionarChat(chat: ChatAdmin): void {
     this.chatActual = chat;
+    this.isUserScrolling = false; // Reset del estado de scroll
+    this.lastScrollHeight = 0;
     this.cargarMensajes(chat.id_chat_admin);
     this.marcarComoLeido(chat.id_chat_admin);
   }
@@ -135,9 +234,7 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   enviarMensaje(): void {
-    if (!this.nuevoMensaje.trim() || !this.chatActual) {
-      return;
-    }
+    if (!this.nuevoMensaje.trim() || !this.chatActual) return;
 
     const mensajeData = {
       id_chat_admin: this.chatActual.id_chat_admin,
@@ -145,11 +242,15 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
     };
 
     this.chatAdminService.enviarMensajeAdmin(mensajeData).subscribe({
-      next: (mensaje) => {
-        this.mensajes.push(mensaje);
+      next: (mensajeCreado) => {
+        // Agregar mensaje al array sin recargar todo
+        this.mensajes.push(mensajeCreado);
         this.nuevoMensaje = '';
         this.shouldScrollToBottom = true;
-        this.cargarChats();
+        this.isUserScrolling = false; // Asegurar scroll después de enviar
+        
+        // Actualizar la lista de chats en background
+        this.actualizarChatsEnBackground();
       },
       error: (error) => {
         console.error('Error al enviar mensaje:', error);
@@ -216,14 +317,37 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  private scrollToBottom(): void {
+  // 🆕 MÉTODO NUEVO - Scroll suave sin parpadeos
+  private scrollToBottomSmooth(): void {
     try {
-      if (this.messagesContainer) {
-        this.messagesContainer.nativeElement.scrollTop = 
-          this.messagesContainer.nativeElement.scrollHeight;
+      const container = this.messagesContainer?.nativeElement;
+      if (container) {
+        const currentScrollHeight = container.scrollHeight;
+        
+        // Solo hacer scroll si hay contenido nuevo
+        if (currentScrollHeight > this.lastScrollHeight) {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+          });
+          this.lastScrollHeight = currentScrollHeight;
+        }
       }
     } catch(err) {
-      console.error('Error al hacer scroll:', err);
+      console.error('Error en scroll:', err);
+    }
+  }
+
+  // 🆕 MÉTODO NUEVO - Detectar scroll manual del usuario
+  onScroll(): void {
+    const container = this.messagesContainer?.nativeElement;
+    if (container) {
+      const threshold = 150;
+      const position = container.scrollTop + container.clientHeight;
+      const height = container.scrollHeight;
+      
+      // Si el usuario scrollea hacia arriba, desactivar auto-scroll
+      this.isUserScrolling = (height - position) > threshold;
     }
   }
 
@@ -257,6 +381,12 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   formatearFecha(fecha: string): string {
     const date = new Date(fecha);
+    
+    // Verificar si es una fecha válida
+    if (isNaN(date.getTime())) {
+      return '';
+    }
+    
     const ahora = new Date();
     const diferencia = ahora.getTime() - date.getTime();
     const minutos = Math.floor(diferencia / (1000 * 60));
@@ -268,16 +398,25 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (horas < 24) return `${horas}h`;
     if (dias < 7) return `${dias}d`;
     
-    return date.toLocaleDateString('es-ES', { 
+    return date.toLocaleDateString('es-MX', { 
       day: '2-digit', 
       month: '2-digit' 
     });
   }
 
   formatearHora(fecha: string): string {
-    return new Date(fecha).toLocaleTimeString('es-ES', { 
+    // Parsear la fecha asumiendo que viene en formato ISO o MySQL
+    const date = new Date(fecha);
+    
+    // Verificar si es una fecha válida
+    if (isNaN(date.getTime())) {
+      return '--:--';
+    }
+    
+    return date.toLocaleTimeString('es-MX', { 
       hour: '2-digit', 
-      minute: '2-digit' 
+      minute: '2-digit',
+      hour12: false
     });
   }
 
@@ -292,26 +431,14 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
   }
 
-  // Filtrar usuarios sin chat
+ // Getter para filtrar usuarios según el tipo seleccionado
   get usuariosFiltrados(): UsuarioDisponible[] {
-    const chatsExistentes = this.chats.map(chat => ({
-      tipo: chat.destinatario_tipo,
-      id: chat.destinatario_id
-    }));
-
-    let usuarios = this.usuariosDisponibles.filter(usuario => 
-      !chatsExistentes.some(chat => 
-        chat.tipo === usuario.tipo && chat.id === usuario.id
-      )
-    );
-
-    // Aplicar filtro de tipo
-    if (this.filtroTipoUsuario === 'psicologos') {
-      usuarios = usuarios.filter(u => u.tipo === 'psicologo');
-    } else if (this.filtroTipoUsuario === 'pacientes') {
-      usuarios = usuarios.filter(u => u.tipo === 'paciente');
+    if (this.filtroTipoUsuario === 'todos') {
+      return this.usuariosDisponibles;
     }
-
-    return usuarios;
+    
+    // Convertir plural a singular para comparar
+    const tipoSingular = this.filtroTipoUsuario === 'psicologos' ? 'psicologo' : 'paciente';
+    return this.usuariosDisponibles.filter(u => u.tipo === tipoSingular);
   }
 }

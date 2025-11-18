@@ -140,6 +140,7 @@
       <div 
         class="messages-area" 
         #messagesContainer
+        (scroll)="onScroll()"
       >
         <!-- Loading Mensajes -->
         <div *ngIf="cargandoMensajes" class="text-center p-3">

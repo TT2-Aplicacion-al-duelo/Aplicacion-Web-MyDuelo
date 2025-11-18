@@ -292,7 +292,7 @@ const enviarMensaje = (req, res) => __awaiter(void 0, void 0, void 0, function* 
         const leido = remitente === 'psicologo' ? 1 : 0;
         const resultado = yield connection_1.default.query(`
         INSERT INTO mensaje (id_chat, remitente, contenido, fecha_envio, leido) 
-        VALUES (?, ?, ?, NOW(), ?)
+        VALUES (?, ?, ?, CONVERT_TZ(NOW(), '+00:00', '-06:00'), ?)
       `, {
             replacements: [id_chat, remitente, contenidoCifrado, leido],
             type: sequelize_1.QueryTypes.INSERT
