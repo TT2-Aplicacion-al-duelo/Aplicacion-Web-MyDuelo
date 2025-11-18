@@ -14,7 +14,10 @@
           <i class="bi bi-download"></i> Exportar CSV
         </button>
       </div>
-
+      <!-- ✅ DEBUG: Mostrar estado de carga -->
+      <div *ngIf="cargando" class="alert alert-info">
+        <i class="bi bi-hourglass-split"></i> Cargando logs de moderación...
+      </div>
       <!-- Filtros -->
       <div class="card bg-light mb-4">
         <div class="card-body">
@@ -124,8 +127,8 @@
         </table>
       </div>
 
-      <!-- Paginación -->
-      <nav *ngIf="!cargando && totalPages > 1" aria-label="Paginación de logs">
+      <!-- Paginación - ✅ VALIDACIÓN NULL-SAFE -->
+      <nav *ngIf="!cargando && logs && logs.length > 0 && totalPages > 1" aria-label="Paginación de logs">
         <ul class="pagination justify-content-center">
           <li class="page-item" [class.disabled]="page === 1">
             <a class="page-link" (click)="cambiarPagina(page - 1)" style="cursor:pointer">
@@ -145,9 +148,9 @@
         </ul>
       </nav>
 
-      <!-- Resumen -->
-      <div *ngIf="!cargando && logs.length > 0" class="text-center text-muted mt-3">
-        <small>Mostrando {{logs.length}} de {{total}} registros</small>
+      <!-- Resumen - ✅ VALIDACIÓN NULL-SAFE -->
+      <div *ngIf="!cargando && logs && logs.length > 0" class="text-center text-muted mt-3">
+        <small>Mostrando {{logs.length}} de {{total || 0}} registros</small>
       </div>
     </div>
   </div>

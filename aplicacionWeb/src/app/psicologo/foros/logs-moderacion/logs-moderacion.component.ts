@@ -19,7 +19,7 @@ export class LogsModeracionComponent implements OnInit {
   // Paginación
   page = 1;
   limit = 20;
-  totalPages = 1;
+  totalPages = 0;
   total = 0;
 
   // Filtros
@@ -65,12 +65,23 @@ export class LogsModeracionComponent implements OnInit {
     this.moderacionService.obtenerLogs(this.idForo, filtrosAplicados, this.page, this.limit)
       .subscribe({
         next: (response) => {
-          this.logs = response.data;
-          this.total = response.meta.total;
-          this.totalPages = response.meta.totalPages;
+          // ✅ VALIDACIÓN NULL-SAFE
+          this.logs = response?.data || [];
+          this.total = response?.meta?.total || 0;
+          this.totalPages = response?.meta?.totalPages || 0;
           this.cargando = false;
+          
+          console.log('✅ Logs cargados:', {
+            cantidad: this.logs.length,
+            total: this.total,
+            paginas: this.totalPages
+          });
         },
-        error: () => {
+        error: (err) => {
+          console.error('❌ Error al cargar logs:', err);
+          this.logs = [];  // ✅ ASEGURAR ARRAY VACÍO
+          this.total = 0;
+          this.totalPages = 0;
           this.cargando = false;
         }
       });
