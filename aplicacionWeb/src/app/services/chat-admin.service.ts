@@ -86,13 +86,4 @@ export class ChatAdminService {
   getTodosUsuariosDisponibles(): Observable<UsuarioDisponible[]> {
     return this.http.get<UsuarioDisponible[]>(`${this.AppUrl}${this.APIUrl}/usuarios-disponibles`);
   }
-
-    /**
-   * Obtener solo mensajes nuevos (polling eficiente)
-   */
-  getMensajesNuevosAdmin(idChatAdmin: number, ultimoIdMensaje: number): Observable<MensajeAdmin[]> {
-    return this.http.get<MensajeAdmin[]>(
-      `${this.AppUrl}${this.APIUrl}/chats/${idChatAdmin}/mensajes/nuevos?ultimoId=${ultimoIdMensaje}`
-    );
-  }
 }
