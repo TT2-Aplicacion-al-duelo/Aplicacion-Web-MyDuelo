@@ -50,3 +50,36 @@
   );
   pointer-events: none; /* desactiva clics en la celda */
 }
+/* Estilos mejorados para eventos según estado */
+.evento.bg-warning {
+  background-color: #ffc107 !important;
+  border-left: 4px solid #ff9800;
+}
+
+.evento.bg-success {
+  background-color: #28a745 !important;
+  border-left: 4px solid #20c997;
+}
+
+.evento.bg-danger {
+  background-color: #dc3545 !important;
+  border-left: 4px solid #bd2130;
+}
+
+.evento.bg-info {
+  background-color: #17a2b8 !important;
+  border-left: 4px solid #138496;
+}
+
+.evento.bg-primary {
+  background-color: #007bff !important;
+  border-left: 4px solid #0056b3;
+}
+
+/* Agregar efecto hover para mejor interacción */
+.evento:hover {
+  opacity: 0.85;
+  transform: scale(1.02);
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}

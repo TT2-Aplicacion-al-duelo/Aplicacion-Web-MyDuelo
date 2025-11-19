@@ -11,4 +11,5 @@ router.post("/api/paciente/registro", paciente_1.registroPaciente);
 router.get("/api/psicologo/lista-pacientes", validarToken_1.default, paciente_1.getPacientes);
 router.get("/api/psicologo/paciente/:id", validarToken_1.default, paciente_1.getPacientePorId);
 router.get("/api/psicologo/paciente/:id/proxima-cita", validarToken_1.default, paciente_1.getProximaCitaPaciente);
+router.get("/api/psicologo/paciente/:id/foto-perfil", validarToken_1.default, paciente_1.getFotoPerfilPaciente);
 exports.default = router;

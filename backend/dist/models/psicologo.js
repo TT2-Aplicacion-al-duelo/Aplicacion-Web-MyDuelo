@@ -31,6 +31,7 @@ exports.Psicologo = connection_1.default.define("psicologo", {
     cedula_validada: { type: sequelize_1.DataTypes.BOOLEAN, defaultValue: false },
     rol_admin: { type: sequelize_1.DataTypes.BOOLEAN, defaultValue: false },
     codigo_vinculacion: { type: sequelize_1.DataTypes.STRING(50), allowNull: true },
+    foto_perfil: { type: sequelize_1.DataTypes.STRING(255), allowNull: true },
     status: { type: sequelize_1.DataTypes.ENUM("activo", "inactivo"), defaultValue: "activo" }
 }, {
     tableName: 'psicologo',

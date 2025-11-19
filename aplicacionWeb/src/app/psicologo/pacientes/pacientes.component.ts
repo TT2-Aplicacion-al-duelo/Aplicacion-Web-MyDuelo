@@ -88,4 +88,25 @@ export class PacientesComponent implements OnInit {
     if (!fecha) return 'No disponible';
     return new Date(fecha).toLocaleDateString('es-ES');
   }
+
+  /**
+ * Obtener URL de foto de perfil
+ */
+  obtenerFotoUrl(paciente: any): string {
+    // Si ya tiene una URL completa, usarla directamente
+    if (paciente.foto_perfil && paciente.foto_perfil.startsWith('http')) {
+      return paciente.foto_perfil;
+    }
+    
+    // Si tiene solo el nombre del archivo, construir la URL
+    if (paciente.foto_perfil) {
+      const baseUrl = this.environment.production 
+        ? 'https://api.midueloapp.com'
+        : 'http://localhost:3017';
+      return `${baseUrl}/uploads/${paciente.foto_perfil}`;
+    }
+    
+    // Si no tiene foto, retornar un placeholder
+    return '/assets/default-avatar.png';
+  }
 }

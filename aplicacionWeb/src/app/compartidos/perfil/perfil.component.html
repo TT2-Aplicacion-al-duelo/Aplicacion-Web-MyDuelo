@@ -41,8 +41,49 @@
             <!-- Sección de Avatar y Nombre -->
             <div class="row">
               <div class="col-md-3 text-center mb-4 mb-md-0">
-                <div class="avatar-large mx-auto mb-3">
-                  {{ getIniciales() }}
+                <div class="card mb-4">
+                  <div class="card-header">
+                    <h5 class="mb-0">
+                      <i class="bi bi-person-circle me-2"></i>
+                      Foto de Perfil
+                    </h5>
+                  </div>
+                  <div class="card-body text-center">
+                    <div class="mb-3">
+                      <img 
+                        [src]="obtenerFotoUrl()" 
+                        alt="Foto de perfil"
+                        class="rounded-circle mb-3"
+                        style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #dee2e6;"
+                        (error)="$event.target.src='/assets/default-avatar.png'">
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-2">
+                      <label class="btn btn-primary" [class.disabled]="uploadingFoto">
+                        <i class="bi bi-upload me-2"></i>
+                        {{ uploadingFoto ? 'Subiendo...' : 'Cambiar foto' }}
+                        <input 
+                          type="file" 
+                          class="d-none" 
+                          accept="image/*"
+                          (change)="onFileSelected($event)"
+                          [disabled]="uploadingFoto">
+                      </label>
+                      
+                      <button 
+                        class="btn btn-outline-danger"
+                        *ngIf="psicologo?.foto_perfil"
+                        (click)="eliminarFoto()"
+                        [disabled]="uploadingFoto">
+                        <i class="bi bi-trash me-2"></i>
+                        Eliminar
+                      </button>
+                    </div>
+                    
+                    <small class="text-muted d-block mt-2">
+                      Formatos permitidos: JPG, PNG, GIF, WEBP (máx. 5MB)
+                    </small>
+                  </div>
                 </div>
                 
                 <!-- Badge de Rol -->
@@ -216,6 +257,8 @@
           </div>
         </div>
 
+
+        
         <!-- Cards de Acceso Rápido -->
         <div class="row g-3">
           <div class="col-md-4">

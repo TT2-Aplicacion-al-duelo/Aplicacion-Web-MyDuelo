@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getProximaCitaPaciente = exports.getPacientePorId = exports.getPacientes = exports.registroPaciente = void 0;
+exports.getFotoPerfilPaciente = exports.getProximaCitaPaciente = exports.getPacientePorId = exports.getPacientes = exports.registroPaciente = void 0;
 const paciente_1 = require("../models/paciente");
 const connection_1 = __importDefault(require("../database/connection"));
 const sequelize_1 = require("sequelize");
@@ -141,3 +141,44 @@ const getProximaCitaPaciente = (req, res) => __awaiter(void 0, void 0, void 0, f
     }
 });
 exports.getProximaCitaPaciente = getProximaCitaPaciente;
+/**
+     * GET /api/psicologo/paciente/:id/foto-perfil
+     * Obtener la URL de la foto de perfil del paciente (Azure o local)
+     */
+const getFotoPerfilPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        const { id } = req.params;
+        if (!id_psicologo) {
+            return res.status(401).json({ msg: "No autorizado" });
+        }
+        // Verificar que el paciente pertenece al psicólogo
+        const paciente = yield paciente_1.Paciente.findOne({
+            where: {
+                id_paciente: id,
+                id_psicologo
+            },
+            attributes: ['foto_perfil']
+        });
+        if (!paciente) {
+            return res.status(404).json({ msg: "Paciente no encontrado" });
+        }
+        let fotoUrl = paciente.foto_perfil;
+        // Si la foto no tiene protocolo HTTP, construir la URL local
+        if (fotoUrl && !fotoUrl.startsWith('http')) {
+            const baseUrl = process.env.NODE_ENV === 'production'
+                ? 'https://api.midueloapp.com'
+                : `http://localhost:${process.env.PORT || '3017'}`;
+            fotoUrl = `${baseUrl}/uploads/${fotoUrl}`;
+        }
+        res.json({
+            foto_url: fotoUrl || null
+        });
+    }
+    catch (error) {
+        console.error("Error al obtener foto de perfil:", error);
+        res.status(500).json({ msg: "Error al obtener foto de perfil" });
+    }
+});
+exports.getFotoPerfilPaciente = getFotoPerfilPaciente;

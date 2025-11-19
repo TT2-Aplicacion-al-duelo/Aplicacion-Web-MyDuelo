@@ -79,6 +79,8 @@ const nota_1 = __importDefault(require("./nota"));
 const cors_1 = __importDefault(require("cors"));
 const node_cron_1 = __importDefault(require("node-cron"));
 const sequelize_1 = require("sequelize");
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -96,6 +98,14 @@ class Server {
     midlewares() {
         var _a;
         this.app.use(express_1.default.json());
+        // Crear directorio de uploads si no existe
+        const uploadsDir = path_1.default.join(__dirname, '../../uploads');
+        if (!fs_1.default.existsSync(uploadsDir)) {
+            fs_1.default.mkdirSync(uploadsDir, { recursive: true });
+        }
+        // Servir archivos estáticos desde /uploads
+        this.app.use('/uploads', express_1.default.static(uploadsDir));
+        console.log('✅ Directorio de uploads configurado en:', uploadsDir);
         // Configuración CORS para producción
         const allowedOrigins = process.env.NODE_ENV === 'production'
             ? (((_a = process.env.FRONTEND_URL_CORS) === null || _a === void 0 ? void 0 : _a.split(',')) || ['https://www.midueloapp.com', 'https://midueloapp.com'])

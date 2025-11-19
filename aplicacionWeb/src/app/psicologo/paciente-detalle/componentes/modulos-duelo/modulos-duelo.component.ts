@@ -5,6 +5,7 @@ import { ListaModulosComponent } from './componentes/lista-modulos/lista-modulos
 import { ModulosService } from '../../../../services/modulos.service';
 import { ToastrService } from 'ngx-toastr';
 import { ModuloDuelo } from '../../../../interfaces/moduloDuelo';
+import { Evidencia } from '../../../../interfaces/actividad';
 
 
 
@@ -61,5 +62,26 @@ export class ModulosDueloComponent implements OnInit {
     if (progreso < 30) return 'danger';
     if (progreso < 70) return 'warning';
     return 'success';
+  }
+
+    /**
+   * Descargar archivo de evidencia
+   */
+  descargarEvidencia(evidencia: Evidencia): void {
+    const link = document.createElement('a');
+    link.href = evidencia.archivo_url;
+    link.download = this.obtenerNombreArchivo(evidencia.archivo_url);
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
+
+  /**
+   * Obtener nombre del archivo de la URL
+   */
+  private obtenerNombreArchivo(url: string): string {
+    const partes = url.split('/');
+    return partes[partes.length - 1] || 'evidencia';
   }
 }

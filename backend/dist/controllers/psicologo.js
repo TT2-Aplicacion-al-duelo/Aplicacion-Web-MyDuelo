@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cambiarContrasena = exports.actualizarPerfil = exports.restablecerContrasena = exports.verificarTokenRecuperacion = exports.solicitarRecuperacion = exports.login = exports.reenviarActivacion = exports.activarCuenta = exports.registro = void 0;
+exports.eliminarFotoPerfil = exports.subirFotoPerfil = exports.cambiarContrasena = exports.actualizarPerfil = exports.restablecerContrasena = exports.verificarTokenRecuperacion = exports.solicitarRecuperacion = exports.login = exports.reenviarActivacion = exports.activarCuenta = exports.registro = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -20,6 +20,8 @@ const psicologo_1 = require("../models/psicologo");
 const token_1 = require("../models/token");
 const email_service_1 = __importDefault(require("../services/email.service"));
 const sequelize_1 = require("sequelize");
+const path_1 = __importDefault(require("path"));
+const fs_1 = __importDefault(require("fs"));
 // Función auxiliar para validar edad (18-90 años)
 const validarEdad = (fechaNacimiento) => {
     const hoy = new Date();
@@ -665,3 +667,93 @@ const cambiarContrasena = (req, res) => __awaiter(void 0, void 0, void 0, functi
     }
 });
 exports.cambiarContrasena = cambiarContrasena;
+/**
+ * POST /api/psicologo/subir-foto-perfil
+ * Subir foto de perfil del psicólogo
+ */
+const subirFotoPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        if (!id_psicologo) {
+            return res.status(401).json({ msg: "No autorizado" });
+        }
+        // Verificar que se subió un archivo
+        if (!req.file) {
+            return res.status(400).json({ msg: "No se proporcionó ningún archivo" });
+        }
+        const nombreArchivo = req.file.filename;
+        // Actualizar en la base de datos
+        const psicologo = yield psicologo_1.Psicologo.findByPk(id_psicologo);
+        if (!psicologo) {
+            // Eliminar el archivo subido si el psicólogo no existe
+            const filePath = path_1.default.join(__dirname, '../../uploads', nombreArchivo);
+            if (fs_1.default.existsSync(filePath)) {
+                fs_1.default.unlinkSync(filePath);
+            }
+            return res.status(404).json({ msg: "Psicólogo no encontrado" });
+        }
+        // Eliminar foto anterior si existe
+        const fotoAnterior = psicologo.foto_perfil;
+        if (fotoAnterior && !fotoAnterior.startsWith('http')) {
+            const oldFilePath = path_1.default.join(__dirname, '../../uploads', fotoAnterior);
+            if (fs_1.default.existsSync(oldFilePath)) {
+                fs_1.default.unlinkSync(oldFilePath);
+            }
+        }
+        // Actualizar con el nuevo nombre de archivo
+        yield psicologo.update({ foto_perfil: nombreArchivo });
+        const baseUrl = process.env.NODE_ENV === 'production'
+            ? 'https://api.midueloapp.com'
+            : `http://localhost:${process.env.PORT || '3017'}`;
+        res.json({
+            msg: "Foto de perfil actualizada exitosamente",
+            foto_url: `${baseUrl}/uploads/${nombreArchivo}`
+        });
+    }
+    catch (error) {
+        console.error("Error al subir foto de perfil:", error);
+        // Eliminar archivo si hubo error
+        if (req.file) {
+            const filePath = path_1.default.join(__dirname, '../../uploads', req.file.filename);
+            if (fs_1.default.existsSync(filePath)) {
+                fs_1.default.unlinkSync(filePath);
+            }
+        }
+        res.status(500).json({ msg: "Error al subir foto de perfil" });
+    }
+});
+exports.subirFotoPerfil = subirFotoPerfil;
+/**
+ * DELETE /api/psicologo/eliminar-foto-perfil
+ * Eliminar foto de perfil del psicólogo
+ */
+const eliminarFotoPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        if (!id_psicologo) {
+            return res.status(401).json({ msg: "No autorizado" });
+        }
+        const psicologo = yield psicologo_1.Psicologo.findByPk(id_psicologo);
+        if (!psicologo) {
+            return res.status(404).json({ msg: "Psicólogo no encontrado" });
+        }
+        const fotoActual = psicologo.foto_perfil;
+        // Eliminar archivo físico si existe
+        if (fotoActual && !fotoActual.startsWith('http')) {
+            const filePath = path_1.default.join(__dirname, '../../uploads', fotoActual);
+            if (fs_1.default.existsSync(filePath)) {
+                fs_1.default.unlinkSync(filePath);
+            }
+        }
+        // Actualizar base de datos
+        yield psicologo.update({ foto_perfil: null });
+        res.json({ msg: "Foto de perfil eliminada exitosamente" });
+    }
+    catch (error) {
+        console.error("Error al eliminar foto de perfil:", error);
+        res.status(500).json({ msg: "Error al eliminar foto de perfil" });
+    }
+});
+exports.eliminarFotoPerfil = eliminarFotoPerfil;

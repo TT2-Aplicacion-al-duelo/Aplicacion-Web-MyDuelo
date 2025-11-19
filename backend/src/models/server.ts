@@ -33,6 +33,9 @@ import Nota from './nota';
 import cors from 'cors';
 import cron from 'node-cron';
 import { Op } from 'sequelize';
+import path from 'path';
+import multer from 'multer';
+import fs from 'fs';
 
 class Server {
     private app: Application;
@@ -54,6 +57,16 @@ class Server {
     // Método para configurar middlewares
     private midlewares() {
         this.app.use(express.json());
+
+        // Crear directorio de uploads si no existe
+        const uploadsDir = path.join(__dirname, '../../uploads');
+        if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+        }  
+        
+        // Servir archivos estáticos desde /uploads
+        this.app.use('/uploads', express.static(uploadsDir));
+        console.log('✅ Directorio de uploads configurado en:', uploadsDir);
 
         // Configuración CORS para producción
         const allowedOrigins = process.env.NODE_ENV === 'production'

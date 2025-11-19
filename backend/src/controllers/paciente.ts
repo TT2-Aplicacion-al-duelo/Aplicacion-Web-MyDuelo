@@ -143,4 +143,53 @@ export const getProximaCitaPaciente = async (req: AuthRequest, res: Response) =>
             msg: 'Error interno del servidor'
         });
     }
+   
+
+    
 }
+
+/**
+     * GET /api/psicologo/paciente/:id/foto-perfil
+     * Obtener la URL de la foto de perfil del paciente (Azure o local)
+     */
+    export const getFotoPerfilPaciente = async (req: Request, res: Response) => {
+    try {
+        const id_psicologo = (req as any).user?.id_psicologo;
+        const { id } = req.params;
+
+        if (!id_psicologo) {
+        return res.status(401).json({ msg: "No autorizado" });
+        }
+
+        // Verificar que el paciente pertenece al psicólogo
+        const paciente = await Paciente.findOne({
+        where: {
+            id_paciente: id,
+            id_psicologo
+        },
+        attributes: ['foto_perfil']
+        });
+
+        if (!paciente) {
+        return res.status(404).json({ msg: "Paciente no encontrado" });
+        }
+
+        let fotoUrl = (paciente as any).foto_perfil;
+
+        // Si la foto no tiene protocolo HTTP, construir la URL local
+        if (fotoUrl && !fotoUrl.startsWith('http')) {
+        const baseUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://api.midueloapp.com'
+            : `http://localhost:${process.env.PORT || '3017'}`;
+        fotoUrl = `${baseUrl}/uploads/${fotoUrl}`;
+        }
+
+        res.json({ 
+        foto_url: fotoUrl || null 
+        });
+
+    } catch (error) {
+        console.error("Error al obtener foto de perfil:", error);
+        res.status(500).json({ msg: "Error al obtener foto de perfil" });
+    }
+    };

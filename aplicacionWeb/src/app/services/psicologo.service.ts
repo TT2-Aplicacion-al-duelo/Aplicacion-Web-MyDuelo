@@ -109,4 +109,28 @@ export class PsicologoService {
   private getToken(): string | null {
     return localStorage.getItem('token');
   }
+
+  /**
+   * Subir foto de perfil
+   */
+  subirFotoPerfil(archivo: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('foto', archivo);
+    
+    return this.http.post(`${this.AppUrl}${this.APIUrl}/subir-foto-perfil`, formData, {
+      headers: new HttpHeaders({
+        'token': this.getToken() || ''
+      })
+    });
+  }
+
+  /**
+   * Eliminar foto de perfil
+   */
+  eliminarFotoPerfil(): Observable<any> {
+    return this.http.delete(`${this.AppUrl}${this.APIUrl}/eliminar-foto-perfil`, {
+      headers: this.getHeaders()
+    });
+  }
+
 }

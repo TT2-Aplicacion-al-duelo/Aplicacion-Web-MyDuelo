@@ -113,9 +113,26 @@
                   
                   <td>
                     <div class="d-flex align-items-center">
-                      <div class="avatar-circle me-2">
+                      <!-- <div class="avatar-circle me-2">
                         {{ paciente.nombre?.charAt(0) }}{{ paciente.apellido_paterno?.charAt(0) || '' }}
-                      </div>
+                      </div> -->
+                      <!-- ⭐ REEMPLAZAR la sección de avatar (busca por class="paciente-avatar") -->
+
+                        <div class="paciente-avatar me-3">
+                          <img 
+                            *ngIf="paciente.foto_perfil" 
+                            [src]="obtenerFotoUrl(paciente)" 
+                            [alt]="getNombreCompleto(paciente)"
+                            class="rounded-circle"
+                            style="width: 50px; height: 50px; object-fit: cover;"
+                            (error)="$event.target.src='/assets/default-avatar.png'">
+                          <div 
+                            *ngIf="!paciente.foto_perfil" 
+                            class="avatar-initials rounded-circle bg-primary text-white d-flex align-items-center justify-content-center"
+                            style="width: 50px; height: 50px;">
+                            {{ paciente.nombre?.charAt(0) }}{{ paciente.apellido_paterno?.charAt(0) || '' }}
+                          </div>
+                        </div>
                       <div>
                         <div class="fw-semibold">
                           {{ paciente.nombre }} {{ paciente.apellido_paterno }} {{ paciente.apellido_materno }}

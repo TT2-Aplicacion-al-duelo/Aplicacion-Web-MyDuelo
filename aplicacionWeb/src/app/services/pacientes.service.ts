@@ -27,6 +27,18 @@ export class PacientesService {
   getPacientePorId(idPaciente: number): Observable<Paciente> {
     return this.http.get<Paciente>(`${this.AppUrl}${this.APIUrl}/paciente/${idPaciente}`);
   }
+
+  // ⭐ AGREGAR este método dentro de la clase PacienteService
+
+  /**
+   * Obtener URL de foto de perfil del paciente
+   */
+  getFotoPerfil(idPaciente: number): Observable<{ foto_url: string | null }> {
+    return this.http.get<{ foto_url: string | null }>(
+      `${this.AppUrl}${this.APIUrl}/paciente/${idPaciente}/foto-perfil`,
+      { headers: this.getHeaders() }
+    );
+  }
 }
 
   

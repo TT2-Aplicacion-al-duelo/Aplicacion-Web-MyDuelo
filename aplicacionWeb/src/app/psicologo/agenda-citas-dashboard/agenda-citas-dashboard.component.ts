@@ -669,13 +669,24 @@ hoy() {
   this.cargarAgenda(); 
 }
   getColorEvento(estado?: string): string {
-    switch (estado) {
-      case 'Pendiente': return 'bg-warning text-dark';
-      case 'Confirmada': return 'bg-success text-white';
-      case 'Cancelada': return 'bg-danger text-white';
-      default: return 'bg-secondary text-white';
-    }
+  // Normalizar el estado a minúsculas para comparación
+  const estadoNormalizado = estado?.toLowerCase();
+  
+  switch (estadoNormalizado) {
+    case 'pendiente':
+      return 'bg-warning text-dark';
+    case 'confirmada':
+      return 'bg-success text-white';
+    case 'cancelada':
+      return 'bg-danger text-white';
+    case 'realizada':
+      return 'bg-info text-white';
+    case 'reprogramada':
+      return 'bg-primary text-white';
+    default:
+      return 'bg-secondary text-white';
   }
+}
 
   abrirModal(id: string) {
     const modal = new (window as any).bootstrap.Modal(document.getElementById(id));

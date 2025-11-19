@@ -41,6 +41,8 @@ export class PerfilComponent implements OnInit {
   perfil: DatosPerfil | null = null;
   cargando: boolean = true;
   error: string = '';
+  fotoPerfilUrl: string | null = null;
+  uploadingFoto: boolean = false;
   
   // Información básica del token
   usuarioInfo: any = null;
@@ -201,4 +203,94 @@ export class PerfilComponent implements OnInit {
       });
     }
   }
+
+
+  /**
+ * Obtener URL de foto de perfil
+ */
+obtenerFotoUrl(): string {
+  if (this.psicologo?.foto_perfil) {
+    // Si ya es una URL completa
+    if (this.psicologo.foto_perfil.startsWith('http')) {
+      return this.psicologo.foto_perfil;
+    }
+    // Si es solo el nombre del archivo
+    const baseUrl = environment.production
+      ? 'https://api.midueloapp.com'
+      : 'http://localhost:3017';
+    return `${baseUrl}/uploads/${this.psicologo.foto_perfil}`;
+  }
+  return '/assets/default-avatar.png';
+}
+
+/**
+ * Manejar selección de archivo
+ */
+onFileSelected(event: any): void {
+  const file = event.target.files[0];
+  if (file) {
+    // Validar tipo de archivo
+    if (!file.type.startsWith('image/')) {
+      this.toastr.error('Por favor selecciona una imagen válida');
+      return;
+    }
+
+    // Validar tamaño (5MB máximo)
+    if (file.size > 5 * 1024 * 1024) {
+      this.toastr.error('La imagen no debe superar los 5MB');
+      return;
+    }
+
+    this.subirFoto(file);
+  }
+}
+
+  /**
+   * Subir foto de perfil
+   */
+  subirFoto(file: File): void {
+    this.uploadingFoto = true;
+    
+    this.psicologoService.subirFotoPerfil(file).subscribe({
+      next: (response) => {
+        this.toastr.success('Foto de perfil actualizada correctamente');
+        this.fotoPerfilUrl = response.foto_url;
+        
+        // Actualizar el objeto psicologo
+        if (this.psicologo) {
+          this.psicologo.foto_perfil = file.name;
+        }
+        
+        this.uploadingFoto = false;
+      },
+      error: (error) => {
+        console.error('Error al subir foto:', error);
+        this.toastr.error('Error al subir la foto de perfil');
+        this.uploadingFoto = false;
+      }
+    });
+  }
+
+  /**
+   * Eliminar foto de perfil
+   */
+  eliminarFoto(): void {
+    if (confirm('¿Estás seguro de eliminar tu foto de perfil?')) {
+      this.psicologoService.eliminarFotoPerfil().subscribe({
+        next: () => {
+          this.toastr.success('Foto de perfil eliminada');
+          this.fotoPerfilUrl = null;
+          if (this.psicologo) {
+            this.psicologo.foto_perfil = null;
+          }
+        },
+        error: (error) => {
+          console.error('Error al eliminar foto:', error);
+          this.toastr.error('Error al eliminar la foto');
+        }
+      });
+    }
+  }
+
+
 }
