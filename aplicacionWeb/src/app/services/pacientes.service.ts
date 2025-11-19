@@ -39,6 +39,16 @@ export class PacientesService {
       { headers: this.getHeaders() }
     );
   }
+  /**
+   * Obtener headers con token
+   */
+  private getHeaders(): HttpHeaders {
+    const token = localStorage.getItem('token');
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'token': token || ''
+    });
+  }
 }
 
   

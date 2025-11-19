@@ -4,7 +4,9 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { PsicologoService } from '../../services/psicologo.service';
 import { AdminService } from '../../services/admin.service';
-
+import { ToastrService } from 'ngx-toastr'; 
+import { environment } from '../../../environments/environment'; 
+import { HttpHeaders } from '@angular/common/http';  
 interface DatosPerfil {
   // Datos comunes
   id: number;
@@ -22,6 +24,7 @@ interface DatosPerfil {
   
   // Datos específicos de admin
   rol_admin?: boolean;
+  foto_perfil?: string;
   
   // Metadata
   tipo: 'psicologo' | 'admin';
@@ -39,6 +42,7 @@ interface DatosPerfil {
 export class PerfilComponent implements OnInit {
   
   perfil: DatosPerfil | null = null;
+  psicologo: any = null;  
   cargando: boolean = true;
   error: string = '';
   fotoPerfilUrl: string | null = null;
@@ -51,6 +55,7 @@ export class PerfilComponent implements OnInit {
     private authService: AuthService,
     private psicologoService: PsicologoService,
     private adminService: AdminService,
+    private toastr: ToastrService,
     public router: Router
   ) {}
 
@@ -206,22 +211,25 @@ export class PerfilComponent implements OnInit {
 
 
   /**
- * Obtener URL de foto de perfil
- */
-obtenerFotoUrl(): string {
-  if (this.psicologo?.foto_perfil) {
-    // Si ya es una URL completa
-    if (this.psicologo.foto_perfil.startsWith('http')) {
-      return this.psicologo.foto_perfil;
+   * Obtener URL de foto de perfil
+   */
+  obtenerFotoUrl(): string {
+    // Verificar tanto en perfil como en psicologo
+    const fotoPerfil = this.psicologo?.foto_perfil || this.perfil?.foto_perfil;
+    
+    if (fotoPerfil) {
+      // Si ya es una URL completa
+      if (fotoPerfil.startsWith('http')) {
+        return fotoPerfil;
+      }
+      // Si es solo el nombre del archivo
+      const baseUrl = environment.production
+        ? 'https://api.midueloapp.com'
+        : 'http://localhost:3017';
+      return `${baseUrl}/uploads/${fotoPerfil}`;
     }
-    // Si es solo el nombre del archivo
-    const baseUrl = environment.production
-      ? 'https://api.midueloapp.com'
-      : 'http://localhost:3017';
-    return `${baseUrl}/uploads/${this.psicologo.foto_perfil}`;
+    return '/assets/default-avatar.png';
   }
-  return '/assets/default-avatar.png';
-}
 
 /**
  * Manejar selección de archivo

@@ -8,6 +8,7 @@ export interface PacienteAdmin {
   fecha_nacimiento: string;
   id_psicologo: number | null;
   email_verificado: boolean;
+  foto_perfil?: string, 
   // Información del psicólogo asignado
   psicologo?: {
     id_psicologo: number;

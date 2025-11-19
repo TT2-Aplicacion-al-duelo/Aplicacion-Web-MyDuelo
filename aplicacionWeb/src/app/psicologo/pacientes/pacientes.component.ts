@@ -5,6 +5,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 
+import { environment } from '../../../environments/environment';  
+
 @Component({
   selector: 'app-pacientes',
   imports: [CommonModule, FormsModule],
@@ -29,6 +31,15 @@ export class PacientesComponent implements OnInit {
 
   ngOnInit(): void {
     this.getPacientesPorPsicologo();
+  }
+
+
+  /**
+   * Manejar error de carga de imagen
+   */
+  onImageError(event: Event): void {
+    const imgElement = event.target as HTMLImageElement;
+    imgElement.src = '/assets/default-avatar.png';
   }
 
   getPacientesPorPsicologo() {
@@ -89,9 +100,9 @@ export class PacientesComponent implements OnInit {
     return new Date(fecha).toLocaleDateString('es-ES');
   }
 
-  /**
- * Obtener URL de foto de perfil
- */
+    /**
+   * Obtener URL de foto de perfil
+   */
   obtenerFotoUrl(paciente: any): string {
     // Si ya tiene una URL completa, usarla directamente
     if (paciente.foto_perfil && paciente.foto_perfil.startsWith('http')) {
@@ -100,7 +111,7 @@ export class PacientesComponent implements OnInit {
     
     // Si tiene solo el nombre del archivo, construir la URL
     if (paciente.foto_perfil) {
-      const baseUrl = this.environment.production 
+      const baseUrl = environment.production 
         ? 'https://api.midueloapp.com'
         : 'http://localhost:3017';
       return `${baseUrl}/uploads/${paciente.foto_perfil}`;
@@ -108,5 +119,24 @@ export class PacientesComponent implements OnInit {
     
     // Si no tiene foto, retornar un placeholder
     return '/assets/default-avatar.png';
+  }
+
+  /**
+   * Obtener nombre completo del paciente
+   */
+  getNombreCompleto(paciente: Paciente): string {
+    const nombre = paciente.nombre || '';
+    const paterno = paciente.apellido_paterno || '';
+    const materno = paciente.apellido_materno || '';
+    return `${nombre} ${paterno} ${materno}`.trim();
+  }
+
+  /**
+   * Obtener iniciales del paciente
+   */
+  getIniciales(paciente: Paciente): string {
+    const nombre = paciente.nombre?.charAt(0).toUpperCase() || '';
+    const apellido = paciente.apellido_paterno?.charAt(0).toUpperCase() || '';
+    return `${nombre}${apellido}`;
   }
 }

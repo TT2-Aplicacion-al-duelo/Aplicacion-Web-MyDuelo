@@ -55,7 +55,7 @@
                         alt="Foto de perfil"
                         class="rounded-circle mb-3"
                         style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #dee2e6;"
-                        (error)="$event.target.src='/assets/default-avatar.png'">
+                        (error)="$any($event.target).src='/assets/default-avatar.png'">
                     </div>
                     
                     <div class="d-flex justify-content-center gap-2">
