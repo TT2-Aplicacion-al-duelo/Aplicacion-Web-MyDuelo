@@ -41,215 +41,117 @@
             <!-- Sección de Avatar y Nombre -->
             <div class="row">
               <div class="col-md-3 text-center mb-4 mb-md-0">
-                <div class="card mb-4">
-                  <div class="card-header">
-                    <h5 class="mb-0">
-                      <i class="bi bi-person-circle me-2"></i>
-                      Foto de Perfil
-                    </h5>
-                  </div>
-                  <div class="card-body text-center">
-                    <div class="mb-3">
-                      <img 
-                        [src]="obtenerFotoUrl()" 
-                        alt="Foto de perfil"
-                        class="rounded-circle mb-3"
-                        style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #dee2e6;"
-                        (error)="$any($event.target).src='/assets/default-avatar.png'">
-                    </div>
-                    
-                    <div class="d-flex justify-content-center gap-2">
-                      <label class="btn btn-primary" [class.disabled]="uploadingFoto">
-                        <i class="bi bi-upload me-2"></i>
-                        {{ uploadingFoto ? 'Subiendo...' : 'Cambiar foto' }}
-                        <input 
-                          type="file" 
-                          class="d-none" 
-                          accept="image/*"
-                          (change)="onFileSelected($event)"
-                          [disabled]="uploadingFoto">
-                      </label>
-                      
-                      <button 
-                        class="btn btn-outline-danger"
-                        *ngIf="psicologo?.foto_perfil"
-                        (click)="eliminarFoto()"
-                        [disabled]="uploadingFoto">
-                        <i class="bi bi-trash me-2"></i>
-                        Eliminar
-                      </button>
-                    </div>
-                    
-                    <small class="text-muted d-block mt-2">
-                      Formatos permitidos: JPG, PNG, GIF, WEBP (máx. 5MB)
-                    </small>
-                  </div>
+                
+                <!-- Foto de Perfil -->
+                <div class="mb-3">
+                  <img 
+                    [src]="obtenerFotoUrl()" 
+                    alt="Foto de perfil"
+                    class="rounded-circle mb-3"
+                    style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #dee2e6;"
+                    (error)="onImageError($event)">
                 </div>
                 
-                <!-- Badge de Rol -->
-                <div class="mb-3">
-                  <span class="badge badge-rol" [class.badge-admin]="perfil.tipo === 'admin'" 
-                        [class.badge-psicologo]="perfil.tipo === 'psicologo'">
-                    <i class="bi" [class.bi-shield-check]="perfil.tipo === 'admin'" 
-                       [class.bi-person-badge]="perfil.tipo === 'psicologo'"></i>
-                    {{ perfil.tipo === 'admin' ? 'Administrador' : 'Psicólogo' }}
-                  </span>
+                <!-- Botones de Foto -->
+                <div class="d-flex flex-column gap-2">
+                  <label class="btn btn-primary btn-sm" [class.disabled]="uploadingFoto">
+                    <i class="bi bi-upload me-2"></i>
+                    {{ uploadingFoto ? 'Subiendo...' : 'Cambiar Foto' }}
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      (change)="onFileSelected($event)"
+                      [disabled]="uploadingFoto"
+                      style="display: none;">
+                  </label>
+                  
+                  <button 
+                    *ngIf="perfil.foto_perfil"
+                    class="btn btn-outline-danger btn-sm"
+                    (click)="eliminarFoto()"
+                    [disabled]="uploadingFoto">
+                    <i class="bi bi-trash me-2"></i>
+                    Eliminar
+                  </button>
                 </div>
-
-                <!-- Botón de Configuración -->
-                <button class="btn btn-primary w-100" (click)="irAConfiguracion()">
-                  <i class="bi bi-gear me-2"></i>
-                  Editar Perfil
-                </button>
               </div>
 
+              <!-- Información Personal -->
               <div class="col-md-9">
-                <h3 class="mb-4">{{ perfil.nombre }} {{ perfil.apellido }}</h3>
-
-                <!-- Información del Psicólogo -->
-                <div *ngIf="perfil.tipo === 'psicologo'">
-                  
-                  <!-- Código de Vinculación -->
-                  <div class="info-card mb-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                      <div>
-                        <h6 class="text-muted mb-1">
-                          <i class="bi bi-key me-2"></i>
-                          Código de Vinculación
-                        </h6>
-                        <p class="mb-0 fs-5 fw-bold text-primary">
-                          {{ perfil.codigoVinculacion }}
-                        </p>
-                        <small class="text-muted">Comparte este código con tus pacientes para vincularlos</small>
-                      </div>
-                      <button class="btn btn-outline-primary btn-sm" (click)="copiarCodigo()">
-                        <i class="bi bi-clipboard"></i>
-                        Copiar
-                      </button>
-                    </div>
-                  </div>
-
-                  <!-- Datos Personales -->
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-envelope me-2"></i>
-                          Correo Electrónico
-                        </label>
-                        <div class="info-value">{{ perfil.correo }}</div>
-                      </div>
-                    </div>
-
-                    <div class="col-md-6" *ngIf="perfil.telefono">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-telephone me-2"></i>
-                          Teléfono
-                        </label>
-                        <div class="info-value">{{ perfil.telefono }}</div>
-                      </div>
-                    </div>
-
-                    <div class="col-md-6" *ngIf="perfil.especialidad">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-mortarboard me-2"></i>
-                          Especialidad
-                        </label>
-                        <div class="info-value">{{ perfil.especialidad }}</div>
-                      </div>
-                    </div>
-
-                    <div class="col-md-6" *ngIf="perfil.cedula">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-card-text me-2"></i>
-                          Cédula Profesional
-                        </label>
-                        <div class="info-value d-flex align-items-center">
-                          {{ perfil.cedula }}
-                          <span *ngIf="perfil.cedula_validada" 
-                                class="badge bg-success ms-2">
-                            <i class="bi bi-check-circle"></i> Validada
-                          </span>
-                          <span *ngIf="!perfil.cedula_validada" 
-                                class="badge bg-warning ms-2">
-                            <i class="bi bi-clock"></i> Pendiente
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div class="col-12" *ngIf="perfil.direccionConsultorio">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-geo-alt me-2"></i>
-                          Dirección del Consultorio
-                        </label>
-                        <div class="info-value">{{ perfil.direccionConsultorio }}</div>
-                      </div>
-                    </div>
-                  </div>
+                <div class="mb-4">
+                  <h3 class="mb-2">
+                    {{ perfil.nombre }} {{ perfil.apellido }}
+                    <span 
+                      class="badge ms-2" 
+                      [class.bg-danger]="perfil.tipo === 'admin'" 
+                      [class.bg-primary]="perfil.tipo === 'psicologo'">
+                      {{ perfil.tipo === 'admin' ? 'Administrador' : 'Psicólogo' }}
+                    </span>
+                  </h3>
+                  <p class="text-muted mb-0">
+                    <i class="bi bi-envelope me-2"></i>
+                    {{ perfil.correo }}
+                  </p>
                 </div>
 
-                <!-- Información del Administrador -->
-                <div *ngIf="perfil.tipo === 'admin'">
-                  <div class="row g-3">
-                    <div class="col-md-6">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-envelope me-2"></i>
-                          Correo Electrónico
-                        </label>
-                        <div class="info-value">{{ perfil.correo }}</div>
-                      </div>
-                    </div>
-
-                    <div class="col-md-6" *ngIf="perfil.telefono">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-telephone me-2"></i>
-                          Teléfono
-                        </label>
-                        <div class="info-value">{{ perfil.telefono }}</div>
-                      </div>
-                    </div>
-
-                    <div class="col-md-6" *ngIf="perfil.createdAt">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-calendar-check me-2"></i>
-                          Cuenta Creada
-                        </label>
-                        <div class="info-value">{{ formatearFecha(perfil.createdAt) }}</div>
-                      </div>
-                    </div>
-
-                    <div class="col-md-6" *ngIf="perfil.updatedAt">
-                      <div class="info-item">
-                        <label class="info-label">
-                          <i class="bi bi-calendar-event me-2"></i>
-                          Última Actualización
-                        </label>
-                        <div class="info-value">{{ formatearFecha(perfil.updatedAt) }}</div>
-                      </div>
+                <!-- Información en Columnas -->
+                <div class="row">
+                  <div class="col-md-6 mb-3">
+                    <div class="info-item">
+                      <label class="info-label">
+                        <i class="bi bi-telephone me-1"></i>
+                        Teléfono
+                      </label>
+                      <p class="info-value">{{ perfil.telefono || 'No especificado' }}</p>
                     </div>
                   </div>
 
-                  <!-- Permisos de Administrador -->
-                  <div class="alert alert-info mt-4" role="alert">
-                    <h6 class="alert-heading">
-                      <i class="bi bi-shield-check me-2"></i>
-                      Privilegios de Administrador
-                    </h6>
-                    <p class="mb-0">Tienes acceso completo a todas las funcionalidades del sistema, incluyendo:</p>
-                    <ul class="mb-0 mt-2">
-                      <li>Gestión de psicólogos</li>
-                      <li>Gestión de pacientes</li>
-                      <li>Supervisión de chats</li>
-                      <li>Configuración del sistema</li>
-                    </ul>
+                  <div class="col-md-6 mb-3" *ngIf="perfil.especialidad">
+                    <div class="info-item">
+                      <label class="info-label">
+                        <i class="bi bi-briefcase me-1"></i>
+                        Especialidad
+                      </label>
+                      <p class="info-value">{{ perfil.especialidad }}</p>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 mb-3" *ngIf="perfil.cedula">
+                    <div class="info-item">
+                      <label class="info-label">
+                        <i class="bi bi-card-text me-1"></i>
+                        Cédula Profesional
+                      </label>
+                      <p class="info-value">
+                        {{ perfil.cedula }}
+                        <span 
+                          class="badge ms-2" 
+                          [class.bg-success]="perfil.cedula_validada" 
+                          [class.bg-warning]="!perfil.cedula_validada">
+                          {{ perfil.cedula_validada ? 'Validada' : 'Pendiente' }}
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 mb-3" *ngIf="perfil.direccionConsultorio">
+                    <div class="info-item">
+                      <label class="info-label">
+                        <i class="bi bi-geo-alt me-1"></i>
+                        Dirección del Consultorio
+                      </label>
+                      <p class="info-value">{{ perfil.direccionConsultorio }}</p>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6 mb-3" *ngIf="perfil.createdAt">
+                    <div class="info-item">
+                      <label class="info-label">
+                        <i class="bi bi-calendar me-1"></i>
+                        Miembro desde
+                      </label>
+                      <p class="info-value">{{ formatearFecha(perfil.createdAt) }}</p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -257,70 +159,55 @@
           </div>
         </div>
 
+        <!-- Código de Vinculación (solo para psicólogos) -->
+        <div *ngIf="perfil.codigoVinculacion && perfil.tipo === 'psicologo'" class="info-card mb-4">
+          <div class="d-flex justify-content-between align-items-start">
+            <div>
+              <h5 class="mb-2">
+                <i class="bi bi-link-45deg me-2"></i>
+                Código de Vinculación
+              </h5>
+              <p class="mb-2 text-muted">Comparte este código con tus pacientes para vincularse contigo</p>
+              <h3 class="text-primary mb-0">
+                <code>{{ perfil.codigoVinculacion }}</code>
+              </h3>
+            </div>
+            <button 
+              class="btn btn-outline-primary" 
+              (click)="copiarCodigo()">
+              <i class="bi bi-clipboard me-2"></i>
+              Copiar
+            </button>
+          </div>
+        </div>
 
-        
-        <!-- Cards de Acceso Rápido -->
+        <!-- Acciones Rápidas -->
         <div class="row g-3">
-          <div class="col-md-4">
-            <div class="card action-card h-100" (click)="irAConfiguracion()">
-              <div class="card-body text-center">
+          <div class="col-md-6">
+            <div class="card action-card" (click)="irAConfiguracion()">
+              <div class="card-body text-center p-4">
                 <div class="action-icon mb-3">
-                  <i class="bi bi-gear fs-1"></i>
+                  <i class="bi bi-gear-fill" style="font-size: 2.5rem;"></i>
                 </div>
                 <h5>Configuración</h5>
-                <p class="text-muted mb-0">Edita tu información personal</p>
+                <p class="text-muted mb-0">Actualiza tu información y preferencias</p>
               </div>
             </div>
           </div>
 
-          <div class="col-md-4" *ngIf="perfil.tipo === 'psicologo'">
-            <div class="card action-card h-100" (click)="router.navigate(['/agenda'])">
-              <div class="card-body text-center">
+          <div class="col-md-6" *ngIf="perfil.tipo === 'psicologo'">
+            <div class="card action-card" (click)="router.navigate(['/agenda'])">
+              <div class="card-body text-center p-4">
                 <div class="action-icon mb-3">
-                  <i class="bi bi-calendar3 fs-1"></i>
+                  <i class="bi bi-calendar-check-fill" style="font-size: 2.5rem;"></i>
                 </div>
                 <h5>Mi Agenda</h5>
-                <p class="text-muted mb-0">Ver y gestionar citas</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4" *ngIf="perfil.tipo === 'psicologo'">
-            <div class="card action-card h-100" (click)="router.navigate(['/lista-pacientes-del-psicologo'])">
-              <div class="card-body text-center">
-                <div class="action-icon mb-3">
-                  <i class="bi bi-people fs-1"></i>
-                </div>
-                <h5>Mis Pacientes</h5>
-                <p class="text-muted mb-0">Gestionar pacientes</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4" *ngIf="perfil.tipo === 'admin'">
-            <div class="card action-card h-100" (click)="router.navigate(['/admin/psicologos'])">
-              <div class="card-body text-center">
-                <div class="action-icon mb-3">
-                  <i class="bi bi-person-badge fs-1"></i>
-                </div>
-                <h5>Psicólogos</h5>
-                <p class="text-muted mb-0">Gestionar psicólogos</p>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-4" *ngIf="perfil.tipo === 'admin'">
-            <div class="card action-card h-100" (click)="router.navigate(['/admin/pacientes'])">
-              <div class="card-body text-center">
-                <div class="action-icon mb-3">
-                  <i class="bi bi-people fs-1"></i>
-                </div>
-                <h5>Pacientes</h5>
-                <p class="text-muted mb-0">Gestionar pacientes</p>
+                <p class="text-muted mb-0">Ver y gestionar tus citas</p>
               </div>
             </div>
           </div>
         </div>
+
       </div>
     </div>
   </div>
