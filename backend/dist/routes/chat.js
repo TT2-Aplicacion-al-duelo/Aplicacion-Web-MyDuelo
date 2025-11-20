@@ -33,38 +33,6 @@ router.post("/api/psicologo/chats", validarToken_1.default, chat_1.crearChat);
 // Enviar mensaje
 router.post("/api/psicologo/mensajes", validarToken_1.default, chat_1.enviarMensaje);
 router.get("/api/psicologo/chat/verificar/:idPaciente", validarToken_1.default, chat_1.verificarChatPaciente);
-// ====================================
-// RUTAS PARA MENSAJES CON ADMINISTRADOR
-// ====================================
-// Obtener mensajes de un chat con admin
-// router.get("/api/psicologo/chats/admin/:id_chat_admin/mensajes", validarToken, async (req: AuthRequest, res: Response) => {
-//   try {
-//     const id_chat_admin = parseInt(req.params.id_chat_admin);
-//     const id_psicologo = req.user?.id_psicologo;
-//     const mensajes = await sequelize.query(`
-//       SELECT 
-//         id_mensaje,
-//         id_chat_admin as id_chat,
-//         remitente,
-//         contenido,
-//         fecha_envio,
-//         leido
-//       FROM mensaje_admin 
-//       WHERE id_chat_admin = ? 
-//       ORDER BY fecha_envio ASC
-//     `, {
-//       replacements: [id_chat_admin],
-//       type: QueryTypes.SELECT
-//     });
-//     res.json(mensajes);
-//   } catch (error) {
-//     console.error('Error al obtener mensajes de admin:', error);
-//     res.status(500).json({ msg: "Error interno del servidor", error });
-//   }
-// });
-// ====================================
-// RUTAS PARA MENSAJES CON ADMINISTRADOR
-// ====================================
 const aes_crypto_1 = require("../utils/aes-crypto"); // ← AGREGAR ESTA IMPORTACIÓN AL INICIO DEL ARCHIVO
 // Obtener mensajes de un chat con admin - CON DESCIFRADO
 router.get("/api/psicologo/chats/admin/:id_chat_admin/mensajes", validarToken_1.default, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -88,13 +56,18 @@ router.get("/api/psicologo/chats/admin/:id_chat_admin/mensajes", validarToken_1.
             replacements: [id_chat_admin],
             type: sequelize_1.QueryTypes.SELECT
         });
-        // ✅ DESCIFRAR MENSAJES ANTES DE ENVIARLOS AL FRONTEND
+        // DESCIFRAR MENSAJES ANTES DE ENVIARLOS AL FRONTEND
         const mensajesDescifrados = (0, aes_crypto_1.decryptMessages)(mensajesCifrados);
-        console.log(`✅ Se descifraron ${mensajesDescifrados.length} mensajes del chat admin ${id_chat_admin}`);
-        res.json(mensajesDescifrados);
+        console.log(`Se descifraron ${mensajesDescifrados.length} mensajes del chat admin ${id_chat_admin}`);
+        // res.json(mensajesDescifrados);
+        // ✅ CONVERTIR fecha_envio a string
+        const mensajesConFechaString = mensajesDescifrados.map(mensaje => (Object.assign(Object.assign({}, mensaje), { fecha_envio: mensaje.fecha_envio
+                ? new Date(mensaje.fecha_envio).toISOString().replace('T', ' ').substring(0, 19)
+                : null })));
+        res.json(mensajesConFechaString);
     }
     catch (error) {
-        console.error('❌ Error al obtener mensajes de admin:', error);
+        console.error('Error al obtener mensajes de admin:', error);
         res.status(500).json({ msg: "Error interno del servidor", error });
     }
 }));

@@ -226,10 +226,18 @@ const getMensajes = (req, res) => __awaiter(void 0, void 0, void 0, function* ()
             replacements: [id_chat],
             type: sequelize_1.QueryTypes.SELECT
         });
+        // // DESCIFRAR MENSAJES ANTES DE ENVIARLOS AL CLIENTE
+        // const mensajesDescifrados = decryptMessages(mensajesCifrados as any[]);
+        // console.log(`Se descifraron ${mensajesDescifrados.length} mensajes del chat ${id_chat}`);
+        // res.json(mensajesDescifrados);
         // DESCIFRAR MENSAJES ANTES DE ENVIARLOS AL CLIENTE
         const mensajesDescifrados = (0, aes_crypto_1.decryptMessages)(mensajesCifrados);
+        // ✅ CONVERTIR fecha_envio a string para evitar conversión UTC
+        const mensajesConFechaString = mensajesDescifrados.map(mensaje => (Object.assign(Object.assign({}, mensaje), { fecha_envio: mensaje.fecha_envio
+                ? new Date(mensaje.fecha_envio).toISOString().replace('T', ' ').substring(0, 19)
+                : null })));
         console.log(`Se descifraron ${mensajesDescifrados.length} mensajes del chat ${id_chat}`);
-        res.json(mensajesDescifrados);
+        res.json(mensajesConFechaString);
     }
     catch (error) {
         console.error(' Error al obtener mensajes:', error);

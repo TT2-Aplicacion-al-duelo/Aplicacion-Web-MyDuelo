@@ -177,15 +177,30 @@ export const getMensajesAdmin = async (req: AuthRequest, res: Response) => {
       type: QueryTypes.SELECT
     }) as any[];
 
+    // //  DESCIFRAR MENSAJES
+    // const mensajesDescifrados = decryptMessages(mensajesCifrados);
+
+    // console.log(`Se descifraron ${mensajesDescifrados.length} mensajes del chat admin ${id_chat_admin}`);
+
+    // res.json(mensajesDescifrados);
     //  DESCIFRAR MENSAJES
     const mensajesDescifrados = decryptMessages(mensajesCifrados);
 
-    console.log(`✅ Se descifraron ${mensajesDescifrados.length} mensajes del chat admin ${id_chat_admin}`);
+    // CONVERTIR fecha_envio a string para evitar conversión UTC
+    const mensajesConFechaString = mensajesDescifrados.map(mensaje => ({
+      ...mensaje,
+      fecha_envio: mensaje.fecha_envio 
+        ? new Date(mensaje.fecha_envio).toISOString().replace('T', ' ').substring(0, 19)
+        : null
+    }));
 
-    res.json(mensajesDescifrados);
+    console.log(`Se descifraron ${mensajesDescifrados.length} mensajes del chat admin ${id_chat_admin}`);
+
+    res.json(mensajesConFechaString);
+
 
   } catch (error: any) {
-    console.error('❌ Error al obtener mensajes de admin:', error);
+    console.error('Error al obtener mensajes de admin:', error);
     res.status(500).json({ 
       msg: "Error interno del servidor", 
       error: error.message 
