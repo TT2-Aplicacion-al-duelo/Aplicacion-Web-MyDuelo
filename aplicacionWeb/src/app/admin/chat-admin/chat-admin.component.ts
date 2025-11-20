@@ -7,6 +7,7 @@ import { ChatAdminService } from '../../services/chat-admin.service';
 import { AuthService } from '../../services/auth.service';
 import { ChatAdmin, MensajeAdmin, UsuarioDisponible } from '../../interfaces/chat-admin';
 import { interval, Subscription } from 'rxjs';
+import { formatearFechaRelativa, formatearHoraMexico } from '../../utils/fecha-utils';
 
 @Component({
   selector: 'app-chat-admin',
@@ -256,29 +257,11 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   formatearFecha(fecha: string): string {
-    const date = new Date(fecha);
-    const ahora = new Date();
-    const diferencia = ahora.getTime() - date.getTime();
-    const minutos = Math.floor(diferencia / (1000 * 60));
-    const horas = Math.floor(diferencia / (1000 * 60 * 60));
-    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-
-    if (minutos < 1) return 'Ahora';
-    if (minutos < 60) return `${minutos}m`;
-    if (horas < 24) return `${horas}h`;
-    if (dias < 7) return `${dias}d`;
-    
-    return date.toLocaleDateString('es-ES', { 
-      day: '2-digit', 
-      month: '2-digit' 
-    });
+    return formatearFechaRelativa(fecha);
   }
 
   formatearHora(fecha: string): string {
-    return new Date(fecha).toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    return formatearHoraMexico(fecha);
   }
 
   esMensajeMio(mensaje: MensajeAdmin): boolean {

@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { formatearHoraMexico, formatearFechaRelativa } from '../../utils/fecha-utils';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chat.service';
 import { PacientesService } from '../../services/pacientes.service';
@@ -464,29 +465,11 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   formatearFecha(fecha: string): string {
-    const date = new Date(fecha);
-    const ahora = new Date();
-    const diferencia = ahora.getTime() - date.getTime();
-    const minutos = Math.floor(diferencia / (1000 * 60));
-    const horas = Math.floor(diferencia / (1000 * 60 * 60));
-    const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-
-    if (minutos < 1) return 'Ahora';
-    if (minutos < 60) return `${minutos}m`;
-    if (horas < 24) return `${horas}h`;
-    if (dias < 7) return `${dias}d`;
-    
-    return date.toLocaleDateString('es-ES', { 
-      day: '2-digit', 
-      month: '2-digit' 
-    });
+    return formatearFechaRelativa(fecha);
   }
 
   formatearHora(fecha: string): string {
-    return new Date(fecha).toLocaleTimeString('es-ES', { 
-      hour: '2-digit', 
-      minute: '2-digit' 
-    });
+    return formatearHoraMexico(fecha);
   }
 
   // esMensajeMio(mensaje: Mensaje): boolean {
