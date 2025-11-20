@@ -312,7 +312,7 @@ export const getMensajes = async (req: AuthRequest, res: Response) => {
 
       const resultado = await sequelize.query(`
         INSERT INTO mensaje (id_chat, remitente, contenido, fecha_envio, leido) 
-        VALUES (?, ?, ?, NOW(), ?)
+        VALUES (?, ?, ?, CONVERT_TZ(NOW(), @@session.time_zone, '-06:00'), ?)
       `, {
         replacements: [id_chat, remitente, contenidoCifrado, leido],
         type: QueryTypes.INSERT

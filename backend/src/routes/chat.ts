@@ -127,7 +127,7 @@ router.post("/api/psicologo/chats/admin/mensajes", validarToken, async (req: Aut
     // Insertar el mensaje
     const resultado = await sequelize.query(`
       INSERT INTO mensaje_admin (id_chat_admin, remitente, contenido, fecha_envio, leido) 
-      VALUES (?, 'usuario', ?, NOW(), 1)
+      VALUES (?, 'usuario', ?, CONVERT_TZ(NOW(), @@session.time_zone, '-06:00'), 1)
     `, {
       replacements: [id_chat_admin, contenido.trim()],
       type: QueryTypes.INSERT
