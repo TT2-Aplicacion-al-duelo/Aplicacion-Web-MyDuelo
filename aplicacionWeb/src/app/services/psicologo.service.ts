@@ -73,37 +73,45 @@ export class PsicologoService {
     /**
    * Obtener perfil completo del psicólogo
    */
-  obtenerPerfil(): Observable<any> {
-    const token = this.getToken();
-    if (!token) {
-      throw new Error('No hay token de autenticación');
-    }
+  // obtenerPerfil(): Observable<any> {
+  //   const token = this.getToken();
+  //   if (!token) {
+  //     throw new Error('No hay token de autenticación');
+  //   }
 
-    // Decodificar token para obtener datos
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
+  //   // Decodificar token para obtener datos
+  //   try {
+  //     const payload = JSON.parse(atob(token.split('.')[1]));
       
-      // Simular respuesta con datos del token
-      // En el futuro puedes crear un endpoint en el backend
-      return new Observable(observer => {
-        observer.next({
-          id_psicologo: payload.id_psicologo,
-          nombre: payload.nombre,
-          apellido: payload.apellido || payload.apellidoPaterno,
-          correo: payload.correo,
-          telefono: payload.telefono,
-          especialidad: payload.especialidad,
-          cedula: payload.cedula,
-          cedula_validada: payload.cedula_validada,
-          rol_admin: payload.rol_admin
-        });
-        observer.complete();
-      });
-    } catch (error) {
-      return this.http.get(`${this.AppUrl}${this.APIUrl}/perfil`, {
-        headers: this.getHeaders()
-      });
-    }
+  //     // Simular respuesta con datos del token
+  //     // En el futuro puedes crear un endpoint en el backend
+  //     return new Observable(observer => {
+  //       observer.next({
+  //         id_psicologo: payload.id_psicologo,
+  //         nombre: payload.nombre,
+  //         apellido: payload.apellido || payload.apellidoPaterno,
+  //         correo: payload.correo,
+  //         telefono: payload.telefono,
+  //         especialidad: payload.especialidad,
+  //         cedula: payload.cedula,
+  //         cedula_validada: payload.cedula_validada,
+  //         rol_admin: payload.rol_admin
+  //       });
+  //       observer.complete();
+  //     });
+  //   } catch (error) {
+  //     return this.http.get(`${this.AppUrl}${this.APIUrl}/perfil`, {
+  //       headers: this.getHeaders()
+  //     });
+  //   }
+  // }
+  /**
+ * Obtener perfil completo del psicólogo desde el backend
+ */
+  obtenerPerfil(): Observable<any> {
+    return this.http.get(`${this.AppUrl}${this.APIUrl}/perfil`, {
+      headers: this.getHeaders()
+    });
   }
 
   private getToken(): string | null {

@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.eliminarFotoPerfil = exports.subirFotoPerfil = exports.cambiarContrasena = exports.actualizarPerfil = exports.restablecerContrasena = exports.verificarTokenRecuperacion = exports.solicitarRecuperacion = exports.login = exports.reenviarActivacion = exports.activarCuenta = exports.registro = void 0;
+exports.obtenerPerfil = exports.eliminarFotoPerfil = exports.subirFotoPerfil = exports.cambiarContrasena = exports.actualizarPerfil = exports.restablecerContrasena = exports.verificarTokenRecuperacion = exports.solicitarRecuperacion = exports.login = exports.reenviarActivacion = exports.activarCuenta = exports.registro = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const crypto_1 = __importDefault(require("crypto"));
@@ -757,3 +757,69 @@ const eliminarFotoPerfil = (req, res) => __awaiter(void 0, void 0, void 0, funct
     }
 });
 exports.eliminarFotoPerfil = eliminarFotoPerfil;
+/**
+ * GET /api/psicologo/perfil
+ * Obtener perfil completo del psicólogo desde la base de datos
+ */
+const obtenerPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a;
+    try {
+        const id_psicologo = (_a = req.user) === null || _a === void 0 ? void 0 : _a.id_psicologo;
+        if (!id_psicologo) {
+            return res.status(401).json({ msg: "No autorizado" });
+        }
+        const psicologo = yield psicologo_1.Psicologo.findByPk(id_psicologo, {
+            attributes: [
+                'id_psicologo',
+                'nombre',
+                'apellidoPaterno',
+                'apellidoMaterno',
+                'correo',
+                'telefono',
+                'especialidad',
+                'cedula',
+                'cedula_validada',
+                'direccion_consultorio',
+                'codigo_vinculacion',
+                'rol_admin',
+                'foto_perfil', // ⭐ INCLUIR FOTO
+                'createdAt',
+                'updatedAt'
+            ]
+        });
+        if (!psicologo) {
+            return res.status(404).json({ msg: "Psicólogo no encontrado" });
+        }
+        // Construir URL completa si es necesario
+        let fotoUrl = psicologo.foto_perfil;
+        if (fotoUrl && !fotoUrl.startsWith('http')) {
+            const baseUrl = process.env.NODE_ENV === 'production'
+                ? 'https://api.midueloapp.com'
+                : `http://localhost:${process.env.PORT || '3017'}`;
+            fotoUrl = `${baseUrl}/uploads/${fotoUrl}`;
+        }
+        res.json({
+            id_psicologo: psicologo.id_psicologo,
+            nombre: psicologo.nombre,
+            apellido: psicologo.apellidoPaterno,
+            apellidoPaterno: psicologo.apellidoPaterno,
+            apellidoMaterno: psicologo.apellidoMaterno,
+            correo: psicologo.correo,
+            telefono: psicologo.telefono,
+            especialidad: psicologo.especialidad,
+            cedula: psicologo.cedula,
+            cedula_validada: psicologo.cedula_validada,
+            direccion_consultorio: psicologo.direccion_consultorio,
+            codigoVinculacion: psicologo.codigo_vinculacion,
+            rol_admin: psicologo.rol_admin,
+            foto_perfil: fotoUrl, // ⭐ URL COMPLETA
+            createdAt: psicologo.createdAt,
+            updatedAt: psicologo.updatedAt
+        });
+    }
+    catch (error) {
+        console.error("Error al obtener perfil:", error);
+        res.status(500).json({ msg: "Error al obtener perfil" });
+    }
+});
+exports.obtenerPerfil = obtenerPerfil;

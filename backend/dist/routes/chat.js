@@ -15,8 +15,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = require("express");
 const chat_1 = require("../controllers/chat");
 const validarToken_1 = __importDefault(require("./validarToken"));
-const connection_1 = __importDefault(require("../database/connection")); // ← AGREGAR SI NO ESTÁ
-const sequelize_1 = require("sequelize"); // ← AGREGAR SI NO ESTÁ
+const connection_1 = __importDefault(require("../database/connection"));
+const sequelize_1 = require("sequelize");
 const router = (0, express_1.Router)();
 // ===== RUTAS DE CHAT =====
 // Obtener todos los chats del psicólogo

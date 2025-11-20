@@ -906,4 +906,77 @@ export const eliminarFotoPerfil = async (req: Request, res: Response) => {
     console.error("Error al eliminar foto de perfil:", error);
     res.status(500).json({ msg: "Error al eliminar foto de perfil" });
   }
+
+
+
+};
+
+/**
+ * GET /api/psicologo/perfil
+ * Obtener perfil completo del psicólogo desde la base de datos
+ */
+export const obtenerPerfil = async (req: Request, res: Response) => {
+  try {
+    const id_psicologo = (req as any).user?.id_psicologo;
+
+    if (!id_psicologo) {
+      return res.status(401).json({ msg: "No autorizado" });
+    }
+
+    const psicologo = await Psicologo.findByPk(id_psicologo, {
+      attributes: [
+        'id_psicologo',
+        'nombre',
+        'apellidoPaterno',
+        'apellidoMaterno',
+        'correo',
+        'telefono',
+        'especialidad',
+        'cedula',
+        'cedula_validada',
+        'direccion_consultorio',
+        'codigo_vinculacion',
+        'rol_admin',
+        'foto_perfil',  // ⭐ INCLUIR FOTO
+        'createdAt',
+        'updatedAt'
+      ]
+    });
+
+    if (!psicologo) {
+      return res.status(404).json({ msg: "Psicólogo no encontrado" });
+    }
+
+    // Construir URL completa si es necesario
+    let fotoUrl = (psicologo as any).foto_perfil;
+    if (fotoUrl && !fotoUrl.startsWith('http')) {
+      const baseUrl = process.env.NODE_ENV === 'production'
+        ? 'https://api.midueloapp.com'
+        : `http://localhost:${process.env.PORT || '3017'}`;
+      fotoUrl = `${baseUrl}/uploads/${fotoUrl}`;
+    }
+
+    res.json({
+      id_psicologo: (psicologo as any).id_psicologo,
+      nombre: (psicologo as any).nombre,
+      apellido: (psicologo as any).apellidoPaterno,
+      apellidoPaterno: (psicologo as any).apellidoPaterno,
+      apellidoMaterno: (psicologo as any).apellidoMaterno,
+      correo: (psicologo as any).correo,
+      telefono: (psicologo as any).telefono,
+      especialidad: (psicologo as any).especialidad,
+      cedula: (psicologo as any).cedula,
+      cedula_validada: (psicologo as any).cedula_validada,
+      direccion_consultorio: (psicologo as any).direccion_consultorio,
+      codigoVinculacion: (psicologo as any).codigo_vinculacion,
+      rol_admin: (psicologo as any).rol_admin,
+      foto_perfil: fotoUrl,  // ⭐ URL COMPLETA
+      createdAt: (psicologo as any).createdAt,
+      updatedAt: (psicologo as any).updatedAt
+    });
+
+  } catch (error) {
+    console.error("Error al obtener perfil:", error);
+    res.status(500).json({ msg: "Error al obtener perfil" });
+  }
 };

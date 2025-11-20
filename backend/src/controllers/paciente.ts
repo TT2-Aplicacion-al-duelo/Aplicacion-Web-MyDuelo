@@ -61,8 +61,9 @@ export const getPacientes = async (req: AuthRequest, res: Response) => {
                 'apellido_paterno', 
                 'apellido_materno', 
                 'email',
-                'telefono',           // ✅ AGREGADO
-                'email_verificado'    // ✅ AGREGADO
+                'telefono',          
+                'email_verificado',
+                //'foto_perfil'    
             ]
         });
         

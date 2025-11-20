@@ -63,8 +63,9 @@ const getPacientes = (req, res) => __awaiter(void 0, void 0, void 0, function* (
                 'apellido_paterno',
                 'apellido_materno',
                 'email',
-                'telefono', // ✅ AGREGADO
-                'email_verificado' // ✅ AGREGADO
+                'telefono',
+                'email_verificado',
+                //'foto_perfil'    
             ]
         });
         console.log(`Encontrados ${listaPacientes.length} pacientes`);

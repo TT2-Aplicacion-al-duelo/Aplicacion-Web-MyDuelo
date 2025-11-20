@@ -9,8 +9,9 @@ import {
   verificarChatPaciente
 } from "../controllers/chat";
 import validarToken from "./validarToken";
-import sequelize from "../database/connection";  // ← AGREGAR SI NO ESTÁ
-import { QueryTypes } from 'sequelize';         // ← AGREGAR SI NO ESTÁ
+import sequelize from "../database/connection";  
+import { QueryTypes } from 'sequelize';   
+  
 
 // Definir AuthRequest si no está
 interface AuthRequest extends Request {

@@ -26,4 +26,5 @@ router.put("/api/psicologo/cambiar-contrasena", auth_middlewares_1.verificarToke
 //router.delete("/api/psicologo/eliminar-foto-perfil", verificarToken, eliminarFotoPerfil);
 router.post("/api/psicologo/subir-foto-perfil", validarToken_1.default, multer_config_1.uploadFotoPerfil.single('foto'), psicologo_1.subirFotoPerfil);
 router.delete("/api/psicologo/eliminar-foto-perfil", validarToken_1.default, psicologo_1.eliminarFotoPerfil);
+router.get("/api/psicologo/perfil", validarToken_1.default, psicologo_1.obtenerPerfil);
 exports.default = router;

@@ -11,7 +11,8 @@ import {
   actualizarPerfil,
   cambiarContrasena,
    subirFotoPerfil,
-  eliminarFotoPerfil  
+  eliminarFotoPerfil,
+  obtenerPerfil  
 } from "../controllers/psicologo";
 import { verificarToken } from "../middlewares/auth.middlewares";
 import { uploadFotoPerfil } from "../config/multer.config";
@@ -38,6 +39,7 @@ router.put("/api/psicologo/cambiar-contrasena", verificarToken, cambiarContrasen
 router.post("/api/psicologo/subir-foto-perfil", validarToken,   uploadFotoPerfil.single('foto'),   subirFotoPerfil);
 
 router.delete("/api/psicologo/eliminar-foto-perfil", validarToken, eliminarFotoPerfil);
+router.get("/api/psicologo/perfil", validarToken, obtenerPerfil);
 
 
 export default router;
