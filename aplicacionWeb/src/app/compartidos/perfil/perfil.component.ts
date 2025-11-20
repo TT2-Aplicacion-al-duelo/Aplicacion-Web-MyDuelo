@@ -20,7 +20,7 @@ interface DatosPerfil {
   direccionConsultorio?: string;
   codigoVinculacion?: string;
   rol_admin?: boolean;
-  foto_perfil?: string;  // ⭐ AGREGAR
+  foto_perfil?: string;  
   tipo: 'psicologo' | 'admin';
   createdAt?: string;
   updatedAt?: string;
@@ -204,7 +204,7 @@ export class PerfilComponent implements OnInit {
     }
   }
 
-  /**
+    /**
    * Obtener URL de foto de perfil
    */
   obtenerFotoUrl(): string {
@@ -221,8 +221,9 @@ export class PerfilComponent implements OnInit {
         : 'http://localhost:3017';
       return `${baseUrl}/uploads/${fotoPerfil}`;
     }
-    // Placeholder temporal
-    return 'https://via.placeholder.com/150/CCCCCC/666666?text=Sin+Foto';
+    
+    // ⭐ CAMBIO: Retornar una cadena vacía para mostrar el avatar con iniciales
+    return '';
   }
 
   /**
@@ -322,6 +323,7 @@ export class PerfilComponent implements OnInit {
    */
   onImageError(event: Event): void {
     const imgElement = event.target as HTMLImageElement;
-    imgElement.src = 'https://via.placeholder.com/150/CCCCCC/666666?text=Error';
+    // ⭐ CAMBIO: Ocultar la imagen y mostrar el avatar con iniciales
+    imgElement.style.display = 'none';
   }
 }

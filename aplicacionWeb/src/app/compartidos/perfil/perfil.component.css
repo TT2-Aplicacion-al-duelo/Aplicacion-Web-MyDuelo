@@ -177,3 +177,16 @@
 .shadow-sm {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
+
+/* ===== AVATAR CON INICIALES ===== */
+.avatar-initials {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 3rem;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}

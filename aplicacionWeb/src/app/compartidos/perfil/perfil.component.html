@@ -43,13 +43,23 @@
               <div class="col-md-3 text-center mb-4 mb-md-0">
                 
                 <!-- Foto de Perfil -->
-                <div class="mb-3">
+                <div class="mb-3 position-relative">
+                  <!-- ⭐ Avatar con foto -->
                   <img 
+                    *ngIf="obtenerFotoUrl()"
                     [src]="obtenerFotoUrl()" 
                     alt="Foto de perfil"
                     class="rounded-circle mb-3"
                     style="width: 150px; height: 150px; object-fit: cover; border: 3px solid #dee2e6;"
                     (error)="onImageError($event)">
+                  
+                  <!-- ⭐ Avatar con iniciales (fallback) -->
+                  <div 
+                    *ngIf="!obtenerFotoUrl()"
+                    class="avatar-initials rounded-circle mb-3"
+                    style="width: 150px; height: 150px; border: 3px solid #dee2e6;">
+                    {{ getIniciales() }}
+                  </div>
                 </div>
                 
                 <!-- Botones de Foto -->
