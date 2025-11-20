@@ -100,26 +100,25 @@ export class PacientesComponent implements OnInit {
     return new Date(fecha).toLocaleDateString('es-ES');
   }
 
-    /**
-   * Obtener URL de foto de perfil
-   */
-  obtenerFotoUrl(paciente: any): string {
-    // Si ya tiene una URL completa, usarla directamente
-    if (paciente.foto_perfil && paciente.foto_perfil.startsWith('http')) {
-      return paciente.foto_perfil;
-    }
-    
-    // Si tiene solo el nombre del archivo, construir la URL
-    if (paciente.foto_perfil) {
-      const baseUrl = environment.production 
-        ? 'https://api.midueloapp.com'
-        : 'http://localhost:3017';
-      return `${baseUrl}/uploads/${paciente.foto_perfil}`;
-    }
-    
-    // Si no tiene foto, retornar un placeholder
-    return '/assets/default-avatar.png';
+   /**
+ * Obtener URL de foto de perfil del paciente
+ */
+obtenerFotoUrl(paciente: Paciente): string {
+  const fotoPerfil = paciente.foto_perfil;
+  
+  if (!fotoPerfil) {
+    return '';
   }
+  
+  // Si ya es URL completa
+  if (fotoPerfil.startsWith('http')) {
+    return fotoPerfil;
+  }
+  
+  // Construir URL del servidor
+  const baseUrl = environment.apiUrl || 'http://localhost:3017';
+  return `${baseUrl}/uploads/${fotoPerfil}`;
+}
 
   /**
    * Obtener nombre completo del paciente

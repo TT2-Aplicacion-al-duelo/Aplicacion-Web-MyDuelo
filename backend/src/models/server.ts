@@ -36,6 +36,7 @@ import { Op } from 'sequelize';
 import path from 'path';
 import multer from 'multer';
 import fs from 'fs';
+import os from 'os';
 
 class Server {
     private app: Application;
@@ -58,15 +59,21 @@ class Server {
     private midlewares() {
         this.app.use(express.json());
 
-        // Crear directorio de uploads si no existe
-        const uploadsDir = path.join(__dirname, '../../uploads');
-        if (!fs.existsSync(uploadsDir)) {
-        fs.mkdirSync(uploadsDir, { recursive: true });
-        }  
         
-        // Servir archivos estáticos desde /uploads
+        const homeDir = os.homedir();
+        const uploadsDir = path.join(homeDir, 'ServerApp', 'server', 'uploads');
+
+        // Verificar que el directorio existe
+        if (!fs.existsSync(uploadsDir)) {
+        console.error('❌ ERROR: Directorio de uploads no existe:', uploadsDir);
+        console.log('📁 Creando directorio:', uploadsDir);
+        fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        // Servir archivos estáticos desde ServerApp
         this.app.use('/uploads', express.static(uploadsDir));
-        console.log('✅ Directorio de uploads configurado en:', uploadsDir);
+        console.log('✅ Archivos estáticos configurados desde:', uploadsDir);
+        console.log('📂 URL de acceso: http://74.179.81.122:3017/uploads/');
 
         // Configuración CORS para producción
         const allowedOrigins = process.env.NODE_ENV === 'production'

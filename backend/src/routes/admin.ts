@@ -10,6 +10,8 @@ import { registroAdmin, verificarAdmin, getAllPsicologos,
 } from "../controllers/admin";
 import validarToken from "./validarToken";
 import validarAdmin from "./validarAdmin";
+import { uploadFotoPerfil } from "../config/multer.config";
+import { eliminarFotoPerfil, obtenerPerfil, subirFotoPerfil } from "../controllers/psicologo";
 
 const router = Router();
 
@@ -34,4 +36,8 @@ router.put("/api/admin/psicologos/:id_psicologo/validar-cedula-manual", validarA
 router.get("/api/admin/pacientes", validarAdmin, getAllPacientesAdmin);
 router.put("/api/admin/pacientes/:id_paciente/reasignar", validarAdmin, reasignarPaciente);
 router.put("/api/admin/pacientes/:id_paciente/status", validarAdmin, cambiarEstadoPaciente);
+
+router.post("/api/admin/subir-foto-perfil", validarAdmin, uploadFotoPerfil.single('foto'), subirFotoPerfil);
+router.delete("/api/admin/eliminar-foto-perfil", validarAdmin, eliminarFotoPerfil);
+router.get("/api/admin/perfil", validarAdmin, obtenerPerfil);
 export default router;

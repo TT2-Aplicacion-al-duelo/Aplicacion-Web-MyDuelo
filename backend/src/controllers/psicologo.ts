@@ -8,6 +8,7 @@ import emailService from '../services/email.service';
 import { Op } from 'sequelize';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 
 // Función auxiliar para validar edad (18-90 años)
 const validarEdad = (fechaNacimiento: string): boolean => {
@@ -826,19 +827,23 @@ export const subirFotoPerfil = async (req: Request, res: Response) => {
     
     if (!psicologo) {
       // Eliminar el archivo subido si el psicólogo no existe
-      const filePath = path.join(__dirname, '../../uploads', nombreArchivo);
+      const homeDir = os.homedir();
+      const filePath = path.join(homeDir, 'ServerApp', 'server', 'uploads', nombreArchivo);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
       return res.status(404).json({ msg: "Psicólogo no encontrado" });
     }
 
+    
     // Eliminar foto anterior si existe
     const fotoAnterior = (psicologo as any).foto_perfil;
     if (fotoAnterior && !fotoAnterior.startsWith('http')) {
-      const oldFilePath = path.join(__dirname, '../../uploads', fotoAnterior);
+      const homeDir = os.homedir();
+      const oldFilePath = path.join(homeDir, 'ServerApp', 'server', 'uploads', fotoAnterior);
       if (fs.existsSync(oldFilePath)) {
         fs.unlinkSync(oldFilePath);
+        console.log('🗑️ Foto anterior eliminada:', oldFilePath);
       }
     }
 
@@ -891,9 +896,11 @@ export const eliminarFotoPerfil = async (req: Request, res: Response) => {
     
     // Eliminar archivo físico si existe
     if (fotoActual && !fotoActual.startsWith('http')) {
-      const filePath = path.join(__dirname, '../../uploads', fotoActual);
+      const homeDir = os.homedir();
+      const filePath = path.join(homeDir, 'ServerApp', 'server', 'uploads', fotoActual);
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
+        console.log('🗑️ Foto eliminada:', filePath);
       }
     }
 

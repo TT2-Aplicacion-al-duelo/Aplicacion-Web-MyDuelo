@@ -45,8 +45,21 @@
         <li class="nav-item dropdown">
           <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="navbarDropdown" 
              role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            <div class="admin-avatar me-2">
+            <!-- <div class="admin-avatar me-2">
               {{ getIniciales() }}
+            </div> -->
+            <div class="admin-avatar">
+              <!-- Foto de perfil -->
+              <img 
+                *ngIf="obtenerFotoUrl()"
+                [src]="obtenerFotoUrl()" 
+                alt="Foto de perfil"
+                class="rounded-circle"
+                style="width: 40px; height: 40px; object-fit: cover; border: 2px solid #dee2e6;"
+                (error)="onImageError($event)">
+              
+              <!-- Fallback: ícono -->
+              <i *ngIf="!obtenerFotoUrl()" class="bi bi-person-circle"></i>
             </div>
             <div class="admin-info d-none d-md-block">
               <div class="admin-name">{{ adminInfo?.nombre || 'Administrador' }}</div>

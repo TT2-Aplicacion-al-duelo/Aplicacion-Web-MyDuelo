@@ -45,6 +45,7 @@ export class PerfilComponent implements OnInit {
   constructor(
     private authService: AuthService,
     private psicologoService: PsicologoService,
+    private location: Location,
     private adminService: AdminService,
     private toastr: ToastrService,
     public router: Router
@@ -57,27 +58,60 @@ export class PerfilComponent implements OnInit {
   /**
    * Cargar perfil según el tipo de usuario
    */
-  cargarPerfil(): void {
-    if (this.cargando && this.perfil) return; // Prevenir múltiples llamadas
+  // cargarPerfil(): void {
+  //   if (this.cargando && this.perfil) return; // Prevenir múltiples llamadas
     
-    this.cargando = true;
-    this.error = '';
+  //   this.cargando = true;
+  //   this.error = '';
     
-    this.usuarioInfo = this.authService.getUserInfo();
+  //   this.usuarioInfo = this.authService.getUserInfo();
     
-    if (!this.usuarioInfo) {
-      this.error = 'No se pudo obtener la información del usuario';
-      this.cargando = false;
-      return;
-    }
+  //   if (!this.usuarioInfo) {
+  //     this.error = 'No se pudo obtener la información del usuario';
+  //     this.cargando = false;
+  //     return;
+  //   }
 
-    // Detectar si es admin o psicólogo
-    if (this.authService.isAdmin()) {
-      this.cargarPerfilAdmin();
-    } else {
-      this.cargarPerfilPsicologo();
+  //   // Detectar si es admin o psicólogo
+  //   if (this.authService.isAdmin()) {
+  //     this.cargarPerfilAdmin();
+  //   } else {
+  //     this.cargarPerfilPsicologo();
+  //   }
+  // }
+  cargarPerfil(): void {
+  this.cargando = true;
+  
+  // Detectar si es admin
+  const token = localStorage.getItem('token');
+  let esAdmin = false;
+  
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      esAdmin = payload.rol_admin === true;
+    } catch (error) {
+      console.error('Error al decodificar token:', error);
     }
   }
+  
+  // Usar el servicio correcto
+  const servicio = esAdmin ? this.adminService : this.psicologoService;
+  
+  servicio.obtenerPerfil().subscribe({
+    next: (data) => {
+      this.perfil = data;
+      this.perfil.esAdmin = esAdmin;
+      this.cargando = false;
+      console.log('✅ Perfil cargado:', this.perfil);
+    },
+    error: (error) => {
+      console.error('❌ Error al cargar perfil:', error);
+      this.error = 'Error al cargar el perfil';
+      this.cargando = false;
+    }
+  });
+}
 
   /**
    * Cargar perfil del psicólogo
@@ -255,37 +289,76 @@ export class PerfilComponent implements OnInit {
   /**
    * Subir foto de perfil
    */
+  // subirFoto(file: File): void {
+  //   this.uploadingFoto = true;
+    
+  //   console.log('📤 Subiendo foto:', file.name, file.size, file.type);
+    
+  //   this.psicologoService.subirFotoPerfil(file).subscribe({
+  //     next: (response) => {
+  //       console.log('✅ Respuesta del servidor:', response);
+  //       this.toastr.success('Foto de perfil actualizada correctamente');
+        
+  //       // Actualizar el perfil con la nueva foto
+  //       if (this.perfil) {
+  //         this.perfil.foto_perfil = response.foto_url;
+  //       }
+        
+  //       this.uploadingFoto = false;
+        
+  //       // NO recargar todo el perfil, solo actualizar la foto
+  //     },
+  //     error: (error) => {
+  //       console.error('❌ Error al subir foto:', error);
+  //       console.error('Status:', error.status);
+  //       console.error('Mensaje:', error.message);
+  //       console.error('Error del servidor:', error.error);
+        
+  //       let mensajeError = 'Error al subir la foto de perfil';
+        
+  //       if (error.status === 404) {
+  //         mensajeError = 'Endpoint no encontrado. Verifica que el backend esté corriendo.';
+  //       } else if (error.status === 401) {
+  //         mensajeError = 'No autorizado. Por favor inicia sesión nuevamente.';
+  //       } else if (error.error?.msg) {
+  //         mensajeError = error.error.msg;
+  //       }
+        
+  //       this.toastr.error(mensajeError);
+  //       this.uploadingFoto = false;
+  //     }
+  //   });
+  // }
+
   subirFoto(file: File): void {
     this.uploadingFoto = true;
     
     console.log('📤 Subiendo foto:', file.name, file.size, file.type);
     
-    this.psicologoService.subirFotoPerfil(file).subscribe({
+    // Detectar si es admin
+    const esAdmin = this.perfil?.esAdmin || false;
+    const servicio = esAdmin ? this.adminService : this.psicologoService;
+    
+    servicio.subirFotoPerfil(file).subscribe({
       next: (response) => {
         console.log('✅ Respuesta del servidor:', response);
         this.toastr.success('Foto de perfil actualizada correctamente');
         
-        // Actualizar el perfil con la nueva foto
         if (this.perfil) {
           this.perfil.foto_perfil = response.foto_url;
         }
         
         this.uploadingFoto = false;
-        
-        // NO recargar todo el perfil, solo actualizar la foto
       },
       error: (error) => {
         console.error('❌ Error al subir foto:', error);
-        console.error('Status:', error.status);
-        console.error('Mensaje:', error.message);
-        console.error('Error del servidor:', error.error);
         
         let mensajeError = 'Error al subir la foto de perfil';
         
         if (error.status === 404) {
-          mensajeError = 'Endpoint no encontrado. Verifica que el backend esté corriendo.';
+          mensajeError = 'Endpoint no encontrado.';
         } else if (error.status === 401) {
-          mensajeError = 'No autorizado. Por favor inicia sesión nuevamente.';
+          mensajeError = 'No autorizado.';
         } else if (error.error?.msg) {
           mensajeError = error.error.msg;
         }
@@ -295,20 +368,41 @@ export class PerfilComponent implements OnInit {
       }
     });
   }
-
   /**
    * Eliminar foto de perfil
    */
-  eliminarFoto(): void {
-    if (!confirm('¿Estás seguro de eliminar tu foto de perfil?')) return;
+  // eliminarFoto(): void {
+  //   if (!confirm('¿Estás seguro de eliminar tu foto de perfil?')) return;
     
-    this.psicologoService.eliminarFotoPerfil().subscribe({
-      next: () => {
-        this.toastr.success('Foto de perfil eliminada');
+  //   this.psicologoService.eliminarFotoPerfil().subscribe({
+  //     next: () => {
+  //       this.toastr.success('Foto de perfil eliminada');
         
-        // Actualizar el perfil
+  //       // Actualizar el perfil
+  //       if (this.perfil) {
+  //         this.perfil.foto_perfil = undefined;
+  //       }
+  //     },
+  //     error: (error) => {
+  //       console.error('Error al eliminar foto:', error);
+  //       this.toastr.error('Error al eliminar la foto');
+  //     }
+  //   });
+  // }
+  eliminarFoto(): void {
+    if (!confirm('¿Estás seguro de eliminar tu foto de perfil?')) {
+      return;
+    }
+
+    // Detectar si es admin
+    const esAdmin = this.perfil?.esAdmin || false;
+    const servicio = esAdmin ? this.adminService : this.psicologoService;
+
+    servicio.eliminarFotoPerfil().subscribe({
+      next: () => {
+        this.toastr.success('Foto eliminada correctamente');
         if (this.perfil) {
-          this.perfil.foto_perfil = undefined;
+          this.perfil.foto_perfil = null;
         }
       },
       error: (error) => {
@@ -317,6 +411,7 @@ export class PerfilComponent implements OnInit {
       }
     });
   }
+
 
   /**
    * Manejar error de carga de imagen

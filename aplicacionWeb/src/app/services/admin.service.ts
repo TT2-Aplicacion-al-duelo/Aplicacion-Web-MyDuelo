@@ -1,6 +1,6 @@
 // aplicacionWeb/src/app/services/admin.service.ts
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { PsicologoAdmin } from '../interfaces/psicologoAdmin';
@@ -177,6 +177,50 @@ validarCedulaProfesional(idPsicologo: number, cedula: string): Observable<any> {
   cambiarEstadoPaciente(idPaciente: number, emailVerificado: boolean): Observable<any> {
     return this.http.put(`${this.AppUrl}${this.APIUrl}/pacientes/${idPaciente}/status`, {
       email_verificado: emailVerificado
+    });
+  }
+
+
+  /**
+   * Obtener perfil del administrador
+   */
+  obtenerPerfil(): Observable<any> {
+    return this.http.get(`${this.AppUrl}/api/admin/perfil`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  /**
+   * Subir foto de perfil del admin
+   */
+  subirFotoPerfil(archivo: File): Observable<any> {
+    const formData = new FormData();
+    formData.append('foto', archivo);
+    
+    return this.http.post(`${this.AppUrl}/api/admin/subir-foto-perfil`, formData, {
+      headers: new HttpHeaders({
+        'token': this.getToken() || ''
+      })
+    });
+  }
+
+  /**
+   * Eliminar foto de perfil del admin
+   */
+  eliminarFotoPerfil(): Observable<any> {
+    return this.http.delete(`${this.AppUrl}/api/admin/eliminar-foto-perfil`, {
+      headers: this.getHeaders()
+    });
+  }
+
+  private getToken(): string | null {
+    return localStorage.getItem('token');
+  }
+
+  private getHeaders(): HttpHeaders {
+    return new HttpHeaders({
+      'Content-Type': 'application/json',
+      'token': this.getToken() || ''
     });
   }
 }

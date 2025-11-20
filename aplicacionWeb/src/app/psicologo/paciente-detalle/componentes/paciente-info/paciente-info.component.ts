@@ -5,6 +5,7 @@ import { ChatService } from '../../../../services/chat.service';
 import { CitaService } from '../../../../services/cita.service';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../../../../environments/environment';
 @Component({
   selector: 'app-paciente-info',
   imports: [CommonModule],
@@ -118,5 +119,39 @@ export class PacienteInfoComponent implements OnInit {
     }
     
     return edad;
+  }
+  /**
+   * Obtener URL de foto de perfil
+   */
+  obtenerFotoUrl(): string {
+    const fotoPerfil = this.paciente?.foto_perfil;
+    
+    if (!fotoPerfil) {
+      return '';
+    }
+    
+    if (fotoPerfil.startsWith('http')) {
+      return fotoPerfil;
+    }
+    
+    const baseUrl = environment.apiUrl || 'http://localhost:3017';
+    return `${baseUrl}/uploads/${fotoPerfil}`;
+  }
+
+  /**
+   * Manejar error de imagen
+   */
+  onImageError(event: any): void {
+    event.target.style.display = 'none';
+  }
+
+  /**
+   * Obtener iniciales
+   */
+  getIniciales(): string {
+    if (!this.paciente) return '';
+    const nombre = this.paciente.nombre?.charAt(0) || '';
+    const apellido = this.paciente.apellido_paterno?.charAt(0) || '';
+    return (nombre + apellido).toUpperCase();
   }
 }
