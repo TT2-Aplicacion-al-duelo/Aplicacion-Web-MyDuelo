@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { PsicologoService } from '../../services/psicologo.service';
@@ -20,7 +20,8 @@ interface DatosPerfil {
   direccionConsultorio?: string;
   codigoVinculacion?: string;
   rol_admin?: boolean;
-  foto_perfil?: string;  
+  foto_perfil?: string | null;  
+  esAdmin?: boolean;  
   tipo: 'psicologo' | 'admin';
   createdAt?: string;
   updatedAt?: string;
@@ -101,7 +102,7 @@ export class PerfilComponent implements OnInit {
   servicio.obtenerPerfil().subscribe({
     next: (data) => {
       this.perfil = data;
-      this.perfil.esAdmin = esAdmin;
+      esAdmin: esAdmin 
       this.cargando = false;
       console.log('✅ Perfil cargado:', this.perfil);
     },

@@ -8,6 +8,7 @@ import { ActividadesPersonalizadasComponent } from './componentes/actividades-pe
 import { PacientesService } from '../../services/pacientes.service';
 import { Paciente } from '../../interfaces/paciente';
 import { ToastrService } from 'ngx-toastr';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-paciente-detalle',
@@ -68,5 +69,40 @@ export class PacienteDetalleComponent implements OnInit {
 
   volver(): void {
     this.router.navigate(['/lista-pacientes-del-psicologo']);
+  }
+
+  /**
+   * Obtener URL de foto de perfil
+   */
+  obtenerFotoUrl(): string {
+    const fotoPerfil = this.paciente?.foto_perfil;
+    
+    if (!fotoPerfil) {
+      return '';
+    }
+    
+    if (fotoPerfil.startsWith('http')) {
+      return fotoPerfil;
+    }
+    
+    const baseUrl = environment.apiUrl || 'http://localhost:3017';
+    return `${baseUrl}/uploads/${fotoPerfil}`;
+  }
+
+  /**
+   * Manejar error de imagen
+   */
+  onImageError(event: any): void {
+    event.target.style.display = 'none';
+  }
+
+  /**
+   * Obtener iniciales
+   */
+  getIniciales(): string {
+    if (!this.paciente) return '';
+    const nombre = this.paciente.nombre?.charAt(0) || '';
+    const apellido = this.paciente.apellido_paterno?.charAt(0) || '';
+    return (nombre + apellido).toUpperCase();
   }
 }

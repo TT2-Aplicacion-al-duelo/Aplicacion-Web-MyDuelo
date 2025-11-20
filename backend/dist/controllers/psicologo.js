@@ -22,6 +22,7 @@ const email_service_1 = __importDefault(require("../services/email.service"));
 const sequelize_1 = require("sequelize");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const os_1 = __importDefault(require("os"));
 // Función auxiliar para validar edad (18-90 años)
 const validarEdad = (fechaNacimiento) => {
     const hoy = new Date();
@@ -687,7 +688,8 @@ const subirFotoPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function
         const psicologo = yield psicologo_1.Psicologo.findByPk(id_psicologo);
         if (!psicologo) {
             // Eliminar el archivo subido si el psicólogo no existe
-            const filePath = path_1.default.join(__dirname, '../../uploads', nombreArchivo);
+            const homeDir = os_1.default.homedir();
+            const filePath = path_1.default.join(homeDir, 'ServerApp', 'server', 'uploads', nombreArchivo);
             if (fs_1.default.existsSync(filePath)) {
                 fs_1.default.unlinkSync(filePath);
             }
@@ -696,9 +698,11 @@ const subirFotoPerfil = (req, res) => __awaiter(void 0, void 0, void 0, function
         // Eliminar foto anterior si existe
         const fotoAnterior = psicologo.foto_perfil;
         if (fotoAnterior && !fotoAnterior.startsWith('http')) {
-            const oldFilePath = path_1.default.join(__dirname, '../../uploads', fotoAnterior);
+            const homeDir = os_1.default.homedir();
+            const oldFilePath = path_1.default.join(homeDir, 'ServerApp', 'server', 'uploads', fotoAnterior);
             if (fs_1.default.existsSync(oldFilePath)) {
                 fs_1.default.unlinkSync(oldFilePath);
+                console.log('🗑️ Foto anterior eliminada:', oldFilePath);
             }
         }
         // Actualizar con el nuevo nombre de archivo
@@ -742,9 +746,11 @@ const eliminarFotoPerfil = (req, res) => __awaiter(void 0, void 0, void 0, funct
         const fotoActual = psicologo.foto_perfil;
         // Eliminar archivo físico si existe
         if (fotoActual && !fotoActual.startsWith('http')) {
-            const filePath = path_1.default.join(__dirname, '../../uploads', fotoActual);
+            const homeDir = os_1.default.homedir();
+            const filePath = path_1.default.join(homeDir, 'ServerApp', 'server', 'uploads', fotoActual);
             if (fs_1.default.existsSync(filePath)) {
                 fs_1.default.unlinkSync(filePath);
+                console.log('🗑️ Foto eliminada:', filePath);
             }
         }
         // Actualizar base de datos

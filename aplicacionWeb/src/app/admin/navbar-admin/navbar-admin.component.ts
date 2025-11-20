@@ -1,4 +1,5 @@
 import { Component } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { AdminService } from '../../services/admin.service';
@@ -6,7 +7,7 @@ import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-navbar-admin',
-  imports: [RouterModule],
+  imports: [RouterModule,CommonModule],
   templateUrl: './navbar-admin.component.html',
   styleUrl: './navbar-admin.component.css'
 })

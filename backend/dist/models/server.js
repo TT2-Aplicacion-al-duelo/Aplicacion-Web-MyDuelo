@@ -81,6 +81,7 @@ const node_cron_1 = __importDefault(require("node-cron"));
 const sequelize_1 = require("sequelize");
 const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
+const os_1 = __importDefault(require("os"));
 class Server {
     constructor() {
         this.app = (0, express_1.default)();
@@ -98,14 +99,18 @@ class Server {
     midlewares() {
         var _a;
         this.app.use(express_1.default.json());
-        // Crear directorio de uploads si no existe
-        const uploadsDir = path_1.default.join(__dirname, '../../uploads');
+        const homeDir = os_1.default.homedir();
+        const uploadsDir = path_1.default.join(homeDir, 'ServerApp', 'server', 'uploads');
+        // Verificar que el directorio existe
         if (!fs_1.default.existsSync(uploadsDir)) {
+            console.error('❌ ERROR: Directorio de uploads no existe:', uploadsDir);
+            console.log('📁 Creando directorio:', uploadsDir);
             fs_1.default.mkdirSync(uploadsDir, { recursive: true });
         }
-        // Servir archivos estáticos desde /uploads
+        // Servir archivos estáticos desde ServerApp
         this.app.use('/uploads', express_1.default.static(uploadsDir));
-        console.log('✅ Directorio de uploads configurado en:', uploadsDir);
+        console.log('✅ Archivos estáticos configurados desde:', uploadsDir);
+        console.log('📂 URL de acceso: http://74.179.81.122:3017/uploads/');
         // Configuración CORS para producción
         const allowedOrigins = process.env.NODE_ENV === 'production'
             ? (((_a = process.env.FRONTEND_URL_CORS) === null || _a === void 0 ? void 0 : _a.split(',')) || ['https://www.midueloapp.com', 'https://midueloapp.com'])
