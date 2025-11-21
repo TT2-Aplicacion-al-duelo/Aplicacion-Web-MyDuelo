@@ -44,13 +44,25 @@ export const getPacientes = async (req: AuthRequest, res: Response) => {
         
         console.log(`Buscando pacientes para psicólogo ID: ${id_psicologo}`);
         
-        // ✅ FILTRAR PACIENTES POR ID_PSICOLOGO
         // const listaPacientes = await Paciente.findAll({
         //     where: { 
         //         id_psicologo: id_psicologo 
         //     },
-        //     attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email'] // Solo campos necesarios
+        //     attributes: [
+        //         'id_paciente', 
+        //         'nombre', 
+        //         'apellido_paterno', 
+        //         'apellido_materno', 
+        //         'email',
+        //         'telefono',          
+        //         'email_verificado',
+        //         'foto_perfil'    
+        //     ]
         // });
+        
+        // console.log(`Encontrados ${listaPacientes.length} pacientes`);
+        
+        // res.json(listaPacientes); 
         const listaPacientes = await Paciente.findAll({
             where: { 
                 id_psicologo: id_psicologo 
@@ -63,13 +75,43 @@ export const getPacientes = async (req: AuthRequest, res: Response) => {
                 'email',
                 'telefono',          
                 'email_verificado',
-                //'foto_perfil'    
+                'foto_perfil'  // ✅ DESCOMENTADO
             ]
         });
-        
-        console.log(`Encontrados ${listaPacientes.length} pacientes`);
-        
-        res.json(listaPacientes); // ✅ CAMBIO: devolver array directo, no objeto wrapper
+
+        // ✅ LIMPIAR URLs ANTIGUAS Y CONSTRUIR CORRECTAMENTE
+        const baseUrl = process.env.NODE_ENV === 'production' 
+            ? 'https://api.midueloapp.com'
+            : `http://localhost:${process.env.PORT || '3017'}`;
+
+        const pacientesFormateados = listaPacientes.map((paciente: any) => {
+            const pacienteJson = paciente.toJSON();
+            
+            // Limpiar foto_perfil
+            if (pacienteJson.foto_perfil) {
+                // Si es URL antigua de Azure/móvil, limpiarla
+                if (pacienteJson.foto_perfil.startsWith('http://192.168') || 
+                    pacienteJson.foto_perfil.startsWith('http://20.') ||
+                    pacienteJson.foto_perfil.startsWith('http://') ||
+                    pacienteJson.foto_perfil.includes(':3000/')) {
+                    
+                    // Extraer solo el nombre del archivo
+                    const fileName = pacienteJson.foto_perfil.split('/').pop();
+                    pacienteJson.foto_perfil = fileName;
+                }
+                
+                // Construir URL completa si no es ya una URL
+                if (!pacienteJson.foto_perfil.startsWith('http')) {
+                    pacienteJson.foto_perfil = `${baseUrl}/uploads/${pacienteJson.foto_perfil}`;
+                }
+            }
+            
+            return pacienteJson;
+        });
+
+        console.log(`Encontrados ${pacientesFormateados.length} pacientes`);
+
+        res.json(pacientesFormateados);
         
     } catch (error) {
         console.error('Error al obtener pacientes:', error);

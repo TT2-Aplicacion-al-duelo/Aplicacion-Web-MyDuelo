@@ -193,19 +193,42 @@ export const getActividadesPaciente = async (req: Request, res: Response) => {
       order: [['fecha_asignacion', 'DESC']]
     });
 
-    // ⭐ FORMATEAR: Agregar tipo_archivo a cada evidencia
-    const actividadesFormateadas = actividades.map((act: any) => {
-      const actividadJson = act.toJSON();
-      
-      if (actividadJson.evidencias && Array.isArray(actividadJson.evidencias)) {
-        actividadJson.evidencias = actividadJson.evidencias.map((ev: any) => ({
-          ...ev,
-          tipo_archivo: determinarTipoArchivo(ev.archivo_url)
-        }));
+    //  AGREGAR función auxiliar arriba si no existe
+      function limpiarUrlEvidencia(url: string): string {
+        if (!url) return url;
+        
+        if (url.startsWith('http://192.168') || 
+            url.startsWith('http://20.') ||
+            url.includes(':3000/')) {
+          
+          const uploadIndex = url.indexOf('uploads/');
+          if (uploadIndex !== -1) {
+            const relativePath = url.substring(uploadIndex + 8);
+            
+            const baseUrl = process.env.NODE_ENV === 'production' 
+              ? 'https://api.midueloapp.com'
+              : `http://localhost:${process.env.PORT || '3017'}`;
+            
+            return `${baseUrl}/uploads/${relativePath}`;
+          }
+        }
+        
+        return url;
       }
 
-      return actividadJson;
-    });
+      const actividadesFormateadas = actividades.map((act: any) => {
+        const actividadJson = act.toJSON();
+        
+        if (actividadJson.evidencias && Array.isArray(actividadJson.evidencias)) {
+          actividadJson.evidencias = actividadJson.evidencias.map((ev: any) => ({
+            ...ev,
+            archivo_url: limpiarUrlEvidencia(ev.archivo_url),  // ✅ LIMPIAR URL
+            tipo_archivo: determinarTipoArchivo(ev.archivo_url)
+          }));
+        }
+
+        return actividadJson;
+      });
 
     res.json(actividadesFormateadas);
   } catch (error) {

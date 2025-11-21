@@ -117,7 +117,7 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
             visible_para_psicologo: true,
             evidencias: asignacionData.evidencias?.map((ev: any) => ({
               id_evidencia: ev.id_evidencia,
-              archivo_url: ev.archivo_url,
+                archivo_url: limpiarUrlEvidencia(ev.archivo_url), 
               tipo_archivo: determinarTipoArchivo(ev.archivo_url),
               comentario: ev.comentario,
               fecha_subida: ev.fecha_subida,
@@ -248,7 +248,7 @@ export const getDetalleModulo = async (req: Request, res: Response) => {
         visible_para_psicologo: true,
         evidencias: asignacionData.evidencias?.map((ev: any) => ({
           id_evidencia: ev.id_evidencia,
-          archivo_url: ev.archivo_url,
+          archivo_url: limpiarUrlEvidencia(ev.archivo_url),
           tipo_archivo: determinarTipoArchivo(ev.archivo_url),
           comentario: ev.comentario,
           fecha_subida: ev.fecha_subida,
@@ -313,7 +313,7 @@ export const getEvidenciasActividad = async (req: Request, res: Response) => {
 
     const evidenciasFormateadas = evidencias.map((ev: any) => ({
       id_evidencia: ev.id_evidencia,
-      archivo_url: ev.archivo_url,
+      archivo_url: limpiarUrlEvidencia(ev.archivo_url),
       tipo_archivo: determinarTipoArchivo(ev.archivo_url),
       comentario: ev.comentario,
       fecha_subida: ev.fecha_subida,
@@ -394,4 +394,32 @@ function determinarTipoArchivo(url: string): 'imagen' | 'video' | 'audio' | 'doc
   }
 
   return 'otro';
+}
+
+/**
+ * Función auxiliar para limpiar y reconstruir URLs de evidencias
+ */
+function limpiarUrlEvidencia(url: string): string {
+  if (!url) return url;
+  
+  // Si es URL del backend móvil antiguo, limpiar
+  if (url.startsWith('http://192.168') || 
+      url.startsWith('http://20.') ||
+      url.includes(':3000/')) {
+    
+    // Extraer el path después de 'uploads/'
+    const uploadIndex = url.indexOf('uploads/');
+    if (uploadIndex !== -1) {
+      const relativePath = url.substring(uploadIndex + 8); // 'uploads/'.length = 8
+      
+      const baseUrl = process.env.NODE_ENV === 'production' 
+        ? 'https://api.midueloapp.com'
+        : `http://localhost:${process.env.PORT || '3017'}`;
+      
+      return `${baseUrl}/uploads/${relativePath}`;
+    }
+  }
+  
+  // Si ya es URL correcta o es path relativo, devolverla
+  return url;
 }
