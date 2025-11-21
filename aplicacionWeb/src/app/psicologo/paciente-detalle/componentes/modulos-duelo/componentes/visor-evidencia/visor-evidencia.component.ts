@@ -109,22 +109,34 @@ export class VisorEvidenciaComponent implements OnInit {
   }
 
   /**
+   * Abrir en nueva pestaña
+   */
+  abrirEnNuevaPestana(): void {
+    window.open(this.evidencia.archivo_url, '_blank');
+  }
+
+  /**
    * Descargar archivo
    */
   descargarArchivo(): void {
-    // Crear un elemento <a> temporal para forzar la descarga
-    const link = document.createElement('a');
-    link.href = this.evidencia.archivo_url;
-    link.target = '_blank';
-    
-    // Extraer el nombre del archivo de la URL
-    const nombreArchivo = this.evidencia.archivo_url.split('/').pop() || 'evidencia';
-    link.download = nombreArchivo;
-    
-    // Forzar click
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    // Usar fetch para forzar descarga
+    fetch(this.evidencia.archivo_url)
+      .then(response => response.blob())
+      .then(blob => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = this.obtenerNombreArchivo();
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+      })
+      .catch(error => {
+        console.error('Error al descargar:', error);
+        // Fallback: abrir en nueva pestaña
+        this.abrirEnNuevaPestana();
+      });
   }
 
   manejarErrorCarga(): void {

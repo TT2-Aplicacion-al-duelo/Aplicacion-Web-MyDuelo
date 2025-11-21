@@ -25,6 +25,7 @@ export class PacienteDetalleComponent implements OnInit {
   paciente: Paciente | null = null;
   idPaciente: number = 0;
   cargando: boolean = true;
+  imageError: boolean = false;
   
   // Estado de las pestañas
   tabActiva: 'info' | 'graficas' | 'modulos' | 'actividades' = 'info';
@@ -89,10 +90,12 @@ export class PacienteDetalleComponent implements OnInit {
     return `${baseUrl}/uploads/${fotoPerfil}`;
   }
 
-  /**
-   * Manejar error de imagen
-   */
+    /**
+ * Manejar error de imagen
+ */
   onImageError(event: any): void {
+    console.warn('Error cargando foto de paciente:', this.idPaciente);
+    this.imageError = true;
     event.target.style.display = 'none';
   }
 

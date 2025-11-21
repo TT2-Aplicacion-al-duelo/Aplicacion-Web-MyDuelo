@@ -402,24 +402,33 @@ function determinarTipoArchivo(url: string): 'imagen' | 'video' | 'audio' | 'doc
 function limpiarUrlEvidencia(url: string): string {
   if (!url) return url;
   
-  // Si es URL del backend móvil antiguo, limpiar
+  const baseUrl = process.env.NODE_ENV === 'production' 
+    ? 'https://api.midueloapp.com'
+    : `http://localhost:${process.env.PORT || '3017'}`;
+  
+  // Caso 1: URL antigua del backend móvil
   if (url.startsWith('http://192.168') || 
       url.startsWith('http://20.') ||
       url.includes(':3000/')) {
     
-    // Extraer el path después de 'uploads/'
     const uploadIndex = url.indexOf('uploads/');
     if (uploadIndex !== -1) {
-      const relativePath = url.substring(uploadIndex + 8); // 'uploads/'.length = 8
-      
-      const baseUrl = process.env.NODE_ENV === 'production' 
-        ? 'https://api.midueloapp.com'
-        : `http://localhost:${process.env.PORT || '3017'}`;
-      
+      const relativePath = url.substring(uploadIndex + 8); // Después de 'uploads/'
       return `${baseUrl}/uploads/${relativePath}`;
     }
   }
   
-  // Si ya es URL correcta o es path relativo, devolverla
-  return url;
+  // Caso 2: Ruta relativa que empieza con /uploads/...
+  if (url.startsWith('/uploads/')) {
+    // Quitar el / inicial
+    return `${baseUrl}${url}`;
+  }
+  
+  // Caso 3: Ya es URL completa correcta
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Caso 4: Solo nombre de archivo (asumir que está en /uploads/)
+  return `${baseUrl}/uploads/${url}`;
 }

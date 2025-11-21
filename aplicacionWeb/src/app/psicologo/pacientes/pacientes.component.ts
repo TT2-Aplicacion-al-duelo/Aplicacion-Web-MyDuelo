@@ -7,6 +7,10 @@ import { Router } from '@angular/router';
 
 import { environment } from '../../../environments/environment';  
 
+interface PacienteConError extends Paciente {
+  imageError?: boolean;
+}
+
 @Component({
   selector: 'app-pacientes',
   imports: [CommonModule, FormsModule],
@@ -14,8 +18,10 @@ import { environment } from '../../../environments/environment';
   styleUrl: './pacientes.component.css'
 })
 export class PacientesComponent implements OnInit {
-  listPacientes: Paciente[] = [];
-  pacientesFiltrados: Paciente[] = [];
+  // listPacientes: Paciente[] = [];
+  // pacientesFiltrados: Paciente[] = [];
+listPacientes: PacienteConError[] = [];
+pacientesFiltrados: PacienteConError[] = [];
   
   // Filtros
   filtroTexto: string = '';
@@ -37,9 +43,11 @@ export class PacientesComponent implements OnInit {
   /**
    * Manejar error de carga de imagen
    */
-  onImageError(event: Event): void {
-    const imgElement = event.target as HTMLImageElement;
-    imgElement.src = '/assets/default-avatar.png';
+  onImageError(event: Event, paciente: PacienteConError): void {
+    console.warn('Error cargando foto de paciente:', paciente.id_paciente);
+    paciente.imageError = true;
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
   }
 
   getPacientesPorPsicologo() {
@@ -100,10 +108,7 @@ export class PacientesComponent implements OnInit {
     return new Date(fecha).toLocaleDateString('es-ES');
   }
 
-   /**
- * Obtener URL de foto de perfil del paciente
- */
-/**
+  /*
  * Obtener URL de foto de perfil del paciente
  */
 obtenerFotoUrl(paciente: Paciente): string {
@@ -127,6 +132,7 @@ obtenerFotoUrl(paciente: Paciente): string {
   const baseUrl = environment.apiUrl || 'https://localhost:3017';
   return `${baseUrl}/uploads/${fotoPerfil}`;
 }
+
 
   /**
    * Obtener nombre completo del paciente

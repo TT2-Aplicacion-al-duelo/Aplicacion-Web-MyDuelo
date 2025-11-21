@@ -13,3 +13,22 @@
 .navbar-brand {
   color: white !important;
 }
+/* Loading de imágenes */
+img[loading="lazy"] {
+  opacity: 0;
+  transition: opacity 0.3s ease-in;
+}
+
+img[loading="lazy"].loaded {
+  opacity: 1;
+}
+
+/* Avatar placeholder */
+.avatar-circle, .avatar-lg {
+  transition: all 0.3s ease;
+}
+
+.avatar-img {
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+}

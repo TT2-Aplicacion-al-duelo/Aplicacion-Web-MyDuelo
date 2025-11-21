@@ -20,6 +20,7 @@ export class PacienteInfoComponent implements OnInit {
   proximaCita: any = null;
   cargandoChat: boolean = false;
   cargandoCita: boolean = false;
+  imageError: boolean = false;
 
   constructor(
     private chatService: ChatService,
@@ -150,7 +151,12 @@ export class PacienteInfoComponent implements OnInit {
   /**
    * Manejar error de imagen
    */
+    /**
+ * Manejar error de imagen
+ */
   onImageError(event: any): void {
+    console.warn('Error cargando foto de paciente:', this.idPaciente);
+    this.imageError = true;
     event.target.style.display = 'none';
   }
 

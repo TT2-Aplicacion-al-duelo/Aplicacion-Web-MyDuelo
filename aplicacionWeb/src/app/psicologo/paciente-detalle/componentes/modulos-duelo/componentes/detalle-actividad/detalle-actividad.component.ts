@@ -119,4 +119,11 @@ export class DetalleActividadComponent implements OnInit {
     link.click();
     document.body.removeChild(link);
   }
+
+  /**
+   * Abrir evidencia en nueva pestaña
+   */
+  abrirEnNuevaPestana(evidencia: Evidencia): void {
+    window.open(evidencia.archivo_url, '_blank');
+  }
 }
