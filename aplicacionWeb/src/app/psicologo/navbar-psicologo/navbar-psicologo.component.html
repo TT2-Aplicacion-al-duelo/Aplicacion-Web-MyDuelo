@@ -129,8 +129,19 @@
              data-bs-toggle="dropdown" 
              aria-expanded="false">
             <!-- Avatar con iniciales -->
+            <!-- Avatar con foto o iniciales -->
             <div class="avatar-circle me-2">
-              {{ iniciales }}
+              <!-- Foto de perfil -->
+              <img 
+                *ngIf="obtenerFotoUrl()"
+                [src]="obtenerFotoUrl()" 
+                alt="Foto de perfil"
+                class="rounded-circle"
+                style="width: 35px; height: 35px; object-fit: cover;"
+                (error)="onImageError($event)">
+              
+              <!-- Fallback: iniciales -->
+              <span *ngIf="!obtenerFotoUrl()">{{ iniciales }}</span>
             </div>
             <div class="d-none d-lg-block">
               <div class="user-name">{{ nombreCompleto }}</div>
@@ -140,10 +151,20 @@
           <!-- Menú desplegable del perfil -->
           <ul class="dropdown-menu dropdown-menu-end perfil-dropdown" aria-labelledby="perfilDropdown">
             <!-- Info del psicólogo -->
+            <!-- Info del psicólogo -->
             <li class="dropdown-header">
               <div class="text-center">
+                <!-- Avatar grande con foto o iniciales -->
                 <div class="avatar-circle-large mb-2">
-                  {{ iniciales }}
+                  <img 
+                    *ngIf="obtenerFotoUrl()"
+                    [src]="obtenerFotoUrl()" 
+                    alt="Foto de perfil"
+                    class="rounded-circle"
+                    style="width: 60px; height: 60px; object-fit: cover;"
+                    (error)="onImageError($event)">
+                  
+                  <span *ngIf="!obtenerFotoUrl()">{{ iniciales }}</span>
                 </div>
                 <div class="fw-bold">{{ nombreCompleto }}</div>
                 <small class="text-muted d-block">{{ psicologoInfo?.correo }}</small>
@@ -153,7 +174,6 @@
                     {{ codigoVinculacion }}
                   </span>
                 </div>
-
               </div>
             </li>
             <li><hr class="dropdown-divider"></li>

@@ -101,7 +101,22 @@ export class DetalleActividadComponent implements OnInit {
     return colores[tipo] || 'secondary';
   }
 
+  /**
+   * Descargar evidencia
+   */
   descargarEvidencia(evidencia: Evidencia): void {
-    window.open(evidencia.archivo_url, '_blank');
+    // Crear un elemento <a> temporal para forzar la descarga
+    const link = document.createElement('a');
+    link.href = evidencia.archivo_url;
+    link.target = '_blank';
+    
+    // Extraer el nombre del archivo de la URL
+    const nombreArchivo = evidencia.archivo_url.split('/').pop() || 'evidencia';
+    link.download = nombreArchivo;
+    
+    // Forzar click
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }

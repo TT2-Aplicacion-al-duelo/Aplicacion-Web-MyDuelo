@@ -4,6 +4,8 @@ import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { NotificacionesService, Notificacion } from '../../services/notificaciones.service';
 import { Subscription } from 'rxjs';
+import { PsicologoService } from '../../services/psicologo.service';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-navbar-psicologo',
@@ -33,7 +35,8 @@ export class NavbarPsicologoComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private router: Router,
-    private notificacionesService: NotificacionesService
+    private notificacionesService: NotificacionesService,
+    private psicologoService: PsicologoService 
   ) {}
 
   ngOnInit(): void {
@@ -66,23 +69,91 @@ export class NavbarPsicologoComponent implements OnInit, OnDestroy {
   /**
    * Cargar datos del psicólogo desde el AuthService
    */
-  cargarDatosPsicologo(): void {
-    this.psicologoInfo = this.authService.getUserInfo();
+  // cargarDatosPsicologo(): void {
+  //   this.psicologoInfo = this.authService.getUserInfo();
     
-    if (this.psicologoInfo) {
-      // Nombre completo
-      this.nombreCompleto = `${this.psicologoInfo.nombre} ${this.psicologoInfo.apellido}`;
+  //   if (this.psicologoInfo) {
+  //     // Nombre completo
+  //     this.nombreCompleto = `${this.psicologoInfo.nombre} ${this.psicologoInfo.apellido}`;
       
-      // Iniciales para el avatar
-      const nombre = this.psicologoInfo.nombre?.charAt(0) || '';
-      const apellido = this.psicologoInfo.apellido?.charAt(0) || '';
-      this.iniciales = (nombre + apellido).toUpperCase();
+  //     // Iniciales para el avatar
+  //     const nombre = this.psicologoInfo.nombre?.charAt(0) || '';
+  //     const apellido = this.psicologoInfo.apellido?.charAt(0) || '';
+  //     this.iniciales = (nombre + apellido).toUpperCase();
       
-      // Código de vinculación
-      this.codigoVinculacion = this.psicologoInfo.codigo_vinculacion || 'N/A';
+  //     // Código de vinculación
+  //     this.codigoVinculacion = this.psicologoInfo.codigo_vinculacion || 'N/A';
+  //   }
+  // }
+  /**
+ * Cargar datos del psicólogo desde el backend
+  */
+  cargarDatosPsicologo(): void {
+    // Cargar perfil completo con foto desde el backend
+    this.psicologoService.obtenerPerfil().subscribe({
+      next: (perfil) => {
+        this.psicologoInfo = {
+          nombre: perfil.nombre,
+          apellido: perfil.apellidoPaterno || perfil.apellido,
+          correo: perfil.correo,
+          codigo_vinculacion: perfil.codigoVinculacion,
+          foto_perfil: perfil.foto_perfil,
+          ...perfil
+        };
+        
+        // Nombre completo
+        this.nombreCompleto = `${this.psicologoInfo.nombre} ${this.psicologoInfo.apellido}`;
+        
+        // Iniciales para el avatar
+        const nombre = this.psicologoInfo.nombre?.charAt(0) || '';
+        const apellido = this.psicologoInfo.apellido?.charAt(0) || '';
+        this.iniciales = (nombre + apellido).toUpperCase();
+        
+        // Código de vinculación
+        this.codigoVinculacion = this.psicologoInfo.codigo_vinculacion || 'N/A';
+        
+        console.log('✅ Info del psicólogo cargada:', this.psicologoInfo);
+      },
+      error: (error) => {
+        console.error('Error al cargar perfil:', error);
+        // Fallback al AuthService
+        this.psicologoInfo = this.authService.getUserInfo();
+        if (this.psicologoInfo) {
+          this.nombreCompleto = `${this.psicologoInfo.nombre} ${this.psicologoInfo.apellido}`;
+          const nombre = this.psicologoInfo.nombre?.charAt(0) || '';
+          const apellido = this.psicologoInfo.apellido?.charAt(0) || '';
+          this.iniciales = (nombre + apellido).toUpperCase();
+          this.codigoVinculacion = this.psicologoInfo.codigo_vinculacion || 'N/A';
+        }
+      }
+    });
+  }
+  /**
+   * Obtener URL de foto de perfil
+   */
+  obtenerFotoUrl(): string {
+    const fotoPerfil = this.psicologoInfo?.foto_perfil;
+    
+    if (!fotoPerfil) {
+      return '';
     }
+    
+    // Si ya es URL completa
+    if (fotoPerfil.startsWith('http')) {
+      return fotoPerfil;
+    }
+    
+    // Construir URL del servidor
+    const baseUrl = environment.apiUrl || 'http://localhost:3017';
+    return `${baseUrl}/uploads/${fotoPerfil}`;
   }
 
+  /**
+   * Manejar error de imagen
+   */
+  onImageError(event: any): void {
+    event.target.style.display = 'none';
+  }
   /**
    * Inicializar sistema de notificaciones
    */

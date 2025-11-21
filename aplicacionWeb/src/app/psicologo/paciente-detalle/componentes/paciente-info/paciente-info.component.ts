@@ -123,6 +123,9 @@ export class PacienteInfoComponent implements OnInit {
   /**
    * Obtener URL de foto de perfil
    */
+  /**
+ * Obtener URL de foto de perfil
+ */
   obtenerFotoUrl(): string {
     const fotoPerfil = this.paciente?.foto_perfil;
     
@@ -130,14 +133,20 @@ export class PacienteInfoComponent implements OnInit {
       return '';
     }
     
+    // Si es URL antigua de Azure, ignorarla
+    if (fotoPerfil.startsWith('http://192.168') || fotoPerfil.startsWith('http://20.')) {
+      return '';
+    }
+    
+    // Si ya es URL completa válida
     if (fotoPerfil.startsWith('http')) {
       return fotoPerfil;
     }
     
+    // Construir URL del servidor
     const baseUrl = environment.apiUrl || 'http://localhost:3017';
     return `${baseUrl}/uploads/${fotoPerfil}`;
   }
-
   /**
    * Manejar error de imagen
    */

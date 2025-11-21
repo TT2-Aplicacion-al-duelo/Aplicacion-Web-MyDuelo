@@ -108,8 +108,23 @@ export class VisorEvidenciaComponent implements OnInit {
     this.cerrar.emit();
   }
 
+  /**
+   * Descargar archivo
+   */
   descargarArchivo(): void {
-    window.open(this.evidencia.archivo_url, '_blank');
+    // Crear un elemento <a> temporal para forzar la descarga
+    const link = document.createElement('a');
+    link.href = this.evidencia.archivo_url;
+    link.target = '_blank';
+    
+    // Extraer el nombre del archivo de la URL
+    const nombreArchivo = this.evidencia.archivo_url.split('/').pop() || 'evidencia';
+    link.download = nombreArchivo;
+    
+    // Forzar click
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   manejarErrorCarga(): void {

@@ -407,8 +407,23 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     }
   }
 
-  descargarEvidencia(url: string): void {
-    window.open(url, '_blank');
+  /**
+   * Descargar evidencia
+   */
+  descargarEvidencia(archivoUrl: string): void {
+    // Crear un elemento <a> temporal para forzar la descarga
+    const link = document.createElement('a');
+    link.href = archivoUrl;
+    link.target = '_blank';
+    
+    // Extraer el nombre del archivo de la URL
+    const nombreArchivo = archivoUrl.split('/').pop() || 'evidencia';
+    link.download = nombreArchivo;
+    
+    // Forzar click
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 
   getEstadoClass(estado: string): string {
