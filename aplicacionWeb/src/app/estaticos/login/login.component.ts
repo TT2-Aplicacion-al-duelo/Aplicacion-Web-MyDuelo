@@ -55,12 +55,31 @@ export class LoginComponent {
 
     this._psicologoService.iniciarSesion(psicologo).subscribe({
       next: (response: any) => {
+        // ✅ NUEVO: VERIFICAR SI REQUIERE VALIDACIÓN DE CÉDULA
+        if (response.requiere_validacion === true || response.cedula_validada === false) {
+          // Guardar datos del usuario temporalmente
+          localStorage.setItem('usuario_pendiente', JSON.stringify(response.usuario));
+          this.loading = false;
+          
+          // Mostrar mensaje informativo
+          this.toastr.warning(
+            'Tus credenciales aún no han sido validadas por el administrador',
+            'Acceso Restringido',
+            { timeOut: 5000 }
+          );
+          
+          // Redirigir a página de credenciales no validadas
+          this.router.navigate(['/credenciales-no-validadas']);
+          return;
+        }
+
+        // ✅ LOGIN NORMAL (si pasó la validación)
         const token = response.token;
         this._authService.setToken(token);
         
         this.loading = false;
 
-        // Verificar si la cuenta está limitada
+        // Verificar si la cuenta está limitada (lógica original mantenida)
         if (response.cuenta_limitada) {
           this.toastr.warning(
             response.advertencia,
@@ -87,7 +106,26 @@ export class LoginComponent {
       error: (event: HttpErrorResponse) => {
         this.loading = false;
 
-        // Manejar error de cuenta no activada
+        // ✅ NUEVO: MANEJAR ERROR 403 DE CREDENCIALES NO VALIDADAS
+        if (event.status === 403 && event.error?.requiere_validacion) {
+          // Guardar datos del usuario temporalmente
+          localStorage.setItem('usuario_pendiente', JSON.stringify(event.error.usuario));
+          
+          this.toastr.warning(
+            'Tus credenciales profesionales aún no han sido validadas por el administrador. Recibirás un correo cuando sean aprobadas.',
+            'Acceso Restringido',
+            { 
+              timeOut: 8000,
+              closeButton: true
+            }
+          );
+          
+          // Redirigir a página de credenciales no validadas
+          this.router.navigate(['/credenciales-no-validadas']);
+          return;
+        }
+
+        // Manejar error de cuenta no activada (lógica original mantenida)
         if (event.error?.requiereActivacion) {
           this.toastr.error(
             event.error.msg,

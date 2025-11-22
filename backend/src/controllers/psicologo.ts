@@ -335,6 +335,150 @@ export const reenviarActivacion = async (req: Request, res: Response): Promise<v
   }
 };
 
+// export const login = async (req: Request, res: Response): Promise<void> => {
+//   const { correo, contrasena } = req.body;
+
+//   try {
+//     // Validar campos
+//     if (!correo || !contrasena) {
+//       res.status(400).json({ 
+//         msg: 'El correo y la contraseña son obligatorios' 
+//       });
+//       return;
+//     }
+
+//     // Buscar usuario
+//     const psicologo = await Psicologo.findOne({ where: { correo } });
+
+//     if (!psicologo) {
+//       res.status(404).json({ 
+//         msg: 'Usuario o contraseña incorrectos' 
+//       });
+//       return;
+//     }
+
+//     const psicologoData = psicologo as any;
+
+//     // Verificar que la cuenta esté activa
+//     if (psicologoData.status === 'inactivo') {
+//       res.status(403).json({ 
+//         msg: 'No has activado tu cuenta. Por favor revisa tu correo electrónico y activa tu cuenta usando el enlace que te enviamos.',
+//         requiereActivacion: true
+//       });
+//       return;
+//     }
+
+//     // Verificar contraseña
+//     const passwordValida = await bcrypt.compare(contrasena, psicologoData.contrasena);
+
+//     if (!passwordValida) {
+//       res.status(401).json({ 
+//         msg: 'Usuario o contraseña incorrectos' 
+//       });
+//       return;
+//     }
+
+//     // Verificar validación de cédula (solo si no es admin)
+//     if (!psicologoData.rol_admin && !psicologoData.cedula_validada) {
+//       const fechaCreacion = new Date(psicologoData.createdAt);
+//       const fechaActual = new Date();
+//       const diasTranscurridos = Math.floor((fechaActual.getTime() - fechaCreacion.getTime()) / (1000 * 60 * 60 * 24));
+//       const diasRestantes = 7 - diasTranscurridos;
+
+//       // Si pasaron más de 7 días sin validación, incluir advertencia en el token
+//       if (diasTranscurridos > 7) {
+//         const token = jwt.sign(
+//           {
+//             id_psicologo: psicologoData.id_psicologo,
+//             correo: psicologoData.correo,
+//             nombre: psicologoData.nombre,
+//             apellido: psicologoData.apellidoPaterno,
+//             rol_admin: psicologoData.rol_admin,
+//             cedula_validada: false,
+//             cuenta_limitada: true,
+//             codigo_vinculacion: psicologoData.codigo_vinculacion
+//           },
+//           process.env.SECRET_KEY || 'defaultsecretkey',
+//           { expiresIn: '24h' }
+//         );
+
+//         res.json({
+//           msg: 'Inicio de sesión exitoso con acceso limitado',
+//           token,
+//           usuario: {
+//             id_psicologo: psicologoData.id_psicologo,
+//             nombre: psicologoData.nombre,
+//             apellidoPaterno: psicologoData.apellidoPaterno,
+//             correo: psicologoData.correo,
+//             rol_admin: psicologoData.rol_admin,
+//             cedula_validada: false
+//           },
+//           advertencia: 'Tu cédula no ha sido validada. Tu acceso está limitado. Por favor contacta al administrador.',
+//           cuenta_limitada: true
+//         });
+//         return;
+//       }
+
+//       // Si aún está dentro de los 7 días, mostrar advertencia pero permitir acceso completo
+//       if (diasRestantes <= 3 && diasRestantes > 0) {
+//         // Enviar notificación si quedan 3 días o menos
+//         await emailService.enviarNotificacionCedulaPendiente(
+//           psicologoData.correo,
+//           psicologoData.nombre,
+//           diasRestantes
+//         );
+//       }
+//     }
+
+//     // Generar token JWT
+//     const token = jwt.sign(
+//       {
+//         id_psicologo: psicologoData.id_psicologo,
+//         correo: psicologoData.correo,
+//         nombre: psicologoData.nombre,
+//         apellido: psicologoData.apellidoPaterno,
+//         rol_admin: psicologoData.rol_admin,
+//         cedula_validada: psicologoData.cedula_validada,
+//         cuenta_limitada: false,
+//         codigo_vinculacion: psicologoData.codigo_vinculacion
+//       },
+//       process.env.SECRET_KEY || 'defaultsecretkey',
+//       { expiresIn: '24h' }
+//     );
+
+//     // Calcular días restantes para validación (si aplica)
+//     let diasRestantesValidacion = null;
+//     if (!psicologoData.rol_admin && !psicologoData.cedula_validada) {
+//       const fechaCreacion = new Date(psicologoData.createdAt);
+//       const fechaActual = new Date();
+//       const diasTranscurridos = Math.floor((fechaActual.getTime() - fechaCreacion.getTime()) / (1000 * 60 * 60 * 24));
+//       diasRestantesValidacion = Math.max(0, 7 - diasTranscurridos);
+//     }
+
+//     res.json({
+//       msg: 'Inicio de sesión exitoso',
+//       token,
+//       usuario: {
+//         id_psicologo: psicologoData.id_psicologo,
+//         nombre: psicologoData.nombre,
+//         apellidoPaterno: psicologoData.apellidoPaterno,
+//         correo: psicologoData.correo,
+//         rol_admin: psicologoData.rol_admin,
+//         cedula_validada: psicologoData.cedula_validada
+//       },
+//       diasRestantesValidacion,
+//       cuenta_limitada: false
+//     });
+
+//   } catch (error) {
+//     console.error('Error en el login:', error);
+//     res.status(500).json({ 
+//       msg: 'Error interno del servidor al iniciar sesión' 
+//     });
+//   }
+// };
+
+
 export const login = async (req: Request, res: Response): Promise<void> => {
   const { correo, contrasena } = req.body;
 
@@ -378,50 +522,35 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
-    // Verificar validación de cédula (solo si no es admin)
+    // ✅ VERIFICAR VALIDACIÓN DE CÉDULA (solo si no es admin)
     if (!psicologoData.rol_admin && !psicologoData.cedula_validada) {
       const fechaCreacion = new Date(psicologoData.createdAt);
       const fechaActual = new Date();
       const diasTranscurridos = Math.floor((fechaActual.getTime() - fechaCreacion.getTime()) / (1000 * 60 * 60 * 24));
       const diasRestantes = 7 - diasTranscurridos;
 
-      // Si pasaron más de 7 días sin validación, incluir advertencia en el token
+      // ✅ SI PASARON MÁS DE 7 DÍAS: BLOQUEAR ACCESO COMPLETAMENTE
       if (diasTranscurridos > 7) {
-        const token = jwt.sign(
-          {
-            id_psicologo: psicologoData.id_psicologo,
-            correo: psicologoData.correo,
-            nombre: psicologoData.nombre,
-            apellido: psicologoData.apellidoPaterno,
-            rol_admin: psicologoData.rol_admin,
-            cedula_validada: false,
-            cuenta_limitada: true,
-            codigo_vinculacion: psicologoData.codigo_vinculacion
-          },
-          process.env.SECRET_KEY || 'defaultsecretkey',
-          { expiresIn: '24h' }
-        );
-
-        res.json({
-          msg: 'Inicio de sesión exitoso con acceso limitado',
-          token,
+        res.status(403).json({
+          msg: 'Credenciales no validadas',
+          cedula_validada: false,
+          requiere_validacion: true,
           usuario: {
             id_psicologo: psicologoData.id_psicologo,
             nombre: psicologoData.nombre,
             apellidoPaterno: psicologoData.apellidoPaterno,
+            apellidoMaterno: psicologoData.apellidoMaterno,
             correo: psicologoData.correo,
-            rol_admin: psicologoData.rol_admin,
-            cedula_validada: false
-          },
-          advertencia: 'Tu cédula no ha sido validada. Tu acceso está limitado. Por favor contacta al administrador.',
-          cuenta_limitada: true
+            especialidad: psicologoData.especialidad,
+            cedula: psicologoData.cedula,
+            telefono: psicologoData.telefono
+          }
         });
         return;
       }
 
-      // Si aún está dentro de los 7 días, mostrar advertencia pero permitir acceso completo
+      // ✅ SI QUEDAN 3 DÍAS O MENOS: Enviar notificación pero permitir acceso
       if (diasRestantes <= 3 && diasRestantes > 0) {
-        // Enviar notificación si quedan 3 días o menos
         await emailService.enviarNotificacionCedulaPendiente(
           psicologoData.correo,
           psicologoData.nombre,
@@ -430,7 +559,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       }
     }
 
-    // Generar token JWT
+    // ✅ GENERAR TOKEN JWT (solo si pasó todas las validaciones)
     const token = jwt.sign(
       {
         id_psicologo: psicologoData.id_psicologo,

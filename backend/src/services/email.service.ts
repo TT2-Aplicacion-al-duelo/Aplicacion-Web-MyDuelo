@@ -231,6 +231,74 @@ class EmailService {
       text: `Hola ${nombre}, tu cédula profesional aún no ha sido validada. Te quedan ${diasRestantes} día(s) de acceso. Por favor contacta al administrador.`
     });
   }
+
+  /**
+   * Enviar correo cuando la cédula es validada
+   */
+  async enviarNotificacionCedulaValidada(correo: string, nombre: string): Promise<boolean> {
+    const urlLogin = `${process.env.FRONTEND_URL || 'http://localhost:4200'}/iniciar-sesion`;
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <style>
+          body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
+          .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+          .header { background-color: #4CAF50; color: white; padding: 20px; text-align: center; border-radius: 5px 5px 0 0; }
+          .content { background-color: #f9f9f9; padding: 30px; border: 1px solid #ddd; border-radius: 0 0 5px 5px; }
+          .success-box { background-color: #d4edda; border: 2px solid #28a745; padding: 20px; margin: 20px 0; border-radius: 5px; text-align: center; }
+          .btn { display: inline-block; padding: 12px 30px; background-color: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 20px 0; }
+          .footer { text-align: center; margin-top: 20px; color: #666; font-size: 12px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1>✅ ¡Credenciales Validadas!</h1>
+          </div>
+          <div class="content">
+            <h2>¡Hola ${nombre}!</h2>
+            
+            <div class="success-box">
+              <h3 style="margin-top: 0; color: #155724;">🎉 Tu cédula profesional ha sido validada</h3>
+              <p style="font-size: 18px; margin: 0;"><strong>Ya tienes acceso completo a MiDuelo App</strong></p>
+            </div>
+            
+            <p>Nos complace informarte que el administrador ha verificado y validado tu cédula profesional exitosamente.</p>
+            
+            <h3>¿Qué significa esto?</h3>
+            <ul>
+              <li>✅ Acceso completo a todas las funcionalidades de la plataforma</li>
+              <li>✅ Sin restricciones de tiempo</li>
+              <li>✅ Credenciales profesionales verificadas</li>
+            </ul>
+            
+            <div style="text-align: center;">
+              <a href="${urlLogin}" class="btn">Iniciar Sesión Ahora</a>
+            </div>
+            
+            <p>¡Bienvenido oficialmente a MiDuelo App! Estamos emocionados de que formes parte de nuestra comunidad de profesionales.</p>
+            
+            <p>Saludos cordiales,<br><strong>El equipo de MiDuelo App</strong></p>
+          </div>
+          <div class="footer">
+            <p>© 2025 MiDuelo App. Todos los derechos reservados.</p>
+            <p>Si tienes alguna pregunta, contáctanos en soporte_tecnico@midueloapp.com</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `;
+
+    return await this.enviarCorreo({
+      to: correo,
+      subject: '✅ Cédula Profesional Validada - Acceso Completo a MiDuelo App',
+      html,
+      text: `¡Hola ${nombre}! Tu cédula profesional ha sido validada. Ya tienes acceso completo a MiDuelo App. Inicia sesión en: ${urlLogin}`
+    });
+  }
 }
 
 export default new EmailService();

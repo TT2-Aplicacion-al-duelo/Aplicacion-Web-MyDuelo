@@ -64,6 +64,25 @@ export class AuthService {
   }
 
   // Obtener información del usuario del token
+  // getUserInfo(): any {
+  //   const token = this.getToken();
+  //   if (!token) return null;
+
+  //   try {
+  //     const payload = JSON.parse(atob(token.split('.')[1]));
+  //     return {
+  //       id_psicologo: payload.id_psicologo,
+  //       correo: payload.correo,
+  //       nombre: payload.nombre,
+  //       apellido: payload.apellido,
+  //       rol_admin: payload.rol_admin,
+  //       codigo_vinculacion: payload.codigo_vinculacion
+  //     };
+  //   } catch (error) {
+  //     console.error('Error decodificando token:', error);
+  //     return null;
+  //   }
+  // }
   getUserInfo(): any {
     const token = this.getToken();
     if (!token) return null;
@@ -76,6 +95,7 @@ export class AuthService {
         nombre: payload.nombre,
         apellido: payload.apellido,
         rol_admin: payload.rol_admin,
+        cedula_validada: payload.cedula_validada,  
         codigo_vinculacion: payload.codigo_vinculacion
       };
     } catch (error) {
@@ -83,7 +103,6 @@ export class AuthService {
       return null;
     }
   }
-
   // Verificar si el token ha expirado
   isTokenExpired(): boolean {
     const token = this.getToken();

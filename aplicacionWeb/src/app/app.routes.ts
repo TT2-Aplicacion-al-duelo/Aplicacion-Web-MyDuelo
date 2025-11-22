@@ -3,6 +3,7 @@ import { Routes, CanActivateFn, Router } from '@angular/router';
 import { inject } from '@angular/core';
 import { AuthService } from './services/auth.service';
 
+
 // Componentes Estáticos
 import { InicioComponent } from './estaticos/inicio/inicio.component';
 import { LoginComponent } from './estaticos/login/login.component';
@@ -10,6 +11,7 @@ import { RegistroComponent } from './estaticos/registro/registro.component';
 import { ActivarCuentaComponent } from './estaticos/activar-cuenta/activar-cuenta.component';
 import { RestablecerContrasenaComponent } from './estaticos/restablecer-contrasena/restablecer-contrasena.component';
 import { DueloPerdidaComponent } from './estaticos/duelo-perdida/duelo-perdida.component';
+import { CredencialesNoValidadasComponent } from './estaticos/credenciales-no-validadas/credenciales-no-validadas.component';
 import { ContactosApoyoComponent } from './estaticos/contactos-apoyo/contactos-apoyo.component';
 
 // Componentes de Psicólogo
@@ -72,6 +74,7 @@ export const routes: Routes = [
   { path: '', component: InicioComponent },
   { path: 'duelo-y-perdida', component: DueloPerdidaComponent },
   { path: 'contactos-de-apoyo', component: ContactosApoyoComponent },
+  { path: 'credenciales-no-validadas', component: CredencialesNoValidadasComponent },
   { path: 'iniciar-sesion', component: LoginComponent },
   { path: 'registro', component: RegistroComponent },
   { path: 'activar-cuenta/:token', component: ActivarCuentaComponent },

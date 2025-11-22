@@ -19,6 +19,7 @@ const paciente_1 = require("../models/paciente");
 const sequelize_1 = require("sequelize");
 const cedulaValidacion_service_1 = require("../services/cedulaValidacion.service");
 const connection_1 = __importDefault(require("../database/connection"));
+const email_service_1 = __importDefault(require("../services/email.service"));
 /**
  * Registro especial para administradores (solo para pruebas/setup inicial)
  */
@@ -348,6 +349,15 @@ const validarCedulaManual = (req, res) => __awaiter(void 0, void 0, void 0, func
             cedula_validada: true
         });
         console.log(`✅ Cédula ${psicologoData.cedula} validada manualmente por admin ${admin_nombre} (ID: ${admin_id})`);
+        // ✅ ENVIAR CORREO AUTOMÁTICO DE NOTIFICACIÓN
+        try {
+            yield email_service_1.default.enviarNotificacionCedulaValidada(psicologoData.correo, psicologoData.nombre);
+            console.log(`📧 Correo de validación manual enviado a: ${psicologoData.correo}`);
+        }
+        catch (emailError) {
+            console.error('⚠️ Error al enviar correo de validación:', emailError);
+            // No fallar la validación si el correo falla
+        }
         res.json({
             msg: `Cédula profesional ${psicologoData.cedula} validada manualmente por el administrador`,
             psicologo: {
@@ -415,6 +425,15 @@ const validarCedulaConAPI = (req, res) => __awaiter(void 0, void 0, void 0, func
             yield psicologo.update({
                 cedula_validada: true
             });
+        }
+        // ✅ ENVIAR CORREO AUTOMÁTICO DE NOTIFICACIÓN
+        try {
+            yield email_service_1.default.enviarNotificacionCedulaValidada(psicologoData.correo, psicologoData.nombre);
+            console.log(`📧 Correo de validación enviado a: ${psicologoData.correo}`);
+        }
+        catch (emailError) {
+            console.error('⚠️ Error al enviar correo de validación:', emailError);
+            // No fallar la validación si el correo falla
         }
         res.json({
             msg: resultadoValidacion.valida ? 'Cédula validada exitosamente' : 'Cédula no pudo ser validada',

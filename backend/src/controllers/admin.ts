@@ -7,6 +7,7 @@ import { Op, QueryTypes } from 'sequelize';
 import jwt from 'jsonwebtoken';
 import { CedulaValidacionService } from '../services/cedulaValidacion.service';
 import sequelize from '../database/connection';
+import emailService from '../services/email.service';
 
 // INTERFACE PARA REQUEST CON USER INFO
 interface AuthRequest extends Request {
@@ -445,6 +446,17 @@ export const validarCedulaManual = async (req: AuthRequest, res: Response) => {
     });
 
     console.log(`✅ Cédula ${psicologoData.cedula} validada manualmente por admin ${admin_nombre} (ID: ${admin_id})`);
+    // ✅ ENVIAR CORREO AUTOMÁTICO DE NOTIFICACIÓN
+    try {
+      await emailService.enviarNotificacionCedulaValidada(
+        psicologoData.correo,
+        psicologoData.nombre
+      );
+      console.log(`📧 Correo de validación manual enviado a: ${psicologoData.correo}`);
+    } catch (emailError) {
+      console.error('⚠️ Error al enviar correo de validación:', emailError);
+      // No fallar la validación si el correo falla
+    }
 
     res.json({
       msg: `Cédula profesional ${psicologoData.cedula} validada manualmente por el administrador`,
@@ -524,6 +536,18 @@ export const validarCedulaConAPI = async (req: AuthRequest, res: Response) => {
         cedula_validada: true 
       });
     }
+
+    // ✅ ENVIAR CORREO AUTOMÁTICO DE NOTIFICACIÓN
+      try {
+        await emailService.enviarNotificacionCedulaValidada(
+          psicologoData.correo,
+          psicologoData.nombre
+        );
+        console.log(`📧 Correo de validación enviado a: ${psicologoData.correo}`);
+      } catch (emailError) {
+        console.error('⚠️ Error al enviar correo de validación:', emailError);
+        // No fallar la validación si el correo falla
+      }
 
     res.json({
       msg: resultadoValidacion.valida ? 'Cédula validada exitosamente' : 'Cédula no pudo ser validada',
