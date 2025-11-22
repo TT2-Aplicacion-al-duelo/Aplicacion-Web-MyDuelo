@@ -108,30 +108,41 @@ pacientesFiltrados: PacienteConError[] = [];
     return new Date(fecha).toLocaleDateString('es-ES');
   }
 
-  /*
- * Obtener URL de foto de perfil del paciente
- */
-obtenerFotoUrl(paciente: Paciente): string {
-  const fotoPerfil = paciente.foto_perfil;
-  
-  if (!fotoPerfil) {
-    return '';
+  /**
+   * Obtener URL de foto de perfil del paciente
+   */
+  obtenerFotoUrl(paciente: Paciente): string {
+    const fotoPerfil = paciente.foto_perfil;
+    
+    // ✅ DEBUG - Ver qué llega
+    console.log('🔍 Paciente ID:', paciente.id_paciente);
+    console.log('📸 foto_perfil en BD:', fotoPerfil);
+    
+    if (!fotoPerfil) {
+      console.log('❌ No hay foto_perfil');
+      return '';
+    }
+    
+    // Si es URL antigua de Azure, ignorarla
+    if (fotoPerfil.startsWith('http://192.168') || fotoPerfil.startsWith('http://20.')) {
+      console.log('❌ URL antigua de Azure - ignorando');
+      return '';
+    }
+    
+    // Si ya es URL completa válida
+    if (fotoPerfil.startsWith('http')) {
+      console.log('✅ URL completa:', fotoPerfil);
+      return fotoPerfil;
+    }
+    
+    // Construir URL del servidor
+    const baseUrl = environment.apiUrl || 'http://localhost:3017';
+    const urlFinal = `${baseUrl}/uploads/${fotoPerfil}`;
+    
+    console.log('🔨 URL construida:', urlFinal);
+    
+    return urlFinal;
   }
-  
-  // Si ya es URL completa, pero de Azure antigua, ignorarla
-  if (fotoPerfil.startsWith('https://192.168') || fotoPerfil.startsWith('https://20.')) {
-    return '';
-  }
-  
-  // Si ya es URL completa válida
-  if (fotoPerfil.startsWith('http')) {
-    return fotoPerfil;
-  }
-  
-  // Construir URL del servidor
-  const baseUrl = environment.apiUrl || 'https://localhost:3017';
-  return `${baseUrl}/uploads/${fotoPerfil}`;
-}
 
 
   /**

@@ -121,32 +121,40 @@ export class PacienteInfoComponent implements OnInit {
     
     return edad;
   }
-  /**
-   * Obtener URL de foto de perfil
+ /**
+   * Obtener URL de foto de perfil del paciente
    */
-  /**
- * Obtener URL de foto de perfil
- */
-  obtenerFotoUrl(): string {
-    const fotoPerfil = this.paciente?.foto_perfil;
+  obtenerFotoUrl(paciente: Paciente): string {
+    const fotoPerfil = paciente.foto_perfil;
+    
+    // ✅ DEBUG - Ver qué llega
+    console.log('🔍 Paciente ID:', paciente.id_paciente);
+    console.log('📸 foto_perfil en BD:', fotoPerfil);
     
     if (!fotoPerfil) {
+      console.log('❌ No hay foto_perfil');
       return '';
     }
     
     // Si es URL antigua de Azure, ignorarla
     if (fotoPerfil.startsWith('http://192.168') || fotoPerfil.startsWith('http://20.')) {
+      console.log('❌ URL antigua de Azure - ignorando');
       return '';
     }
     
     // Si ya es URL completa válida
     if (fotoPerfil.startsWith('http')) {
+      console.log('✅ URL completa:', fotoPerfil);
       return fotoPerfil;
     }
     
     // Construir URL del servidor
     const baseUrl = environment.apiUrl || 'http://localhost:3017';
-    return `${baseUrl}/uploads/${fotoPerfil}`;
+    const urlFinal = `${baseUrl}/uploads/${fotoPerfil}`;
+    
+    console.log('🔨 URL construida:', urlFinal);
+    
+    return urlFinal;
   }
   /**
    * Manejar error de imagen

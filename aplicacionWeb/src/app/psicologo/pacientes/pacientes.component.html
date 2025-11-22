@@ -115,17 +115,20 @@
                     <div class="d-flex align-items-center">
                       <!-- Avatar del paciente -->
                       <div class="paciente-avatar me-3">
-                        <div class="avatar-circle bg-primary text-white" 
-                            *ngIf="!obtenerFotoUrl(paciente) || paciente.imageError">
+                        <!-- Iniciales (fallback) -->
+                        <div 
+                          class="avatar-circle bg-primary text-white" 
+                          *ngIf="!obtenerFotoUrl(paciente) || paciente.imageError">
                           {{ getIniciales(paciente) }}
                         </div>
+                        
+                        <!-- Imagen de perfil -->
                         <img 
                           *ngIf="obtenerFotoUrl(paciente) && !paciente.imageError" 
                           [src]="obtenerFotoUrl(paciente)" 
                           [alt]="getNombreCompleto(paciente)"
                           class="avatar-img"
-                          (error)="onImageError($event, paciente)"
-                          loading="lazy">
+                          (error)="onImageError($event, paciente)">
                       </div>
                       
                       <!-- Nombre del paciente -->
