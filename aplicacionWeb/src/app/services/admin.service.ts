@@ -223,4 +223,13 @@ validarCedulaProfesional(idPsicologo: number, cedula: string): Observable<any> {
       'token': this.getToken() || ''
     });
   }
+
+  /**
+   * Eliminar un paciente permanentemente
+   */
+  eliminarPaciente(idPaciente: number): Observable<any> {
+    return this.http.delete(`${this.AppUrl}${this.APIUrl}/pacientes/${idPaciente}`, {
+      headers: this.getHeaders()
+    });
+  }
 }

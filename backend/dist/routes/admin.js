@@ -32,4 +32,5 @@ router.put("/api/admin/pacientes/:id_paciente/status", validarAdmin_1.default, a
 router.post("/api/admin/subir-foto-perfil", validarAdmin_1.default, multer_config_1.uploadFotoPerfil.single('foto'), psicologo_1.subirFotoPerfil);
 router.delete("/api/admin/eliminar-foto-perfil", validarAdmin_1.default, psicologo_1.eliminarFotoPerfil);
 router.get("/api/admin/perfil", validarAdmin_1.default, psicologo_1.obtenerPerfil);
+router.delete("/api/admin/pacientes/:id_paciente", validarAdmin_1.default, admin_1.eliminarPaciente);
 exports.default = router;

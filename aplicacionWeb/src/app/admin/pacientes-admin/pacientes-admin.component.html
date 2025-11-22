@@ -308,7 +308,6 @@
           </button>
 
           <!-- Deshabilitar cuenta -->
-          <!-- Deshabilitar cuenta -->
           <button 
             *ngIf="pacienteSeleccionado.email_verificado"
             class="btn btn-outline-danger"
@@ -325,6 +324,15 @@
             title="Habilitar cuenta"
           >
             <i class="bi bi-check-circle me-2"></i>Habilitar
+          </button>
+
+          <!-- NUEVO: Botón Eliminar Cuenta -->
+          <button 
+            class="btn btn-danger"
+            (click)="eliminarCuentaPaciente(pacienteSeleccionado)"
+            title="Eliminar cuenta permanentemente"
+          >
+            <i class="bi bi-trash me-2"></i>Eliminar Cuenta
           </button>
 
           <!-- Cerrar modal -->

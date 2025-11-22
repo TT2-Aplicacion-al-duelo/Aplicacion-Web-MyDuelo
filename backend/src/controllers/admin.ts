@@ -3,9 +3,10 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { Psicologo } from '../models/psicologo';
 import { Paciente } from '../models/paciente';
-import { Op } from 'sequelize';
+import { Op, QueryTypes } from 'sequelize';
 import jwt from 'jsonwebtoken';
 import { CedulaValidacionService } from '../services/cedulaValidacion.service';
+import sequelize from '../database/connection';
 
 // INTERFACE PARA REQUEST CON USER INFO
 interface AuthRequest extends Request {
@@ -199,49 +200,7 @@ export const cambiarStatusPsicologo = async (req: AuthRequest, res: Response) =>
     }
 };
 
-/**
- * Eliminar un psicólogo PERMANENTEMENTE
- */
-// export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
-//     try {
-//         const { id_psicologo } = req.params;
 
-//         const psicologo = await Psicologo.findByPk(id_psicologo);
-
-//         if (!psicologo) {
-//             return res.status(404).json({
-//                 msg: 'Psicólogo no encontrado'
-//             });
-//         }
-
-//         // EVITAR QUE SE ELIMINE A SÍ MISMO
-//         if ((psicologo as any).id_psicologo === req.user?.id_psicologo) {
-//             return res.status(400).json({
-//                 msg: 'No puedes eliminar tu propia cuenta'
-//             });
-//         }
-
-//         const nombrePsicologo = `${(psicologo as any).nombre} ${(psicologo as any).apellidoPaterno}`;
-
-//         // ELIMINACIÓN PERMANENTE (no soft delete)
-//         await psicologo.destroy();
-
-//         res.json({
-//             msg: 'Psicólogo eliminado permanentemente',
-//             psicologo: {
-//                 id: (psicologo as any).id_psicologo,
-//                 nombre: nombrePsicologo
-//             }
-//         });
-
-//     } catch (error) {
-//         console.error('Error eliminando psicólogo:', error);
-//         res.status(500).json({
-//             msg: 'Error interno del servidor',
-//             error: error instanceof Error ? error.message : 'Error desconocido'
-//         });
-//     }
-// };
 /**
  * Eliminar un psicólogo PERMANENTEMENTE
  */
@@ -364,7 +323,7 @@ export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
             const idsAgendas = agendasPsicologo.map((a: any) => a.id_agenda);
             console.log(`📋 Agendas del psicólogo: ${idsAgendas.join(', ') || 'ninguna'}`);
 
-            // ✅ PASO 11: Eliminar TODAS las citas de esas agendas
+            //  Eliminar TODAS las citas de esas agendas
             if (idsAgendas.length > 0) {
                 const placeholders = idsAgendas.map(() => '?').join(',');
                 await sequelize.query(
@@ -374,21 +333,21 @@ export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
                 console.log('✅ Citas eliminadas');
             }
 
-            // ✅ PASO 12: Eliminar las agendas del psicólogo
+            // Eliminar las agendas del psicólogo
             await sequelize.query(
                 'DELETE FROM agenda WHERE id_psicologo = ?',
                 { replacements: [id_psicologo], transaction }
             );
             console.log('✅ Agendas eliminadas');
 
-            // ✅ PASO 13: Eliminar disponibilidades del psicólogo
+            // Eliminar disponibilidades del psicólogo
             await sequelize.query(
                 'DELETE FROM disponibilidad WHERE id_psicologo = ?',
                 { replacements: [id_psicologo], transaction }
             );
             console.log('✅ Disponibilidades eliminadas');
 
-            // ✅ PASO 14: Eliminar excepciones de disponibilidad
+            // Eliminar excepciones de disponibilidad
             await sequelize.query(
                 'DELETE FROM excepcion_disponibilidad WHERE id_psicologo = ?',
                 { replacements: [id_psicologo], transaction }
@@ -402,14 +361,14 @@ export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
             );
             console.log('✅ Tokens eliminados');
 
-            // PASO 16: FINALMENTE, eliminar el psicólogo
+            // FINALMENTE, eliminar el psicólogo
             await sequelize.query(
                 'DELETE FROM psicologo WHERE id_psicologo = ?',
                 { replacements: [id_psicologo], transaction }
             );
             console.log('✅ Psicólogo eliminado');
 
-            // ✅ CONFIRMAR TRANSACCIÓN
+            //  CONFIRMAR TRANSACCIÓN
             await transaction.commit();
 
             res.json({
@@ -434,13 +393,13 @@ export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
             });
 
         } catch (error) {
-            // ❌ REVERTIR TRANSACCIÓN en caso de error
+            //  REVERTIR TRANSACCIÓN en caso de error
             await transaction.rollback();
             throw error;
         }
 
     } catch (error) {
-        console.error('❌ Error eliminando psicólogo:', error);
+        console.error(' Error eliminando psicólogo:', error);
         res.status(500).json({
             msg: 'Error interno del servidor al eliminar el psicólogo',
             error: error instanceof Error ? error.message : 'Error desconocido',
@@ -578,11 +537,11 @@ export const validarCedulaConAPI = async (req: AuthRequest, res: Response) => {
       }
     });
 
-  } catch (error: any) { // ✅ CORREGIDO: Tipado explícito
+  } catch (error: any) { //  CORREGIDO: Tipado explícito
     console.error('Error validando cédula:', error);
     res.status(500).json({
       msg: 'Error interno del servidor',
-      error: error.message || 'Error desconocido' // ✅ CORREGIDO: Manejo seguro del error
+      error: error.message || 'Error desconocido' //  CORREGIDO: Manejo seguro del error
     });
   }
   
@@ -611,7 +570,7 @@ export const getAllPacientesAdmin = async (req: AuthRequest, res: Response) => {
         attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo'],
         required: false // LEFT JOIN para incluir pacientes sin psicólogo
       }],
-      order: [['id_paciente', 'DESC']] // ✅ CAMBIADO: ordenar por ID en lugar de createdAt
+      order: [['id_paciente', 'DESC']] //  CAMBIADO: ordenar por ID en lugar de createdAt
     });
 
     // Formatear respuesta
@@ -701,9 +660,7 @@ export const reasignarPaciente = async (req: AuthRequest, res: Response) => {
   }
 };
 
-/**
- * Cambiar status de un paciente (si tienes campo status en la tabla)
- */
+
 /**
  * Cambiar email_verificado de un paciente
  */
@@ -747,4 +704,174 @@ export const cambiarEstadoPaciente = async (req: AuthRequest, res: Response) => 
       msg: 'Error interno del servidor'
     });
   }
+
+};
+
+/**
+ * Eliminar un paciente PERMANENTEMENTE
+ */
+export const eliminarPaciente = async (req: AuthRequest, res: Response) => {
+    try {
+        const { id_paciente } = req.params;
+
+        console.log(`🗑️ Iniciando eliminación del paciente ${id_paciente}`);
+
+        // Verificar que el paciente existe
+        const [pacienteExiste]: any = await sequelize.query(
+            'SELECT id_paciente, nombre, apellido_paterno FROM paciente WHERE id_paciente = ?',
+            { replacements: [id_paciente], type: QueryTypes.SELECT }
+        );
+
+        if (!pacienteExiste) {
+            return res.status(404).json({ msg: 'Paciente no encontrado' });
+        }
+
+        const nombrePaciente = `${pacienteExiste.nombre} ${pacienteExiste.apellido_paterno}`;
+        console.log(`📋 Paciente a eliminar: ${nombrePaciente}`);
+
+        // Iniciar transacción para asegurar atomicidad
+        const transaction = await sequelize.transaction();
+
+        try {
+            // PASO 1: Eliminar mensajes del chat del paciente
+            await sequelize.query(
+                'DELETE FROM mensaje WHERE id_chat IN (SELECT id_chat FROM chat WHERE id_paciente = ?)',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Mensajes de chat eliminados');
+
+            // PASO 2: Eliminar chats del paciente
+            await sequelize.query(
+                'DELETE FROM chat WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Chats eliminados');
+
+            // PASO 3: Eliminar mensajes del chat admin del paciente
+            await sequelize.query(
+                'DELETE FROM mensaje_admin WHERE id_chat_admin IN (SELECT id_chat_admin FROM chat_admin WHERE destinatario_tipo = "paciente" AND destinatario_id = ?)',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Mensajes de chat admin eliminados');
+
+            // PASO 4: Eliminar chats admin del paciente
+            await sequelize.query(
+                'DELETE FROM chat_admin WHERE destinatario_tipo = "paciente" AND destinatario_id = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Chats admin eliminados');
+
+            // PASO 5: Eliminar notas del paciente
+            await sequelize.query(
+                'DELETE FROM notas WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Notas eliminadas');
+
+            // PASO 6: Eliminar actividades asignadas al paciente
+            await sequelize.query(
+                'DELETE FROM actividad_asignada WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Actividades asignadas eliminadas');
+
+            // PASO 7: Eliminar aplicaciones de tests del paciente
+            await sequelize.query(
+                'DELETE FROM aplicacion_test WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Aplicaciones de tests eliminadas');
+
+            // PASO 8: Eliminar citas del paciente
+            await sequelize.query(
+                'DELETE FROM cita WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Citas eliminadas');
+
+            // PASO 9: Eliminar participación en foros
+            await sequelize.query(
+                'DELETE FROM participante_foro WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Participaciones en foros eliminadas');
+
+            // PASO 10: Eliminar invitaciones a foros
+            await sequelize.query(
+                'DELETE FROM invitacion_foro WHERE id_paciente_invitado = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Invitaciones a foros eliminadas');
+
+            // PASO 11: Eliminar solicitudes de unión a foros
+            await sequelize.query(
+                'DELETE FROM solicitud_union_foro WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Solicitudes de unión a foros eliminadas');
+
+            // PASO 12: Eliminar mensajes de foro del paciente
+            await sequelize.query(
+                'DELETE FROM mensaje_foro WHERE tipo_usuario = "paciente" AND id_usuario = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Mensajes de foro eliminados');
+
+            // PASO 13: Eliminar evidencias del paciente
+            await sequelize.query(
+                'DELETE FROM evidencia WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Evidencias eliminadas');
+
+            // PASO 14: Eliminar tokens del paciente
+            await sequelize.query(
+                'DELETE FROM token WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Tokens eliminados');
+
+            // PASO 15: FINALMENTE, eliminar el paciente
+            await sequelize.query(
+                'DELETE FROM paciente WHERE id_paciente = ?',
+                { replacements: [id_paciente], transaction }
+            );
+            console.log('✅ Paciente eliminado');
+
+            // Confirmar transacción
+            await transaction.commit();
+
+            res.json({
+                msg: 'Paciente eliminado permanentemente junto con todos sus datos asociados',
+                paciente: {
+                    id: id_paciente,
+                    nombre: nombrePaciente
+                },
+                datos_eliminados: {
+                    chats: true,
+                    mensajes: true,
+                    notas: true,
+                    actividades: true,
+                    tests: true,
+                    citas: true,
+                    foros: true,
+                    evidencias: true,
+                    tokens: true
+                }
+            });
+
+        } catch (error) {
+            // Revertir transacción en caso de error
+            await transaction.rollback();
+            throw error;
+        }
+
+    } catch (error) {
+        console.error('❌ Error eliminando paciente:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor al eliminar el paciente',
+            error: error instanceof Error ? error.message : 'Error desconocido',
+            detalle: 'No se pudo completar la eliminación. Se revirtieron todos los cambios.'
+        });
+    }
 };

@@ -12,12 +12,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.cambiarEstadoPaciente = exports.reasignarPaciente = exports.getAllPacientesAdmin = exports.validarCedulaConAPI = exports.validarCedulaManual = exports.eliminarPsicologo = exports.cambiarStatusPsicologo = exports.getAllPsicologos = exports.verificarAdmin = exports.registroAdmin = void 0;
+exports.eliminarPaciente = exports.cambiarEstadoPaciente = exports.reasignarPaciente = exports.getAllPacientesAdmin = exports.validarCedulaConAPI = exports.validarCedulaManual = exports.eliminarPsicologo = exports.cambiarStatusPsicologo = exports.getAllPsicologos = exports.verificarAdmin = exports.registroAdmin = void 0;
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const psicologo_1 = require("../models/psicologo");
 const paciente_1 = require("../models/paciente");
 const sequelize_1 = require("sequelize");
 const cedulaValidacion_service_1 = require("../services/cedulaValidacion.service");
+const connection_1 = __importDefault(require("../database/connection"));
 /**
  * Registro especial para administradores (solo para pruebas/setup inicial)
  */
@@ -184,42 +185,6 @@ exports.cambiarStatusPsicologo = cambiarStatusPsicologo;
 /**
  * Eliminar un psicólogo PERMANENTEMENTE
  */
-// export const eliminarPsicologo = async (req: AuthRequest, res: Response) => {
-//     try {
-//         const { id_psicologo } = req.params;
-//         const psicologo = await Psicologo.findByPk(id_psicologo);
-//         if (!psicologo) {
-//             return res.status(404).json({
-//                 msg: 'Psicólogo no encontrado'
-//             });
-//         }
-//         // EVITAR QUE SE ELIMINE A SÍ MISMO
-//         if ((psicologo as any).id_psicologo === req.user?.id_psicologo) {
-//             return res.status(400).json({
-//                 msg: 'No puedes eliminar tu propia cuenta'
-//             });
-//         }
-//         const nombrePsicologo = `${(psicologo as any).nombre} ${(psicologo as any).apellidoPaterno}`;
-//         // ELIMINACIÓN PERMANENTE (no soft delete)
-//         await psicologo.destroy();
-//         res.json({
-//             msg: 'Psicólogo eliminado permanentemente',
-//             psicologo: {
-//                 id: (psicologo as any).id_psicologo,
-//                 nombre: nombrePsicologo
-//             }
-//         });
-//     } catch (error) {
-//         console.error('Error eliminando psicólogo:', error);
-//         res.status(500).json({
-//             msg: 'Error interno del servidor',
-//             error: error instanceof Error ? error.message : 'Error desconocido'
-//         });
-//     }
-// };
-/**
- * Eliminar un psicólogo PERMANENTEMENTE
- */
 const eliminarPsicologo = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     var _a;
     try {
@@ -290,28 +255,28 @@ const eliminarPsicologo = (req, res) => __awaiter(void 0, void 0, void 0, functi
             const [agendasPsicologo] = yield sequelize.query('SELECT id_agenda FROM agenda WHERE id_psicologo = ?', { replacements: [id_psicologo], transaction });
             const idsAgendas = agendasPsicologo.map((a) => a.id_agenda);
             console.log(`📋 Agendas del psicólogo: ${idsAgendas.join(', ') || 'ninguna'}`);
-            // ✅ PASO 11: Eliminar TODAS las citas de esas agendas
+            //  Eliminar TODAS las citas de esas agendas
             if (idsAgendas.length > 0) {
                 const placeholders = idsAgendas.map(() => '?').join(',');
                 yield sequelize.query(`DELETE FROM cita WHERE id_agenda IN (${placeholders})`, { replacements: idsAgendas, transaction });
                 console.log('✅ Citas eliminadas');
             }
-            // ✅ PASO 12: Eliminar las agendas del psicólogo
+            // Eliminar las agendas del psicólogo
             yield sequelize.query('DELETE FROM agenda WHERE id_psicologo = ?', { replacements: [id_psicologo], transaction });
             console.log('✅ Agendas eliminadas');
-            // ✅ PASO 13: Eliminar disponibilidades del psicólogo
+            // Eliminar disponibilidades del psicólogo
             yield sequelize.query('DELETE FROM disponibilidad WHERE id_psicologo = ?', { replacements: [id_psicologo], transaction });
             console.log('✅ Disponibilidades eliminadas');
-            // ✅ PASO 14: Eliminar excepciones de disponibilidad
+            // Eliminar excepciones de disponibilidad
             yield sequelize.query('DELETE FROM excepcion_disponibilidad WHERE id_psicologo = ?', { replacements: [id_psicologo], transaction });
             console.log('✅ Excepciones de disponibilidad eliminadas');
             // PASO 15: Eliminar tokens de recuperación/activación
             yield sequelize.query('DELETE FROM token WHERE id_psicologo = ?', { replacements: [id_psicologo], transaction });
             console.log('✅ Tokens eliminados');
-            // PASO 16: FINALMENTE, eliminar el psicólogo
+            // FINALMENTE, eliminar el psicólogo
             yield sequelize.query('DELETE FROM psicologo WHERE id_psicologo = ?', { replacements: [id_psicologo], transaction });
             console.log('✅ Psicólogo eliminado');
-            // ✅ CONFIRMAR TRANSACCIÓN
+            //  CONFIRMAR TRANSACCIÓN
             yield transaction.commit();
             res.json({
                 msg: 'Psicólogo eliminado permanentemente junto con todos sus datos asociados',
@@ -335,13 +300,13 @@ const eliminarPsicologo = (req, res) => __awaiter(void 0, void 0, void 0, functi
             });
         }
         catch (error) {
-            // ❌ REVERTIR TRANSACCIÓN en caso de error
+            //  REVERTIR TRANSACCIÓN en caso de error
             yield transaction.rollback();
             throw error;
         }
     }
     catch (error) {
-        console.error('❌ Error eliminando psicólogo:', error);
+        console.error(' Error eliminando psicólogo:', error);
         res.status(500).json({
             msg: 'Error interno del servidor al eliminar el psicólogo',
             error: error instanceof Error ? error.message : 'Error desconocido',
@@ -463,11 +428,11 @@ const validarCedulaConAPI = (req, res) => __awaiter(void 0, void 0, void 0, func
             }
         });
     }
-    catch (error) { // ✅ CORREGIDO: Tipado explícito
+    catch (error) { //  CORREGIDO: Tipado explícito
         console.error('Error validando cédula:', error);
         res.status(500).json({
             msg: 'Error interno del servidor',
-            error: error.message || 'Error desconocido' // ✅ CORREGIDO: Manejo seguro del error
+            error: error.message || 'Error desconocido' //  CORREGIDO: Manejo seguro del error
         });
     }
 });
@@ -494,7 +459,7 @@ const getAllPacientesAdmin = (req, res) => __awaiter(void 0, void 0, void 0, fun
                     attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo'],
                     required: false // LEFT JOIN para incluir pacientes sin psicólogo
                 }],
-            order: [['id_paciente', 'DESC']] // ✅ CAMBIADO: ordenar por ID en lugar de createdAt
+            order: [['id_paciente', 'DESC']] //  CAMBIADO: ordenar por ID en lugar de createdAt
         });
         // Formatear respuesta
         const pacientesFormateados = pacientes.map((p) => ({
@@ -575,9 +540,6 @@ const reasignarPaciente = (req, res) => __awaiter(void 0, void 0, void 0, functi
 });
 exports.reasignarPaciente = reasignarPaciente;
 /**
- * Cambiar status de un paciente (si tienes campo status en la tabla)
- */
-/**
  * Cambiar email_verificado de un paciente
  */
 const cambiarEstadoPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -616,3 +578,102 @@ const cambiarEstadoPaciente = (req, res) => __awaiter(void 0, void 0, void 0, fu
     }
 });
 exports.cambiarEstadoPaciente = cambiarEstadoPaciente;
+/**
+ * Eliminar un paciente PERMANENTEMENTE
+ */
+const eliminarPaciente = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { id_paciente } = req.params;
+        console.log(`🗑️ Iniciando eliminación del paciente ${id_paciente}`);
+        // Verificar que el paciente existe
+        const [pacienteExiste] = yield connection_1.default.query('SELECT id_paciente, nombre, apellido_paterno FROM paciente WHERE id_paciente = ?', { replacements: [id_paciente], type: sequelize_1.QueryTypes.SELECT });
+        if (!pacienteExiste) {
+            return res.status(404).json({ msg: 'Paciente no encontrado' });
+        }
+        const nombrePaciente = `${pacienteExiste.nombre} ${pacienteExiste.apellido_paterno}`;
+        console.log(`📋 Paciente a eliminar: ${nombrePaciente}`);
+        // Iniciar transacción para asegurar atomicidad
+        const transaction = yield connection_1.default.transaction();
+        try {
+            // PASO 1: Eliminar mensajes del chat del paciente
+            yield connection_1.default.query('DELETE FROM mensaje WHERE id_chat IN (SELECT id_chat FROM chat WHERE id_paciente = ?)', { replacements: [id_paciente], transaction });
+            console.log('✅ Mensajes de chat eliminados');
+            // PASO 2: Eliminar chats del paciente
+            yield connection_1.default.query('DELETE FROM chat WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Chats eliminados');
+            // PASO 3: Eliminar mensajes del chat admin del paciente
+            yield connection_1.default.query('DELETE FROM mensaje_admin WHERE id_chat_admin IN (SELECT id_chat_admin FROM chat_admin WHERE destinatario_tipo = "paciente" AND destinatario_id = ?)', { replacements: [id_paciente], transaction });
+            console.log('✅ Mensajes de chat admin eliminados');
+            // PASO 4: Eliminar chats admin del paciente
+            yield connection_1.default.query('DELETE FROM chat_admin WHERE destinatario_tipo = "paciente" AND destinatario_id = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Chats admin eliminados');
+            // PASO 5: Eliminar notas del paciente
+            yield connection_1.default.query('DELETE FROM notas WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Notas eliminadas');
+            // PASO 6: Eliminar actividades asignadas al paciente
+            yield connection_1.default.query('DELETE FROM actividad_asignada WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Actividades asignadas eliminadas');
+            // PASO 7: Eliminar aplicaciones de tests del paciente
+            yield connection_1.default.query('DELETE FROM aplicacion_test WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Aplicaciones de tests eliminadas');
+            // PASO 8: Eliminar citas del paciente
+            yield connection_1.default.query('DELETE FROM cita WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Citas eliminadas');
+            // PASO 9: Eliminar participación en foros
+            yield connection_1.default.query('DELETE FROM participante_foro WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Participaciones en foros eliminadas');
+            // PASO 10: Eliminar invitaciones a foros
+            yield connection_1.default.query('DELETE FROM invitacion_foro WHERE id_paciente_invitado = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Invitaciones a foros eliminadas');
+            // PASO 11: Eliminar solicitudes de unión a foros
+            yield connection_1.default.query('DELETE FROM solicitud_union_foro WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Solicitudes de unión a foros eliminadas');
+            // PASO 12: Eliminar mensajes de foro del paciente
+            yield connection_1.default.query('DELETE FROM mensaje_foro WHERE tipo_usuario = "paciente" AND id_usuario = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Mensajes de foro eliminados');
+            // PASO 13: Eliminar evidencias del paciente
+            yield connection_1.default.query('DELETE FROM evidencia WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Evidencias eliminadas');
+            // PASO 14: Eliminar tokens del paciente
+            yield connection_1.default.query('DELETE FROM token WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Tokens eliminados');
+            // PASO 15: FINALMENTE, eliminar el paciente
+            yield connection_1.default.query('DELETE FROM paciente WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Paciente eliminado');
+            // Confirmar transacción
+            yield transaction.commit();
+            res.json({
+                msg: 'Paciente eliminado permanentemente junto con todos sus datos asociados',
+                paciente: {
+                    id: id_paciente,
+                    nombre: nombrePaciente
+                },
+                datos_eliminados: {
+                    chats: true,
+                    mensajes: true,
+                    notas: true,
+                    actividades: true,
+                    tests: true,
+                    citas: true,
+                    foros: true,
+                    evidencias: true,
+                    tokens: true
+                }
+            });
+        }
+        catch (error) {
+            // Revertir transacción en caso de error
+            yield transaction.rollback();
+            throw error;
+        }
+    }
+    catch (error) {
+        console.error('❌ Error eliminando paciente:', error);
+        res.status(500).json({
+            msg: 'Error interno del servidor al eliminar el paciente',
+            error: error instanceof Error ? error.message : 'Error desconocido',
+            detalle: 'No se pudo completar la eliminación. Se revirtieron todos los cambios.'
+        });
+    }
+});
+exports.eliminarPaciente = eliminarPaciente;

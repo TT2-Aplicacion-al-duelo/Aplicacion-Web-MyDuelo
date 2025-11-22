@@ -192,4 +192,51 @@ export class PacientesAdminComponent implements OnInit {
     if (!fecha) return 'No disponible';
     return new Date(fecha).toLocaleDateString('es-ES');
   }
+  /**
+   * Eliminar cuenta de paciente PERMANENTEMENTE
+   */
+  eliminarCuentaPaciente(paciente: PacienteAdmin) {
+    // Primera confirmación
+    if (!confirm(`ELIMINAR CUENTA DE PACIENTE\n\n` +
+      `Esta acción eliminará PERMANENTEMENTE:\n` +
+      `• Paciente: ${paciente.nombre} ${paciente.apellido_paterno}\n` +
+      `• Todos sus chats y mensajes\n` +
+      `• Todas sus notas y actividades\n` +
+      `• Todas sus citas y tests\n` +
+      `• Todas sus evidencias\n` +
+      `• Toda su participación en foros\n\n` +
+      `Esta acción NO se puede deshacer.\n\n` +
+      `¿Está seguro de que desea continuar?`)) {
+      return;
+    }
+
+    // Segunda confirmación con input de texto
+    const confirmacion = prompt(
+      `⚠️ CONFIRMACIÓN FINAL\n\n` +
+      `Para confirmar la eliminación permanente de:\n` +
+      `${paciente.nombre} ${paciente.apellido_paterno} (ID: ${paciente.id_paciente})\n\n` +
+      `Escriba exactamente: ELIMINAR`
+    );
+
+    if (confirmacion !== 'ELIMINAR') {
+      if (confirmacion !== null) { // null significa que canceló
+        this.toastr.warning('Texto de confirmación incorrecto. Operación cancelada.');
+      }
+      return;
+    }
+
+    // Proceder con la eliminación
+    this.adminService.eliminarPaciente(paciente.id_paciente).subscribe({
+      next: (response) => {
+        this.toastr.success(` ${response.msg}`);
+        this.cargarPacientes(); // Recargar lista
+        this.cerrarModal();
+      },
+      error: (error) => {
+        console.error('Error al eliminar paciente:', error);
+        this.toastr.error('Error al eliminar la cuenta del paciente: ' + 
+          (error.error?.msg || 'Error desconocido'));
+      }
+    });
+  }
 }
