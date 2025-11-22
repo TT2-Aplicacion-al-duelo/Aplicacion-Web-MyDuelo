@@ -462,12 +462,26 @@
                       </p>
                     }
                     
-                    <button 
+                    <!-- <button 
                       class="btn btn-sm btn-primary w-100"
                       (click)="descargarEvidencia(evidencia.archivo_url)">
                       <i class="bi bi-download me-1"></i>
                       Descargar
-                    </button>
+                    </button> -->
+                    <div class="d-flex gap-2">
+                      <button 
+                        class="btn btn-sm btn-primary flex-fill"
+                        (click)="verEvidencia(evidencia)">
+                        <i class="bi bi-eye me-1"></i>
+                        Ver
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-outline-primary"
+                        (click)="descargarEvidencia(evidencia.archivo_url)">
+                        <i class="bi bi-download"></i>
+                      </button>
+                      
+                    </div>
                   </div>
                 </div>
               }
@@ -514,5 +528,12 @@
         </div>
       </div>
     </div>
+    <!-- Visor de evidencia -->
+    <app-visor-evidencia
+      *ngIf="mostrarVisorEvidencia && evidenciaSeleccionada"
+      [evidencia]="evidenciaSeleccionada"
+      colorModulo="primary"
+      (cerrar)="cerrarVisorEvidencia()">
+    </app-visor-evidencia>
   </div>
 }

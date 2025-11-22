@@ -201,10 +201,24 @@
                   </p>
                 </div>
 
-                <div class="mt-3">
-                  <button class="btn btn-sm btn-{{colorModulo}} w-100">
+                <div class="mt-3 d-flex gap-2">
+                  <button 
+                    class="btn btn-sm btn-{{colorModulo}} flex-fill"
+                    (click)="verEvidencia(evidencia)">
                     <i class="bi bi-eye me-2"></i>
-                    Ver evidencia
+                    Ver
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-outline-{{colorModulo}}"
+                    (click)="abrirEnNuevaPestana(evidencia)"
+                    title="Abrir en nueva pestaña">
+                    <i class="bi bi-box-arrow-up-right"></i>
+                  </button>
+                  <button 
+                    class="btn btn-sm btn-outline-{{colorModulo}}"
+                    (click)="descargarEvidencia(evidencia)"
+                    title="Descargar">
+                    <i class="bi bi-download"></i>
                   </button>
                 </div>
               </div>

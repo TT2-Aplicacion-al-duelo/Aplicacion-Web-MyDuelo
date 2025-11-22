@@ -7,6 +7,9 @@ import Swal from 'sweetalert2';
 import { ActividadAsignada, Actividad } from '../../../../interfaces/actividad';
 import { ActividadDetalleModalComponent } from '../actividades-globales/actividad-detalle-modal/actividad-detalle-modal.component';
 import { ToastrService } from 'ngx-toastr';
+import { Evidencia } from '../../../../interfaces/moduloDuelo'; 
+import { VisorEvidenciaComponent } from '../modulos-duelo/componentes/visor-evidencia/visor-evidencia.component';
+
 
 interface FiltrosActividad {
   estado: string;
@@ -21,12 +24,16 @@ interface FiltrosActividad {
   standalone: true,
   imports: [CommonModule, FormsModule,
     ReactiveFormsModule,
-    ActividadDetalleModalComponent ],
+    ActividadDetalleModalComponent,
+    VisorEvidenciaComponent],
   templateUrl: './actividades-personalizadas.component.html',
   styleUrls: ['./actividades-personalizadas.component.css']
 })
 export class ActividadesPersonalizadasComponent implements OnInit {
   @Input() idPaciente!: number;
+
+  mostrarVisorEvidencia: boolean = false;
+  evidenciaSeleccionada: Evidencia | null = null;
   
   actividades: ActividadAsignada[] = [];
   actividadesFiltradas: ActividadAsignada[] = [];
@@ -410,20 +417,42 @@ export class ActividadesPersonalizadasComponent implements OnInit {
   /**
    * Descargar evidencia
    */
+  // descargarEvidencia(archivoUrl: string): void {
+  //   // Crear un elemento <a> temporal para forzar la descarga
+  //   const link = document.createElement('a');
+  //   link.href = archivoUrl;
+  //   link.target = '_blank';
+    
+  //   // Extraer el nombre del archivo de la URL
+  //   const nombreArchivo = archivoUrl.split('/').pop() || 'evidencia';
+  //   link.download = nombreArchivo;
+    
+  //   // Forzar click
+  //   document.body.appendChild(link);
+  //   link.click();
+  //   document.body.removeChild(link);
+  // }
+  /**
+ * Ver evidencia en modal
+ */
+  verEvidencia(evidencia: any): void {
+    this.evidenciaSeleccionada = evidencia;
+    this.mostrarVisorEvidencia = true;
+  }
+
+  /**
+   * Cerrar visor de evidencia
+   */
+  cerrarVisorEvidencia(): void {
+    this.mostrarVisorEvidencia = false;
+    this.evidenciaSeleccionada = null;
+  }
+
+  /**
+   * Descargar evidencia
+   */
   descargarEvidencia(archivoUrl: string): void {
-    // Crear un elemento <a> temporal para forzar la descarga
-    const link = document.createElement('a');
-    link.href = archivoUrl;
-    link.target = '_blank';
-    
-    // Extraer el nombre del archivo de la URL
-    const nombreArchivo = archivoUrl.split('/').pop() || 'evidencia';
-    link.download = nombreArchivo;
-    
-    // Forzar click
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    window.open(archivoUrl, '_blank');
   }
 
   getEstadoClass(estado: string): string {

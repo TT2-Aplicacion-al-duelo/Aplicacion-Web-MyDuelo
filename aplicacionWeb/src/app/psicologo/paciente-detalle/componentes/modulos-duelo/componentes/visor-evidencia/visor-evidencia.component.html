@@ -21,9 +21,17 @@
         <div class="d-flex gap-2">
           <button 
             class="btn btn-light btn-sm"
+            (click)="abrirEnNuevaPestana()"
+            title="Abrir en nueva pestaña">
+            <i class="bi bi-box-arrow-up-right me-1"></i>
+            Ver
+          </button>
+          <button 
+            class="btn btn-light btn-sm"
             (click)="descargarArchivo()"
             title="Descargar archivo">
-            <i class="bi bi-download"></i>
+            <i class="bi bi-download me-1"></i>
+            Descargar
           </button>
           <button 
             type="button" 
