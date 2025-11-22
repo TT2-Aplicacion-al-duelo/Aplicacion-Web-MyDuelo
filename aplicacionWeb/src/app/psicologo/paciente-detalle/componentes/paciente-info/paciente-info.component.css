@@ -187,12 +187,17 @@
 }
 
 /* ===== LOADING DE IMÁGENES ===== */
-img[loading="lazy"] {
+.rounded-circle[loading="lazy"] {
   opacity: 0;
   transition: opacity 0.3s ease-in;
 }
 
-img.loaded,
-img:not([loading]) {
+.rounded-circle.loaded,
+.rounded-circle:not([loading]) {
   opacity: 1;
+}
+
+/* Fallback para navegadores sin soporte de lazy loading */
+.rounded-circle {
+  display: block;
 }

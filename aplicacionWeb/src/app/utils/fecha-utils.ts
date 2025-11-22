@@ -1,103 +1,4 @@
 
-// export function parsearFechaMexico(fechaString: string): Date {
-//   if (!fechaString) {
-//     console.warn('⚠️ parsearFechaMexico: fechaString está vacío');
-//     return new Date();
-//   }
-  
-//   console.log('🔍 parsearFechaMexico - Input:', fechaString);
-  
-//   try {
-//     // Limpiar el string por si tiene espacios extras
-//     const fechaLimpia = fechaString.trim();
-    
-//     // Verificar si ya tiene timezone
-//     if (fechaLimpia.includes('+') || fechaLimpia.includes('Z')) {
-//       console.log('✅ Fecha ya tiene timezone:', fechaLimpia);
-//       return new Date(fechaLimpia);
-//     }
-    
-//     // Reemplazar espacio con 'T' y agregar timezone de México
-//     const fechaISO = fechaLimpia.replace(' ', 'T');
-//     console.log('🔄 Fecha convertida:', fechaISO);
-    
-//     const date = new Date(fechaISO);
-//     console.log('📅 Date creado:', date, 'isNaN:', isNaN(date.getTime()));
-    
-//     return date;
-//   } catch (error) {
-//     console.error('❌ Error en parsearFechaMexico:', error);
-//     return new Date();
-//   }
-// }
-
-// /**
-//  * Formatear hora en formato HH:mm (24 horas)
-//  */
-// export function formatearHoraMexico(fechaString: string): string {
-//   console.log('🕐 formatearHoraMexico - Input:', fechaString);
-  
-//   if (!fechaString) {
-//     console.warn('formatearHoraMexico: fechaString está vacío');
-//     return '--:--';
-//   }
-  
-//   try {
-//     const date = parsearFechaMexico(fechaString);
-    
-//     if (isNaN(date.getTime())) {
-//       console.error('formatearHoraMexico: Fecha inválida después de parsear');
-//       return '--:--';
-//     }
-    
-//     const hora = date.toLocaleTimeString('es-MX', { 
-//       hour: '2-digit', 
-//       minute: '2-digit',
-//       hour12: false
-//     });
-    
-//     console.log('Hora formateada:', hora);
-//     return hora;
-//   } catch (error) {
-//     console.error('Error al formatear hora:', error);
-//     return '--:--';
-//   }
-// }
-
-// /**
-//  * Formatear fecha relativa (ej: "5m", "2h", "3d")
-//  */
-// export function formatearFechaRelativa(fechaString: string): string {
-//   if (!fechaString) return '';
-  
-//   try {
-//     const date = parsearFechaMexico(fechaString);
-    
-//     if (isNaN(date.getTime())) {
-//       return '';
-//     }
-    
-//     const ahora = new Date();
-//     const diferencia = ahora.getTime() - date.getTime();
-//     const minutos = Math.floor(diferencia / (1000 * 60));
-//     const horas = Math.floor(diferencia / (1000 * 60 * 60));
-//     const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
-
-//     if (minutos < 1) return 'Ahora';
-//     if (minutos < 60) return `${minutos}m`;
-//     if (horas < 24) return `${horas}h`;
-//     if (dias < 7) return `${dias}d`;
-    
-//     return date.toLocaleDateString('es-MX', { 
-//       day: '2-digit', 
-//       month: '2-digit' 
-//     });
-//   } catch (error) {
-//     console.error('Error al formatear fecha:', error);
-//     return '';
-//   }
-// }
-
 /**
  * Utilidades para manejo de fechas
  * El backend ya envía las fechas en formato string correcto
@@ -162,5 +63,63 @@ export function formatearFechaRelativa(fechaString: string): string {
   } catch (error) {
     console.error('Error al formatear fecha:', error);
     return '';
+  }
+}
+
+/**
+ * Obtener etiqueta de fecha estilo WhatsApp
+ * Retorna: "Hoy", "Ayer", o "DD/MM/YYYY"
+ */
+export function obtenerEtiquetaFecha(fechaString: string): string {
+  if (!fechaString) return '';
+  
+  try {
+    const fecha = parsearFechaMexico(fechaString);
+    
+    if (isNaN(fecha.getTime())) return '';
+    
+    const hoy = new Date();
+    hoy.setHours(0, 0, 0, 0);
+    
+    const ayer = new Date(hoy);
+    ayer.setDate(ayer.getDate() - 1);
+    
+    const fechaMensaje = new Date(fecha);
+    fechaMensaje.setHours(0, 0, 0, 0);
+    
+    if (fechaMensaje.getTime() === hoy.getTime()) {
+      return 'Hoy';
+    }
+    
+    if (fechaMensaje.getTime() === ayer.getTime()) {
+      return 'Ayer';
+    }
+    
+    const dia = fecha.getDate().toString().padStart(2, '0');
+    const mes = (fecha.getMonth() + 1).toString().padStart(2, '0');
+    const anio = fecha.getFullYear();
+    
+    return `${dia}/${mes}/${anio}`;
+  } catch (error) {
+    console.error('Error al obtener etiqueta de fecha:', error);
+    return '';
+  }
+}
+
+/**
+ * Verificar si dos fechas son del mismo día
+ */
+export function esMismoDia(fecha1: string, fecha2: string): boolean {
+  if (!fecha1 || !fecha2) return false;
+  
+  try {
+    const date1 = parsearFechaMexico(fecha1);
+    const date2 = parsearFechaMexico(fecha2);
+    
+    return date1.getDate() === date2.getDate() &&
+           date1.getMonth() === date2.getMonth() &&
+           date1.getFullYear() === date2.getFullYear();
+  } catch (error) {
+    return false;
   }
 }

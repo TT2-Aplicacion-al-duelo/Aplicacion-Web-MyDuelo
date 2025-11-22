@@ -439,3 +439,39 @@
   background-color: #f8f9fa;
   border-radius: 0 0 12px 12px;
 }
+
+/* ===== ETIQUETAS DE FECHA ===== */
+.date-divider {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 20px 0 15px 0;
+  position: relative;
+}
+
+.date-divider::before,
+.date-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: #e0e0e0;
+}
+
+.date-divider::before {
+  margin-right: 15px;
+}
+
+.date-divider::after {
+  margin-left: 15px;
+}
+
+.date-label {
+  background: #f0f0f0;
+  color: #666;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  white-space: nowrap;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}

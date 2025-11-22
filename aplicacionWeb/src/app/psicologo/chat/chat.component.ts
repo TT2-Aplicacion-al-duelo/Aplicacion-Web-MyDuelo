@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { formatearHoraMexico, formatearFechaRelativa } from '../../utils/fecha-utils';
+import { formatearHoraMexico, formatearFechaRelativa, obtenerEtiquetaFecha, esMismoDia } from '../../utils/fecha-utils';
 import { FormsModule } from '@angular/forms';
 import { ChatService } from '../../services/chat.service';
 import { PacientesService } from '../../services/pacientes.service';
@@ -143,26 +143,7 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  // seleccionarChat(chat: Chat): void {
-  //   this.chatActual = chat;
-  //   this.cargarMensajes(chat.id_chat);
-  //   this.marcarComoLeido(chat.id_chat);
-  // }
 
-  // seleccionarChat(chat: Chat): void {
-  //   this.chatActual = chat;
-    
-  //   // Verificar si es un chat con admin usando la nueva propiedad
-  //   if ((chat as any).es_chat_admin && (chat as any).id_chat_admin) {
-  //     // Usar el ID real del chat admin
-  //     const idChatAdmin = (chat as any).id_chat_admin;
-  //     this.cargarMensajesAdmin(idChatAdmin);
-  //     this.marcarComoLeido(chat.id_chat);  // Ahora usa el ID numérico
-  //   } else {
-  //     this.cargarMensajes(chat.id_chat);
-  //     this.marcarComoLeido(chat.id_chat);
-  //   }
-  // }
 
   seleccionarChat(chat: Chat): void {
     console.log('🔍 Seleccionando chat:', {
@@ -223,78 +204,6 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
     });
   }
 
-  // enviarMensaje(): void {
-  //   if (!this.nuevoMensaje.trim() || !this.chatActual) {
-  //     return;
-  //   }
-
-  //   const mensajeData = {
-  //     id_chat: this.chatActual.id_chat,
-  //     contenido: this.nuevoMensaje.trim()
-  //   };
-
-  //   this.chatService.enviarMensaje(mensajeData).subscribe({
-  //     next: (mensaje) => {
-  //       this.mensajes.push(mensaje);
-  //       this.nuevoMensaje = '';
-  //       this.shouldScrollToBottom = true;
-  //       // Actualizar la lista de chats para reflejar el último mensaje
-  //       this.cargarChats();
-  //     },
-  //     error: (error) => {
-  //       console.error('Error al enviar mensaje:', error);
-  //       alert('Error al enviar el mensaje. Inténtalo de nuevo.');
-  //     }
-  //   });
-  // }
-
-  // enviarMensaje(): void {
-  //   if (!this.nuevoMensaje.trim() || !this.chatActual) {
-  //     return;
-  //   }
-
-  //   // Verificar si es un chat con admin
-  //   if ((this.chatActual as any).es_admin) {
-  //     const idChatAdmin = parseInt(this.chatActual.id_chat.toString().replace('admin_', ''));
-      
-  //     const mensajeData = {
-  //       id_chat_admin: idChatAdmin,
-  //       contenido: this.nuevoMensaje.trim()
-  //     };
-
-  //     this.chatService.enviarMensajeAdmin(mensajeData).subscribe({
-  //       next: (mensaje) => {
-  //         this.mensajes.push(mensaje);
-  //         this.nuevoMensaje = '';
-  //         this.shouldScrollToBottom = true;
-  //         this.cargarChats();
-  //       },
-  //       error: (error) => {
-  //         console.error('Error al enviar mensaje al admin:', error);
-  //         alert('Error al enviar el mensaje. Inténtalo de nuevo.');
-  //       }
-  //     });
-  //   } else {
-  //     // Lógica normal para chat con pacientes
-  //     const mensajeData = {
-  //       id_chat: this.chatActual.id_chat,
-  //       contenido: this.nuevoMensaje.trim()
-  //     };
-
-  //     this.chatService.enviarMensaje(mensajeData).subscribe({
-  //       next: (mensaje) => {
-  //         this.mensajes.push(mensaje);
-  //         this.nuevoMensaje = '';
-  //         this.shouldScrollToBottom = true;
-  //         this.cargarChats();
-  //       },
-  //       error: (error) => {
-  //         console.error('Error al enviar mensaje:', error);
-  //         alert('Error al enviar el mensaje. Inténtalo de nuevo.');
-  //       }
-  //     });
-  //   }
-  // }
   enviarMensaje(): void {
     if (!this.nuevoMensaje.trim() || !this.chatActual) {
       return;
@@ -499,4 +408,26 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
       !pacientesConChat.includes(paciente.id_paciente || 0)
     );
   }
+
+
+  /**
+   * Verificar si debe mostrar la etiqueta de fecha
+   * Se muestra cuando es el primer mensaje o cuando cambia el día
+   */
+  mostrarEtiquetaFecha(index: number): boolean {
+    if (index === 0) return true;
+    
+    const mensajeActual = this.mensajes[index];
+    const mensajeAnterior = this.mensajes[index - 1];
+    
+    return !esMismoDia(mensajeActual.fecha_envio, mensajeAnterior.fecha_envio);
+  }
+
+  /**
+   * Obtener la etiqueta de fecha para mostrar
+   */
+  getEtiquetaFecha(fecha: string): string {
+    return obtenerEtiquetaFecha(fecha);
+  }
+
 }

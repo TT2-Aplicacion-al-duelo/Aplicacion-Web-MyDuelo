@@ -130,7 +130,13 @@
         </div>
 
         <!-- Mensajes -->
-        <div *ngFor="let mensaje of mensajes" class="message-wrapper">
+        <div *ngFor="let mensaje of mensajes; let i = index" class="message-wrapper">
+          <!-- Etiqueta de Fecha -->
+          <div *ngIf="mostrarEtiquetaFecha(i)" class="date-divider">
+            <span class="date-label">{{ getEtiquetaFecha(mensaje.fecha_envio) }}</span>
+          </div>
+
+          <!-- Mensaje -->
           <div 
             class="message"
             [class.message-sent]="esMensajeMio(mensaje)"

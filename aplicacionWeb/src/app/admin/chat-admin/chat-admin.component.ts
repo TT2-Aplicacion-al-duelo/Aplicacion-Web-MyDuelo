@@ -7,7 +7,7 @@ import { ChatAdminService } from '../../services/chat-admin.service';
 import { AuthService } from '../../services/auth.service';
 import { ChatAdmin, MensajeAdmin, UsuarioDisponible } from '../../interfaces/chat-admin';
 import { interval, Subscription } from 'rxjs';
-import { formatearFechaRelativa, formatearHoraMexico } from '../../utils/fecha-utils';
+import { formatearFechaRelativa, formatearHoraMexico, obtenerEtiquetaFecha, esMismoDia } from '../../utils/fecha-utils';
 
 @Component({
   selector: 'app-chat-admin',
@@ -296,5 +296,24 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
     }
 
     return usuarios;
+  }
+  /**
+   * Verificar si debe mostrar la etiqueta de fecha
+   * Se muestra cuando es el primer mensaje o cuando cambia el día
+   */
+  mostrarEtiquetaFecha(index: number): boolean {
+    if (index === 0) return true;
+    
+    const mensajeActual = this.mensajes[index];
+    const mensajeAnterior = this.mensajes[index - 1];
+    
+    return !esMismoDia(mensajeActual.fecha_envio, mensajeAnterior.fecha_envio);
+  }
+
+  /**
+   * Obtener la etiqueta de fecha para mostrar
+   */
+  getEtiquetaFecha(fecha: string): string {
+    return obtenerEtiquetaFecha(fecha);
   }
 }

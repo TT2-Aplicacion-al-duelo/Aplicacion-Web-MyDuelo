@@ -122,40 +122,52 @@ export class PacienteInfoComponent implements OnInit {
     return edad;
   }
  /**
-   * Obtener URL de foto de perfil del paciente
-   */
-  obtenerFotoUrl(paciente: Paciente): string {
-    const fotoPerfil = paciente.foto_perfil;
-    
-    // ✅ DEBUG - Ver qué llega
-    console.log('🔍 Paciente ID:', paciente.id_paciente);
-    console.log('📸 foto_perfil en BD:', fotoPerfil);
-    
-    if (!fotoPerfil) {
-      console.log('❌ No hay foto_perfil');
-      return '';
-    }
-    
-    // Si es URL antigua de Azure, ignorarla
-    if (fotoPerfil.startsWith('http://192.168') || fotoPerfil.startsWith('http://20.')) {
-      console.log('❌ URL antigua de Azure - ignorando');
-      return '';
-    }
-    
-    // Si ya es URL completa válida
-    if (fotoPerfil.startsWith('http')) {
-      console.log('✅ URL completa:', fotoPerfil);
-      return fotoPerfil;
-    }
-    
-    // Construir URL del servidor
-    const baseUrl = environment.apiUrl || 'http://localhost:3017';
-    const urlFinal = `${baseUrl}/uploads/${fotoPerfil}`;
-    
-    console.log('🔨 URL construida:', urlFinal);
-    
-    return urlFinal;
+ * Obtener URL de foto de perfil del paciente
+ */
+obtenerFotoUrl(): string {
+  const fotoPerfil = this.paciente?.foto_perfil;
+  
+  // ✅ DEBUG - Ver qué llega
+  console.log('🔍 Paciente ID:', this.paciente?.id_paciente);
+  console.log('📸 foto_perfil en BD:', fotoPerfil);
+  
+  if (!fotoPerfil) {
+    console.log('❌ No hay foto_perfil');
+    return '';
   }
+  
+  // Si es URL antigua de Azure, ignorarla
+  if (fotoPerfil.startsWith('http://192.168') || 
+      fotoPerfil.startsWith('http://20.') ||
+      fotoPerfil.startsWith('https://192.168') || 
+      fotoPerfil.startsWith('https://20.')) {
+    console.log('❌ URL antigua de Azure - ignorando');
+    return '';
+  }
+  
+  // Si ya es URL completa válida
+  if (fotoPerfil.startsWith('http')) {
+    console.log('✅ URL completa:', fotoPerfil);
+    return fotoPerfil;
+  }
+  
+  // Construir URL del servidor
+  const baseUrl = environment.apiUrl || 'http://localhost:3017';
+  const urlFinal = `${baseUrl}/uploads/${fotoPerfil}`;
+  
+  console.log('🔨 URL construida:', urlFinal);
+  
+  return urlFinal;
+}
+
+/**
+ * Manejar carga exitosa de imagen
+ */
+onImageLoad(event: Event): void {
+  const img = event.target as HTMLImageElement;
+  img.classList.add('loaded');
+  console.log('✅ Imagen cargada correctamente');
+}
   /**
    * Manejar error de imagen
    */
