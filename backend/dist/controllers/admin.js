@@ -608,36 +608,48 @@ const eliminarPaciente = (req, res) => __awaiter(void 0, void 0, void 0, functio
             yield connection_1.default.query('DELETE FROM chat_admin WHERE destinatario_tipo = "paciente" AND destinatario_id = ?', { replacements: [id_paciente], transaction });
             console.log('✅ Chats admin eliminados');
             // PASO 5: Eliminar notas del paciente
-            yield connection_1.default.query('DELETE FROM notas WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            yield connection_1.default.query('DELETE FROM nota WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
             console.log('✅ Notas eliminadas');
-            // PASO 6: Eliminar actividades asignadas al paciente
-            yield connection_1.default.query('DELETE FROM actividad_asignada WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
-            console.log('✅ Actividades asignadas eliminadas');
-            // PASO 7: Eliminar aplicaciones de tests del paciente
+            // PASO 6: Eliminar respuestas de tests del paciente
+            yield connection_1.default.query('DELETE FROM respuesta_test WHERE id_aplicacion IN (SELECT id_aplicacion FROM aplicacion_test WHERE id_paciente = ?)', { replacements: [id_paciente], transaction });
+            console.log('✅ Respuestas de tests eliminadas');
+            // PASO 7: Eliminar resultados de tests del paciente
+            yield connection_1.default.query('DELETE FROM resultado_test WHERE id_aplicacion IN (SELECT id_aplicacion FROM aplicacion_test WHERE id_paciente = ?)', { replacements: [id_paciente], transaction });
+            console.log('✅ Resultados de tests eliminados');
+            // PASO 8: Eliminar aplicaciones de tests del paciente
             yield connection_1.default.query('DELETE FROM aplicacion_test WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
             console.log('✅ Aplicaciones de tests eliminadas');
-            // PASO 8: Eliminar citas del paciente
+            // PASO 9: Eliminar actividades asignadas (esto eliminará evidencias automáticamente por CASCADE)
+            yield connection_1.default.query('DELETE FROM actividad_asignada WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Actividades asignadas eliminadas (evidencias eliminadas automáticamente)');
+            // PASO 10: Eliminar actividades del paciente
+            yield connection_1.default.query('DELETE FROM actividad_paciente WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Actividades del paciente eliminadas');
+            // PASO 11: Eliminar citas (esto eliminará recordatorios automáticamente por CASCADE)
             yield connection_1.default.query('DELETE FROM cita WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
-            console.log('✅ Citas eliminadas');
-            // PASO 9: Eliminar participación en foros
-            yield connection_1.default.query('DELETE FROM participante_foro WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Citas eliminadas (recordatorios eliminados automáticamente)');
+            // PASO 12: Eliminar participación en foros
+            yield connection_1.default.query('DELETE FROM foro_participante WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
             console.log('✅ Participaciones en foros eliminadas');
-            // PASO 10: Eliminar invitaciones a foros
-            yield connection_1.default.query('DELETE FROM invitacion_foro WHERE id_paciente_invitado = ?', { replacements: [id_paciente], transaction });
-            console.log('✅ Invitaciones a foros eliminadas');
-            // PASO 11: Eliminar solicitudes de unión a foros
+            // PASO 13: Eliminar solicitudes de unión a foros
             yield connection_1.default.query('DELETE FROM solicitud_union_foro WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
             console.log('✅ Solicitudes de unión a foros eliminadas');
-            // PASO 12: Eliminar mensajes de foro del paciente
-            yield connection_1.default.query('DELETE FROM mensaje_foro WHERE tipo_usuario = "paciente" AND id_usuario = ?', { replacements: [id_paciente], transaction });
+            // PASO 14: Eliminar mensajes de foro del paciente
+            yield connection_1.default.query('DELETE FROM mensaje_foro WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
             console.log('✅ Mensajes de foro eliminados');
-            // PASO 13: Eliminar evidencias del paciente
-            yield connection_1.default.query('DELETE FROM evidencia WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
-            console.log('✅ Evidencias eliminadas');
-            // PASO 14: Eliminar tokens del paciente
-            yield connection_1.default.query('DELETE FROM token WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
-            console.log('✅ Tokens eliminados');
-            // PASO 15: FINALMENTE, eliminar el paciente
+            // PASO 15: Eliminar diario de emociones del paciente
+            yield connection_1.default.query('DELETE FROM diario_emociones WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Diario de emociones eliminado');
+            // PASO 16: Eliminar historial clínico del paciente
+            yield connection_1.default.query('DELETE FROM historial_clinico WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Historial clínico eliminado');
+            // PASO 17: Eliminar tokens push del paciente
+            yield connection_1.default.query('DELETE FROM paciente_push_tokens WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Tokens push eliminados');
+            // PASO 18: Eliminar consentimientos del paciente
+            yield connection_1.default.query('DELETE FROM consentimientos WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
+            console.log('✅ Consentimientos eliminados');
+            // PASO 20: FINALMENTE, eliminar el paciente
             yield connection_1.default.query('DELETE FROM paciente WHERE id_paciente = ?', { replacements: [id_paciente], transaction });
             console.log('✅ Paciente eliminado');
             // Confirmar transacción
@@ -653,10 +665,14 @@ const eliminarPaciente = (req, res) => __awaiter(void 0, void 0, void 0, functio
                     mensajes: true,
                     notas: true,
                     actividades: true,
+                    evidencias: true, // Eliminadas automáticamente
                     tests: true,
                     citas: true,
+                    recordatorios: true, // Eliminados automáticamente
                     foros: true,
-                    evidencias: true,
+                    diario_emociones: true,
+                    historial_clinico: true,
+                    consentimientos: true,
                     tokens: true
                 }
             });
