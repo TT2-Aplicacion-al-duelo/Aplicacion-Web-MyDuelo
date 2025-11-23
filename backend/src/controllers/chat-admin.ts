@@ -73,7 +73,7 @@ export const getChatsAdmin = async (req: AuthRequest, res: Response) => {
       // Obtener información del destinatario
       if (chat.destinatario_tipo === 'psicologo') {
         const psicologo = await Psicologo.findByPk(chat.destinatario_id, {
-          attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo']
+          attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo', 'foto_perfil']
         });
         if (psicologo) {
           destinatario = {
@@ -82,12 +82,13 @@ export const getChatsAdmin = async (req: AuthRequest, res: Response) => {
             apellido_paterno: (psicologo as any).apellidoPaterno,
             apellido_materno: (psicologo as any).apellidoMaterno,
             email: (psicologo as any).correo,
-            tipo: 'psicologo'
+            tipo: 'psicologo',
+            foto_perfil: (psicologo as any).foto_perfil
           };
         }
       } else if (chat.destinatario_tipo === 'paciente') {
         const paciente = await Paciente.findByPk(chat.destinatario_id, {
-          attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email']
+          attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email', 'foto_perfil']
         });
         if (paciente) {
           destinatario = {
@@ -96,7 +97,8 @@ export const getChatsAdmin = async (req: AuthRequest, res: Response) => {
             apellido_paterno: (paciente as any).apellido_paterno,
             apellido_materno: (paciente as any).apellido_materno,
             email: (paciente as any).email,
-            tipo: 'paciente'
+            tipo: 'paciente',
+            foto_perfil: (paciente as any).foto_perfil
           };
         }
       }
@@ -560,12 +562,12 @@ export const getTodosUsuariosDisponibles = async (req: AuthRequest, res: Respons
     // Obtener psicólogos activos
     const psicologos = await Psicologo.findAll({
       where: { status: 'activo' },
-      attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo', 'especialidad', 'cedula_validada']
+      attributes: ['id_psicologo', 'nombre', 'apellidoPaterno', 'apellidoMaterno', 'correo', 'especialidad', 'cedula_validada', 'foto_perfil']
     });
 
     // Obtener pacientes
     const pacientes = await Paciente.findAll({
-      attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email']
+      attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email', 'foto_perfil']
     });
 
     // Formatear respuesta
@@ -578,7 +580,8 @@ export const getTodosUsuariosDisponibles = async (req: AuthRequest, res: Respons
         email: p.correo,
         tipo: 'psicologo',
         especialidad: p.especialidad,
-        cedula_validada: p.cedula_validada
+        cedula_validada: p.cedula_validada,
+        foto_perfil: p.foto_perfil
       })),
       ...pacientes.map((p: any) => ({
         id: p.id_paciente,
@@ -586,7 +589,8 @@ export const getTodosUsuariosDisponibles = async (req: AuthRequest, res: Respons
         apellido_paterno: p.apellido_paterno,
         apellido_materno: p.apellido_materno,
         email: p.email,
-        tipo: 'paciente'
+        tipo: 'paciente',
+        foto_perfil: p.foto_perfil
       }))
     ];
 

@@ -127,7 +127,8 @@ const getAllPsicologos = (req, res) => __awaiter(void 0, void 0, void 0, functio
                 'rol_admin',
                 'status',
                 'fecha_nacimiento',
-                'codigo_vinculacion', // ← AGREGADO
+                'codigo_vinculacion',
+                'foto_perfil',
                 'createdAt'
             ],
             order: [['createdAt', 'DESC']]
@@ -472,6 +473,7 @@ const getAllPacientesAdmin = (req, res) => __awaiter(void 0, void 0, void 0, fun
                 'fecha_nacimiento',
                 'id_psicologo',
                 'email_verificado',
+                'foto_perfil'
             ],
             include: [{
                     model: psicologo_1.Psicologo,

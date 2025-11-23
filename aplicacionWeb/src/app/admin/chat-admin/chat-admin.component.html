@@ -48,9 +48,22 @@
       >
         <!-- Avatar -->
         <div class="chat-avatar">
-          <div class="avatar-circle" [ngClass]="getTipoBadge(chat.destinatario_tipo)">
-            {{ getNombreCompleto(chat).charAt(0).toUpperCase() }}
+          <!-- Iniciales (fallback) -->
+          <div 
+            class="avatar-circle" 
+            [ngClass]="getTipoBadge(chat.destinatario_tipo)"
+            *ngIf="!obtenerFotoUrl(chat)">
+            {{ getInicialesChat(chat) }}
           </div>
+          
+          <!-- Foto de perfil -->
+          <img 
+            *ngIf="obtenerFotoUrl(chat)"
+            [src]="obtenerFotoUrl(chat)" 
+            [alt]="getNombreCompleto(chat)"
+            class="rounded-circle"
+            style="width: 48px; height: 48px; object-fit: cover;"
+            (error)="onImageErrorChat($event, chat)">
         </div>
 
         <!-- Info del Chat -->
@@ -117,9 +130,22 @@
       <div class="chat-active-header">
         <div class="d-flex align-items-center">
           <div class="chat-avatar me-3">
-            <div class="avatar-circle" [ngClass]="getTipoBadge(chatActual.destinatario_tipo)">
-              {{ getNombreCompleto(chatActual).charAt(0).toUpperCase() }}
+            <!-- Iniciales (fallback) -->
+            <div 
+              class="avatar-circle" 
+              [ngClass]="getTipoBadge(chatActual.destinatario_tipo)"
+              *ngIf="!obtenerFotoUrl(chatActual)">
+              {{ getInicialesChat(chatActual) }}
             </div>
+            
+            <!-- Foto de perfil -->
+            <img 
+              *ngIf="obtenerFotoUrl(chatActual)"
+              [src]="obtenerFotoUrl(chatActual)" 
+              [alt]="getNombreCompleto(chatActual)"
+              class="rounded-circle"
+              style="width: 48px; height: 48px; object-fit: cover;"
+              (error)="onImageErrorChat($event, chatActual)">
           </div>
           <div>
             <h5 class="mb-0">{{ getNombreCompleto(chatActual) }}</h5>

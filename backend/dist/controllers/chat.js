@@ -41,6 +41,7 @@ const getChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         p.apellido_paterno,
         p.apellido_materno,
         p.email,
+        p.foto_perfil,
         -- Último mensaje (CIFRADO)
         (SELECT m.contenido 
          FROM mensaje m 
@@ -83,7 +84,8 @@ const getChats = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 nombre: chat.nombre,
                 apellido_paterno: chat.apellido_paterno,
                 apellido_materno: chat.apellido_materno,
-                email: chat.email
+                email: chat.email,
+                foto_perfil: chat.foto_perfil
             },
             ultimo_mensaje: chat.ultimo_mensaje_contenido ? {
                 // ✅ DESCIFRAR EL ÚLTIMO MENSAJE

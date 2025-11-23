@@ -82,6 +82,7 @@
               <thead class="table-dark">
                 <tr>
                   <th>ID</th>
+                  <th>Foto</th>
                   <th>Nombre Completo</th>
                   <th>Correo</th>
                   <th>Psicólogo Asignado</th>
@@ -98,12 +99,29 @@
                   (click)="seleccionarPaciente(paciente)"
                 >
                   <td class="fw-bold">{{ paciente.id_paciente }}</td>
-                  
+                  <td>
+                    <!-- Iniciales (fallback) -->
+                    <div 
+                      class="avatar-circle bg-primary text-white d-inline-flex align-items-center justify-content-center"
+                      style="width: 40px; height: 40px; border-radius: 50%; font-weight: bold;"
+                      *ngIf="!obtenerFotoUrl(paciente)">
+                      {{ getIniciales(paciente) }}
+                    </div>
+                    
+                    <!-- Foto de perfil -->
+                    <img 
+                      *ngIf="obtenerFotoUrl(paciente)"
+                      [src]="obtenerFotoUrl(paciente)" 
+                      alt="Foto"
+                      class="rounded-circle"
+                      style="width: 40px; height: 40px; object-fit: cover;"
+                      (error)="onImageError($event, paciente)">
+                  </td>
                   <td>
                     <div class="d-flex align-items-center">
-                      <div class="avatar-circle me-2">
+                      <!-- <div class="avatar-circle me-2">
                         {{ paciente.nombre.charAt(0) }}{{ paciente.apellido_paterno.charAt(0) }}
-                      </div>
+                      </div> -->
                       <div>
                         <div class="fw-semibold">
                           {{ paciente.nombre }} {{ paciente.apellido_paterno }} {{ paciente.apellido_materno }}

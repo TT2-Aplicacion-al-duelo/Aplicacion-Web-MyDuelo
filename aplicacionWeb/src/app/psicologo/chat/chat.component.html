@@ -45,9 +45,21 @@
       >
         <!-- Avatar -->
         <div class="chat-avatar">
-          <div class="avatar-circle">
-            {{ getNombreCompleto(chat).charAt(0).toUpperCase() }}
+          <!-- Iniciales (fallback) -->
+          <div 
+            class="avatar-circle"
+            *ngIf="!obtenerFotoUrl(chat)">
+            {{ getIniciales(chat) }}
           </div>
+          
+          <!-- Foto de perfil -->
+          <img 
+            *ngIf="obtenerFotoUrl(chat)"
+            [src]="obtenerFotoUrl(chat)" 
+            [alt]="getNombreCompleto(chat)"
+            class="avatar-img rounded-circle"
+            style="width: 48px; height: 48px; object-fit: cover;"
+            (error)="onImageError($event, chat)">
         </div>
 
         <!-- Info del Chat -->
@@ -106,9 +118,21 @@
       <div class="chat-active-header">
         <div class="d-flex align-items-center">
           <div class="chat-avatar me-3">
-            <div class="avatar-circle">
-              {{ getNombreCompleto(chatActual).charAt(0).toUpperCase() }}
+            <!-- Iniciales (fallback) -->
+            <div 
+              class="avatar-circle"
+              *ngIf="!obtenerFotoUrl(chatActual)">
+              {{ getIniciales(chatActual) }}
             </div>
+            
+            <!-- Foto de perfil -->
+            <img 
+              *ngIf="obtenerFotoUrl(chatActual)"
+              [src]="obtenerFotoUrl(chatActual)" 
+              [alt]="getNombreCompleto(chatActual)"
+              class="rounded-circle"
+              style="width: 48px; height: 48px; object-fit: cover;"
+              (error)="onImageError($event, chatActual)">
           </div>
           <div>
             <h5 class="mb-0">{{ getNombreCompleto(chatActual) }}</h5>

@@ -10,6 +10,7 @@ export interface Chat {
     apellido_paterno: string;
     apellido_materno: string;
     email: string;
+    foto_perfil?: string;
   };
   // Último mensaje para preview
   ultimo_mensaje?: Mensaje;

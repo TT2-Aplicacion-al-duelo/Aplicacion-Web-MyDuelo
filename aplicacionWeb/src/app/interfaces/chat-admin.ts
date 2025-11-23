@@ -12,6 +12,7 @@ export interface ChatAdmin {
     apellido_paterno: string;
     apellido_materno?: string;
     email: string;
+    foto_perfil?: string;
     tipo: 'psicologo' | 'paciente';
   };
   

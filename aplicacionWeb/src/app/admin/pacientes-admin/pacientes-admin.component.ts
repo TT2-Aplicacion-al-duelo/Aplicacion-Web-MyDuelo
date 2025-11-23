@@ -5,6 +5,7 @@ import { AdminService } from '../../services/admin.service';
 import { ToastrService } from 'ngx-toastr';
 import { PacienteAdmin } from '../../interfaces/pacientesAdmin';
 import { PsicologoAdmin } from '../../interfaces/psicologoAdmin';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-pacientes-admin',
@@ -238,5 +239,52 @@ export class PacientesAdminComponent implements OnInit {
           (error.error?.msg || 'Error desconocido'));
       }
     });
+  }
+  /**
+   * Obtener URL de foto de perfil del paciente
+   */
+  obtenerFotoUrl(paciente: PacienteAdmin): string {
+    const fotoPerfil = paciente.foto_perfil;
+    // ✅ DEBUG - Ver qué llega
+    console.log('🔍 Paciente ID:', paciente.id_paciente);
+    console.log('📸 foto_perfil en BD:', fotoPerfil);
+    
+    if (!fotoPerfil) {
+      return '';
+    }
+    
+    // Si es URL antigua de Azure, ignorarla
+    if (fotoPerfil.startsWith('http://192.168') || 
+        fotoPerfil.startsWith('http://20.') ||
+        fotoPerfil.startsWith('https://192.168') || 
+        fotoPerfil.startsWith('https://20.')) {
+      return '';
+    }
+    
+    // Si ya es URL completa
+    if (fotoPerfil.startsWith('http')) {
+      return fotoPerfil;
+    }
+    
+    // Construir URL del servidor
+    const baseUrl = environment.apiUrl || 'http://localhost:3017';
+    return `${baseUrl}/uploads/${fotoPerfil}`;
+  }
+
+  /**
+   * Manejar error de imagen
+   */
+  onImageError(event: Event, paciente: PacienteAdmin): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+  }
+
+  /**
+   * Obtener iniciales del paciente
+   */
+  getIniciales(paciente: PacienteAdmin): string {
+    const nombre = paciente.nombre?.charAt(0) || '';
+    const apellido = paciente.apellido_paterno?.charAt(0) || '';
+    return (nombre + apellido).toUpperCase();
   }
 }

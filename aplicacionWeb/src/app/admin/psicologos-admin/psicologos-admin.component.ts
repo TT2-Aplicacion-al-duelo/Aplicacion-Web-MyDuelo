@@ -6,7 +6,7 @@ import { AdminService } from '../../services/admin.service';
 import { ToastrService } from 'ngx-toastr';
 import { PsicologoAdmin } from '../../interfaces/psicologoAdmin';
 import { HttpClient } from '@angular/common/http';
-import { environment } from '../../../environments/environment.development';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-psicologos-admin',
@@ -108,63 +108,6 @@ export class PsicologosAdminComponent implements OnInit {
     }
   }
 
-  ///----------------------
-  // Método para validar cédula con API
-// validarCedulaConAPI(psicologo: any) {
-//   const url = `${this.apiUrl}/api/admin/psicologos/${psicologo.id_psicologo}/validar-cedula-api`;
-  
-//   this.http.post(url, {}).subscribe({
-//     next: (response: any) => {
-//       if (response.validacion.valida) {
-//         alert(`✅ Cédula validada: ${response.msg}`);
-//         this.cargarPsicologos(); // Recargar lista
-//       } else {
-//         const confirmar = confirm(
-//           `❌ No se pudo validar automáticamente.\n\n` +
-//           `¿Desea validar manualmente después de revisar en el sitio oficial?\n\n` +
-//           `Se abrirá la página de consulta de la SEP.`
-//         );
-        
-//         if (confirmar) {
-//           // Abrir página oficial
-//           window.open(response.urlConsultaManual, '_blank');
-          
-//           // Preguntar si validar manualmente
-//           setTimeout(() => {
-//             const validarManual = confirm('¿Confirma que la cédula es válida según la consulta oficial?');
-//             if (validarManual) {
-//               this.validarCedulaManual(psicologo);
-//             }
-//           }, 2000);
-//         }
-//       }
-//     },
-//     error: (error) => {
-//       console.error('Error:', error);
-//       alert('Error al validar cédula: ' + error.error?.msg);
-//     }
-//   });
-// }
-
-// // Método para validación manual (forzada)
-//   validarCedulaManual(psicologo: PsicologoAdmin) {
-//       const url = `${this.apiUrl}api/admin/psicologos/${psicologo.id_psicologo}/validar-cedula-api`;
-      
-//       this.http.post(url, { forzarValidacion: true }).subscribe({
-//         next: (response: any) => {
-//           this.toastr.success(`✅ ${response.msg}`);
-//           this.cargarPsicologos();
-//         },
-//         error: (error: any) => { // ✅ TIPADO EXPLÍCITO
-//           console.error('Error:', error);
-//           this.toastr.error('Error: ' + error.error?.msg);
-//         }
-//       });
-//     }
-
-  /**
- * ✅ MÉTODO CORREGIDO: Validar cédula manualmente (solo admin)
- */
 
 
   // Método para abrir consulta oficial
@@ -173,9 +116,6 @@ export class PsicologosAdminComponent implements OnInit {
     window.open(url, '_blank');
   }
 
-
-
-  //------------------------------------------------------
 
   cambiarEstadoCuenta(psicologo: PsicologoAdmin, nuevoEstado: 'activo' | 'inactivo') {
     const accion = nuevoEstado === 'activo' ? 'habilitar' : 'inhabilitar';
@@ -272,5 +212,50 @@ export class PsicologosAdminComponent implements OnInit {
 
   formatearFecha(fecha: string): string {
     return new Date(fecha).toLocaleDateString('es-ES');
+  }
+
+  /**
+   * Obtener URL de foto de perfil del psicólogo
+   */
+  obtenerFotoUrl(psicologo: PsicologoAdmin): string {
+    const fotoPerfil = psicologo.foto_perfil;
+    
+    if (!fotoPerfil) {
+      return '';
+    }
+    
+    // Si es URL antigua de Azure, ignorarla
+    if (fotoPerfil.startsWith('http://192.168') || 
+        fotoPerfil.startsWith('http://20.') ||
+        fotoPerfil.startsWith('https://192.168') || 
+        fotoPerfil.startsWith('https://20.')) {
+      return '';
+    }
+    
+    // Si ya es URL completa
+    if (fotoPerfil.startsWith('http')) {
+      return fotoPerfil;
+    }
+    
+    // Construir URL del servidor
+    const baseUrl = environment.apiUrl || 'http://localhost:3017';
+    return `${baseUrl}/uploads/${fotoPerfil}`;
+  }
+
+  /**
+   * Manejar error de imagen
+   */
+  onImageError(event: Event, psicologo: PsicologoAdmin): void {
+    const img = event.target as HTMLImageElement;
+    img.style.display = 'none';
+  }
+
+  /**
+   * Obtener iniciales del psicólogo
+   */
+  getIniciales(psicologo: PsicologoAdmin): string {
+    const nombre = psicologo.nombre?.charAt(0) || '';
+    const apellido = psicologo.apellidoPaterno?.charAt(0) || '';
+    return (nombre + apellido).toUpperCase();
   }
 }

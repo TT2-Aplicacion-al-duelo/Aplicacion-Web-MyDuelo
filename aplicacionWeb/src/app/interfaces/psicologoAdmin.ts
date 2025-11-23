@@ -11,5 +11,6 @@ export interface PsicologoAdmin {
   status: 'activo' | 'inactivo';
   fecha_nacimiento: string;
   codigo_vinculacion: string;
+  foto_perfil?: string;
   createdAt: string;
 }

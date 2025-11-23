@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { ChatAdmin, MensajeAdmin, UsuarioDisponible } from '../../interfaces/chat-admin';
 import { interval, Subscription } from 'rxjs';
 import { formatearFechaRelativa, formatearHoraMexico, obtenerEtiquetaFecha, esMismoDia } from '../../utils/fecha-utils';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-chat-admin',
@@ -316,4 +317,50 @@ export class ChatAdminComponent implements OnInit, OnDestroy, AfterViewChecked {
   getEtiquetaFecha(fecha: string): string {
     return obtenerEtiquetaFecha(fecha);
   }
+
+  /**
+ * Obtener URL de foto de perfil del destinatario
+ */
+obtenerFotoUrl(chat: ChatAdmin): string {
+  const fotoPerfil = chat.destinatario?.foto_perfil;
+  
+  if (!fotoPerfil) {
+    return '';
+  }
+  
+  // Si es URL antigua de Azure, ignorarla
+  if (fotoPerfil.startsWith('http://192.168') || 
+      fotoPerfil.startsWith('http://20.') ||
+      fotoPerfil.startsWith('https://192.168') || 
+      fotoPerfil.startsWith('https://20.')) {
+    return '';
+  }
+  
+  // Si ya es URL completa
+  if (fotoPerfil.startsWith('http')) {
+    return fotoPerfil;
+  }
+  
+  // Construir URL del servidor
+  const baseUrl = environment.apiUrl || 'http://localhost:3017';
+  return `${baseUrl}/uploads/${fotoPerfil}`;
+}
+
+/**
+ * Manejar error de imagen
+ */
+onImageErrorChat(event: Event, chat: ChatAdmin): void {
+  const img = event.target as HTMLImageElement;
+  img.style.display = 'none';
+}
+
+/**
+ * Obtener iniciales del destinatario
+ */
+getInicialesChat(chat: ChatAdmin): string {
+  if (!chat.destinatario) return '';
+  const nombre = chat.destinatario.nombre?.charAt(0) || '';
+  const apellido = chat.destinatario.apellido_paterno?.charAt(0) || '';
+  return (nombre + apellido).toUpperCase();
+}
 }

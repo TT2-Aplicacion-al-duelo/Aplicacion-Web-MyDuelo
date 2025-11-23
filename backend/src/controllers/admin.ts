@@ -138,7 +138,8 @@ export const getAllPsicologos = async (req: AuthRequest, res: Response) => {
                 'rol_admin',
                 'status',
                 'fecha_nacimiento',
-                'codigo_vinculacion', // ← AGREGADO
+                'codigo_vinculacion',
+                'foto_perfil', 
                 'createdAt'
             ],
             order: [['createdAt', 'DESC']]
@@ -587,7 +588,7 @@ export const getAllPacientesAdmin = async (req: AuthRequest, res: Response) => {
         'fecha_nacimiento',
         'id_psicologo',
         'email_verificado',
-       
+        'foto_perfil'       
       ],
       include: [{
         model: Psicologo,

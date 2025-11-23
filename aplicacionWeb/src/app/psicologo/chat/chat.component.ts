@@ -8,6 +8,7 @@ import { AuthService } from '../../services/auth.service';
 import { Chat, Mensaje } from '../../interfaces/chat';
 import { Paciente } from '../../interfaces/paciente';
 import { interval, Subscription } from 'rxjs'; 
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-chat',
@@ -429,5 +430,49 @@ export class ChatComponent implements OnInit, OnDestroy, AfterViewChecked {
   getEtiquetaFecha(fecha: string): string {
     return obtenerEtiquetaFecha(fecha);
   }
+  /**
+ * Obtener URL de foto de perfil del paciente
+ */
+obtenerFotoUrl(chat: Chat): string {
+  const fotoPerfil = chat.paciente?.foto_perfil;
+  
+  if (!fotoPerfil) {
+    return '';
+  }
+  
+  // Si es URL antigua de Azure, ignorarla
+  if (fotoPerfil.startsWith('http://192.168') || 
+      fotoPerfil.startsWith('http://20.') ||
+      fotoPerfil.startsWith('https://192.168') || 
+      fotoPerfil.startsWith('https://20.')) {
+    return '';
+  }
+  
+  // Si ya es URL completa
+  if (fotoPerfil.startsWith('http')) {
+    return fotoPerfil;
+  }
+  
+  // Construir URL del servidor
+  const baseUrl = environment.apiUrl || 'http://localhost:3017';
+  return `${baseUrl}/uploads/${fotoPerfil}`;
+}
 
+/**
+ * Manejar error de imagen
+ */
+onImageError(event: Event, chat: Chat): void {
+  const img = event.target as HTMLImageElement;
+  img.style.display = 'none';
+}
+
+/**
+ * Obtener iniciales del paciente
+ */
+getIniciales(chat: Chat): string {
+  if (!chat.paciente) return '';
+  const nombre = chat.paciente.nombre?.charAt(0) || '';
+  const apellido = chat.paciente.apellido_paterno?.charAt(0) || '';
+  return (nombre + apellido).toUpperCase();
+}
 }
