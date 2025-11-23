@@ -9,14 +9,14 @@ export interface ResultadoITRD {
   porcentaje: number;
   categoria: string;
   interpretacion: string;
-  recomendaciones: string[];
+  
 }
 
 export interface InterpretacionCombinada {
   tipoDuelo: string;
   descripcion: string;
   severidad: 'leve' | 'moderada' | 'severa';
-  recomendaciones: string[];
+ 
 }
 
 export class ITRDInterpretacionHelper {
@@ -77,41 +77,24 @@ export class ITRDInterpretacionHelper {
 
     let categoria = '';
     let interpretacion = '';
-    let recomendaciones: string[] = [];
+    
 
     if (puntaje <= 16) { // 0-40%
       categoria = 'Duelo Agudo Leve';
       interpretacion = 'El paciente experimentó un nivel bajo de intensidad emocional en el momento de la pérdida. Esto podría indicar un duelo ausente o una respuesta emocional limitada al evento traumático inicial.';
-      recomendaciones = [
-        'Evaluar si existe negación o evitación emocional',
-        'Observar si el duelo aparece de forma retardada',
-        'Facilitar la expresión emocional en un ambiente seguro'
-      ];
+      
     } else if (puntaje <= 24) { // 41-60%
       categoria = 'Duelo Agudo Moderado';
       interpretacion = 'El paciente experimentó una respuesta emocional moderada ante la pérdida. Presenta algunos síntomas de duelo agudo, pero mantiene cierta funcionalidad.';
-      recomendaciones = [
-        'Acompañamiento psicológico de seguimiento',
-        'Psicoeducación sobre el proceso de duelo',
-        'Estrategias de afrontamiento adaptativas'
-      ];
+      
     } else if (puntaje <= 32) { // 61-80%
       categoria = 'Duelo Agudo Intenso';
       interpretacion = 'El paciente experimentó una respuesta emocional intensa ante la pérdida, con impacto significativo en diferentes áreas de su vida (relaciones, trabajo, sueño).';
-      recomendaciones = [
-        'Terapia de duelo estructurada',
-        'Evaluación de funcionalidad diaria',
-        'Red de apoyo social y familiar'
-      ];
+      
     } else { // 81-100%
       categoria = 'Duelo Agudo Muy Intenso';
       interpretacion = 'El paciente experimentó una respuesta emocional extremadamente intensa ante la pérdida, con afectación severa en múltiples áreas de funcionamiento.';
-      recomendaciones = [
-        'Intervención psicológica intensiva',
-        'Evaluación de riesgo (depresión, ideación suicida)',
-        'Seguimiento cercano y frecuente',
-        'Fortalecer red de apoyo inmediata'
-      ];
+      
     }
 
     return {
@@ -119,8 +102,7 @@ export class ITRDInterpretacionHelper {
       puntajeMaximo,
       porcentaje: Math.round(porcentaje),
       categoria,
-      interpretacion,
-      recomendaciones
+      interpretacion      
     };
   }
 
@@ -133,46 +115,24 @@ export class ITRDInterpretacionHelper {
 
     let categoria = '';
     let interpretacion = '';
-    let recomendaciones: string[] = [];
+    
 
     if (puntaje <= 26) { // 0-40%
       categoria = 'Proceso de Duelo Resuelto';
       interpretacion = 'El paciente muestra signos de haber procesado adecuadamente el duelo. Los sentimientos de dolor han disminuido significativamente y ha logrado adaptarse a la pérdida.';
-      recomendaciones = [
-        'Reforzar estrategias de afrontamiento exitosas',
-        'Continuar con seguimiento periódico',
-        'Psicoeducación sobre recaídas normales (aniversarios, fechas significativas)'
-      ];
+      
     } else if (puntaje <= 39) { // 41-60%
       categoria = 'Proceso de Duelo en Curso';
       interpretacion = 'El paciente está en un proceso activo de duelo con síntomas presentes pero manejables. Muestra avances pero aún experimenta dolor significativo.';
-      recomendaciones = [
-        'Continuar con terapia de duelo',
-        'Técnicas de regulación emocional',
-        'Actividades de autocuidado y bienestar',
-        'Grupos de apoyo para personas en duelo'
-      ];
+      
     } else if (puntaje <= 52) { // 61-80%
       categoria = 'Duelo Complicado';
       interpretacion = 'El paciente presenta síntomas intensos de duelo que interfieren con su funcionamiento diario. El proceso de adaptación está siendo más difícil de lo esperado.';
-      recomendaciones = [
-        'Terapia especializada en duelo complicado',
-        'Evaluación de comorbilidades (depresión, ansiedad)',
-        'Técnicas de reestructuración cognitiva',
-        'Considerar terapia grupal especializada',
-        'Fortalecer estrategias de autocuidado'
-      ];
+      
     } else { // 81-100%
       categoria = 'Duelo Prolongado/Patológico';
       interpretacion = 'El paciente muestra signos de duelo prolongado o patológico. Los síntomas son intensos y persistentes, afectando severamente su calidad de vida.';
-      recomendaciones = [
-        'Intervención psicológica intensiva especializada',
-        'Evaluación psiquiátrica completa',
-        'Protocolo para duelo complicado',
-        'Seguimiento semanal',
-        'Evaluación de riesgo suicida',
-        'Apoyo familiar continuo'
-      ];
+      
     }
 
     return {
@@ -181,7 +141,6 @@ export class ITRDInterpretacionHelper {
       porcentaje: Math.round(porcentaje),
       categoria,
       interpretacion,
-      recomendaciones
     };
   }
 
@@ -199,67 +158,42 @@ export class ITRDInterpretacionHelper {
     let tipoDuelo = '';
     let descripcion = '';
     let severidad: 'leve' | 'moderada' | 'severa' = 'leve';
-    let recomendaciones: string[] = [];
+   
 
     // Duelo Prolongado: Ambos puntajes altos (>50%)
     if (porcentajePasado > 50 && porcentajePresente > 50) {
       tipoDuelo = 'Duelo Prolongado';
       severidad = 'severa';
       descripcion = 'El paciente sintió un dolor intenso desde el inicio de la pérdida y, a pesar del tiempo transcurrido, sigue experimentando la misma intensidad de sentimientos. Esto indica que el proceso de duelo se ha estancado y requiere atención especializada.';
-      recomendaciones = [
-        'Terapia especializada en duelo prolongado',
-        'Evaluación de trastorno de duelo prolongado (DSM-5)',
-        'Técnicas de exposición gradual a recuerdos',
-        'Reestructuración cognitiva de pensamientos rumiativos',
-        'Seguimiento intensivo'
-      ];
+     
     }
     // Duelo Resuelto: Pasado alto (>50%), Presente bajo (<50%)
     else if (porcentajePasado > 50 && porcentajePresente <= 50) {
       tipoDuelo = 'Duelo Resuelto';
       severidad = 'leve';
       descripcion = 'El paciente experimentó una respuesta emocional intensa al momento de la pérdida, pero ha ido procesando y asimilando el duelo de manera adecuada. Muestra signos claros de adaptación y recuperación.';
-      recomendaciones = [
-        'Reforzar estrategias de afrontamiento que han funcionado',
-        'Sesiones de seguimiento espaciadas',
-        'Preparación para fechas difíciles (aniversarios)',
-        'Cierre terapéutico gradual'
-      ];
+      
     }
     // Duelo Ausente: Ambos puntajes bajos (<50%)
     else if (porcentajePasado <= 50 && porcentajePresente <= 50) {
       tipoDuelo = 'Duelo Ausente o Inhibido';
       severidad = 'moderada';
       descripcion = 'El paciente no mostró una reacción emocional significativa ni en el momento de la pérdida ni en la actualidad. Esto puede indicar negación, evitación emocional o un estilo de afrontamiento represivo que podría manifestarse más adelante.';
-      recomendaciones = [
-        'Explorar mecanismos de defensa y evitación',
-        'Facilitar la expresión emocional segura',
-        'Psicoeducación sobre el proceso normal de duelo',
-        'Monitoreo de síntomas somáticos',
-        'Evaluación de duelo diferido',
-        'Terapia expresiva o artística'
-      ];
+      
     }
     // Duelo Retardado: Pasado bajo (<50%), Presente alto (>50%)
     else {
       tipoDuelo = 'Duelo Retardado';
       severidad = 'moderada';
       descripcion = 'El paciente no reaccionó emocionalmente de forma significativa al momento de la pérdida, pero el dolor ha aparecido con el tiempo. Esto sugiere que las emociones fueron reprimidas inicialmente y ahora están emergiendo.';
-      recomendaciones = [
-        'Validar la experiencia emocional actual',
-        'Procesar las emociones diferidas con seguridad',
-        'Explorar razones de la inhibición inicial',
-        'Técnicas de regulación emocional',
-        'Terapia de procesamiento del duelo',
-        'Considerar eventos desencadenantes recientes'
-      ];
+      
     }
 
     return {
       tipoDuelo,
       descripcion,
       severidad,
-      recomendaciones
+      
     };
   }
 

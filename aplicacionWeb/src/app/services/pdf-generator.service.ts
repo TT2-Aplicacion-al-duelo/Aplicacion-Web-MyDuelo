@@ -175,36 +175,36 @@ export class PdfGeneratorService {
     // ========================================
     // RECOMENDACIONES (si es ITRD)
     // ========================================
-    if (this.esTestITRD(aplicacion.test?.nombre || '')) {
-      if (yPosition > 220) {
-        doc.addPage();
-        yPosition = 20;
-      }
+    // if (this.esTestITRD(aplicacion.test?.nombre || '')) {
+    //   if (yPosition > 220) {
+    //     doc.addPage();
+    //     yPosition = 20;
+    //   }
 
-      doc.setFontSize(14);
-      doc.setFont('helvetica', 'bold');
-      doc.text('Recomendaciones Clínicas', 14, yPosition);
-      yPosition += 10;
+    //   doc.setFontSize(14);
+    //   doc.setFont('helvetica', 'bold');
+    //   doc.text('Recomendaciones Clínicas', 14, yPosition);
+    //   yPosition += 10;
 
-      const recomendaciones = this.obtenerRecomendacionesITRD(aplicacion);
+    //   const recomendaciones = this.obtenerRecomendacionesITRD(aplicacion);
       
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      recomendaciones.forEach((recomendacion, index) => {
-        const lineas = doc.splitTextToSize(`${index + 1}. ${recomendacion}`, 180);
-        lineas.forEach((linea: string) => {
-          if (yPosition > 280) {
-            doc.addPage();
-            yPosition = 20;
-          }
-          doc.text(linea, 14, yPosition);
-          yPosition += 6;
-        });
-        yPosition += 2;
-      });
+    //   doc.setFontSize(10);
+    //   doc.setFont('helvetica', 'normal');
+    //   recomendaciones.forEach((recomendacion, index) => {
+    //     const lineas = doc.splitTextToSize(`${index + 1}. ${recomendacion}`, 180);
+    //     lineas.forEach((linea: string) => {
+    //       if (yPosition > 280) {
+    //         doc.addPage();
+    //         yPosition = 20;
+    //       }
+    //       doc.text(linea, 14, yPosition);
+    //       yPosition += 6;
+    //     });
+    //     yPosition += 2;
+    //   });
 
-      yPosition += 10;
-    }
+    //   yPosition += 10;
+    // }
 
     // ========================================
     // GRÁFICA (si se proporciona)
@@ -339,17 +339,17 @@ export class PdfGeneratorService {
   /**
    * Obtener recomendaciones ITRD
    */
-  private obtenerRecomendacionesITRD(aplicacion: AplicacionTest): string[] {
-    const puntaje = aplicacion.resultado?.puntaje_total || 0;
-    const nombreTest = aplicacion.test?.nombre || '';
-    const esITRDPasado = nombreTest.toLowerCase().includes('pasado');
+  // private obtenerRecomendacionesITRD(aplicacion: AplicacionTest): string[] {
+  //   const puntaje = aplicacion.resultado?.puntaje_total || 0;
+  //   const nombreTest = aplicacion.test?.nombre || '';
+  //   const esITRDPasado = nombreTest.toLowerCase().includes('pasado');
     
-    if (esITRDPasado) {
-      const resultado = ITRDInterpretacionHelper.interpretarITRDPasado(puntaje);
-      return resultado.recomendaciones;
-    } else {
-      const resultado = ITRDInterpretacionHelper.interpretarITRDPresente(puntaje);
-      return resultado.recomendaciones;
-    }
-  }
+  //   if (esITRDPasado) {
+  //     const resultado = ITRDInterpretacionHelper.interpretarITRDPasado(puntaje);
+  //     return resultado.recomendaciones;
+  //   } else {
+  //     const resultado = ITRDInterpretacionHelper.interpretarITRDPresente(puntaje);
+  //     return resultado.recomendaciones;
+  //   }
+  // }
 }

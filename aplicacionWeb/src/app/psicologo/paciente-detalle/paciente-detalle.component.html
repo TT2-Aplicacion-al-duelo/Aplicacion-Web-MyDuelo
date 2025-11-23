@@ -77,12 +77,19 @@
       <!-- Contenido de los tabs -->
       <div class="tab-content">
         <!-- Tab Información -->
-        <div *ngIf="tabActiva === 'info'">
+        <!-- <div *ngIf="tabActiva === 'info'">
           <app-paciente-info [paciente]="paciente"></app-paciente-info>
+        </div> -->
+        <!-- Tab Información -->
+        <div *ngIf="tabActiva === 'info'">
+          <app-paciente-info 
+            [paciente]="paciente" 
+            [idPaciente]="idPaciente">
+          </app-paciente-info>
         </div>
 
         <!-- Tab Gráficas y Notas -->
-        <!-- ✅ CORREGIDO: Agregado binding de paciente -->
+        <!-- CORREGIDO: Agregado binding de paciente -->
         <div *ngIf="tabActiva === 'graficas'">
           <app-graficas-notas 
             [idPaciente]="idPaciente"

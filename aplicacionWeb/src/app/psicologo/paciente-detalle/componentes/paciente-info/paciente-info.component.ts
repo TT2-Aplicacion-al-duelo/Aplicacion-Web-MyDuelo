@@ -22,6 +22,7 @@ export class PacienteInfoComponent implements OnInit {
   @Input() idPaciente!: number;
   
   chatExiste: boolean = false;
+  idChatExistente: number | null = null;
   proximaCita: any = null;
   cargandoChat: boolean = false;
   cargandoCita: boolean = false;
@@ -74,25 +75,45 @@ export class PacienteInfoComponent implements OnInit {
   }
 
   crearChat(): void {
-    if (confirm('¿Desea crear un chat con este paciente?')) {
-      this.cargandoChat = true;
-      this.chatService.crearChat({ id_paciente: this.idPaciente }).subscribe({
-        next: (nuevoChat) => {
-          this.toastr.success('Chat creado exitosamente');
+    this.cargandoChat = true;
+    
+    // Primero verificar si el chat ya existe
+    this.chatService.verificarChatPaciente(this.idPaciente).subscribe({
+      next: (response) => {
+        if (response.existe) {
+          // El chat ya existe, redirigir directamente
+          this.toastr.info('Ya existe un chat con este paciente, redirigiendo...');
           this.chatExiste = true;
           this.cargandoChat = false;
-          // Redirigir al chat
           this.abrirChat();
-        },
-        error: (error) => {
-          console.error('Error creando chat:', error);
-          this.toastr.error('Error al crear el chat');
-          this.cargandoChat = false;
+        } else {
+          // El chat no existe, preguntar y crear
+          if (confirm('¿Desea crear un chat con este paciente?')) {
+            this.chatService.crearChat({ id_paciente: this.idPaciente }).subscribe({
+              next: (nuevoChat) => {
+                this.toastr.success('Chat creado exitosamente');
+                this.chatExiste = true;
+                this.cargandoChat = false;
+                this.abrirChat();
+              },
+              error: (error) => {
+                console.error('Error creando chat:', error);
+                this.toastr.error('Error al crear el chat');
+                this.cargandoChat = false;
+              }
+            });
+          } else {
+            this.cargandoChat = false;
+          }
         }
-      });
-    }
+      },
+      error: (error) => {
+        console.error('Error verificando chat:', error);
+        this.toastr.error('Error al verificar el chat');
+        this.cargandoChat = false;
+      }
+    });
   }
-
   agendarCita(): void {
     this.router.navigate(['/agenda'], { 
       queryParams: { paciente: this.idPaciente }
@@ -132,12 +153,7 @@ export class PacienteInfoComponent implements OnInit {
 obtenerFotoUrl(): string {
   const fotoPerfil = this.paciente?.foto_perfil;
   
-  // ✅ DEBUG - Ver qué llega
-  console.log('🔍 Paciente ID:', this.paciente?.id_paciente);
-  console.log('📸 foto_perfil en BD:', fotoPerfil);
-  console.log('📸 foto_perfil en BD:', this.paciente);
-  if (!fotoPerfil) {
-    console.log('❌ No hay foto_perfil');
+   if (!fotoPerfil) {    
     return '';
   }
   
@@ -146,13 +162,13 @@ obtenerFotoUrl(): string {
       fotoPerfil.startsWith('http://20.') ||
       fotoPerfil.startsWith('https://192.168') || 
       fotoPerfil.startsWith('https://20.')) {
-    console.log('❌ URL antigua de Azure - ignorando');
+    
     return '';
   }
   
   // Si ya es URL completa válida
   if (fotoPerfil.startsWith('http')) {
-    console.log('✅ URL completa:', fotoPerfil);
+ 
     return fotoPerfil;
   }
   

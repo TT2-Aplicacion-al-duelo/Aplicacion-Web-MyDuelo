@@ -88,17 +88,17 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
         this.idPsicologo = payload.id_psicologo;
-        console.log('ID Psicólogo obtenido:', this.idPsicologo);
+       // console.log('ID Psicólogo obtenido:', this.idPsicologo);
       } catch (error) {
-        console.error('Error al decodificar token:', error);
+      console.error('Error al decodificar token:', error);
       }
     }
   }
 
   private async cargarAgenda() {
-    // ✅ Evitar llamadas múltiples simultáneas
+    // Evitar llamadas múltiples simultáneas
     if (this.cargandoAgenda) {
-      console.log('⏳ Ya hay una carga de agenda en proceso, esperando...');
+     // console.log('⏳ Ya hay una carga de agenda en proceso, esperando...');
       return;
     }
 
@@ -108,25 +108,25 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       const inicioSemana = this.diasSemana[0];
       const inicioSemanaStr = format(inicioSemana, 'yyyy-MM-dd');
 
-      console.log(`🔍 Buscando agenda para semana: ${inicioSemanaStr}`);
+      //console.log(`🔍 Buscando agenda para semana: ${inicioSemanaStr}`);
 
-      // ✅ Intentar obtener agenda existente para esta semana específica
+      //Intentar obtener agenda existente para esta semana específica
       const response: any = await this.agendaService.getAgendaPorSemana(
         this.idPsicologo, 
         inicioSemanaStr
       ).toPromise();
       
       this.idAgenda = response?.agenda?.id_agenda;
-      console.log('✅ Agenda encontrada:', this.idAgenda);
+     // console.log('Agenda encontrada:', this.idAgenda);
       
       // Cargar citas
       if (this.idAgenda) {
         this.cargarCitas();
       }
     } catch (error) {
-      console.log('⚠️ No existe agenda para esta semana, creando nueva...');
+      console.log('No existe agenda para esta semana, creando nueva...');
       
-      // ✅ Crear agenda para la semana seleccionada
+      //Crear agenda para la semana seleccionada
       const inicioSemana = this.diasSemana[0];
       const finSemana = this.diasSemana[6];
       
@@ -139,16 +139,16 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       try {
         const response: any = await this.agendaService.crearAgenda(nuevaAgenda).toPromise();
         this.idAgenda = response?.agenda?.id_agenda;
-        console.log('✅ Agenda creada:', this.idAgenda);
+        //console.log('Agenda creada:', this.idAgenda);
         
         // Inicializar eventos vacíos
         this.eventos = [];
       } catch (createError) {
-        console.error('❌ Error al crear agenda:', createError);
+        console.error('Error al crear agenda:', createError);
         alert('Error al crear la agenda para esta semana');
       }
     } finally {
-      this.cargandoAgenda = false;  // ✅ Siempre liberar el flag
+      this.cargandoAgenda = false;  
     }
   }
 
@@ -158,11 +158,11 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       this.agendaService.getDisponibilidad(this.idPsicologo).subscribe({
         next: (disponibilidades: any[]) => {
           if (disponibilidades.length === 0) {
-            console.log('No hay disponibilidad configurada, creando horario por defecto...');
+           // console.log('No hay disponibilidad configurada, creando horario por defecto...');
             this.crearDisponibilidadPorDefecto();
           } else {
             this.disponibilidades = disponibilidades;
-            console.log('Disponibilidad cargada:', disponibilidades);
+           // console.log('Disponibilidad cargada:', disponibilidades);
           }
         },
         error: (error) => {
@@ -270,14 +270,11 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
         const citas = response.citas || response;
         if (Array.isArray(citas)) {
           this.eventos = citas.map((c: any) => {
-            // ✅ FIX: Crear fecha correctamente sin conversión UTC
+            //FIX: Crear fecha correctamente sin conversión UTC
             const [year, month, day] = c.fecha.split('-').map(Number);
             const fechaLocal = new Date(year, month - 1, day);
             
-            // Obtener el nombre completo del paciente
-            // const nombreCompleto = c.paciente ? 
-            //   `${c.paciente.nombre} ${c.paciente.apellido_paterno} ${c.paciente.apellido_materno || ''}`.trim() 
-            //   : 'Paciente';
+            
             const nombreCompleto = c.paciente ? 
               `${c.paciente.nombre} ${c.paciente.apellido_paterno} ${c.paciente.apellido_materno || ''}`.trim() 
               : 'Paciente';
@@ -296,9 +293,9 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
             };
           });
           
-          // ✅ Forzar detección de cambios para que Angular renderice correctamente
+          //Forzar detección de cambios para que Angular renderice correctamente
           this.eventos = [...this.eventos];
-          console.log('✅ Citas cargadas:', this.eventos.length, this.eventos);
+          //console.log('Citas cargadas:', this.eventos.length, this.eventos);
         } else {
           console.log('No hay citas disponibles');
           this.eventos = [];
@@ -337,7 +334,7 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       
       const inicioSemanaStr = format(inicioSemana, 'yyyy-MM-dd');
       
-      console.log(`🔍 Asegurando agenda para semana: ${inicioSemanaStr}`);
+      //console.log(`Asegurando agenda para semana: ${inicioSemanaStr}`);
 
       // Intentar obtener agenda existente
       try {
@@ -348,7 +345,7 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
 
         if (response?.agenda?.id_agenda) {
           this.idAgenda = response.agenda.id_agenda;
-          console.log(`✅ Agenda encontrada: ${this.idAgenda}`);
+        //  console.log(`Agenda encontrada: ${this.idAgenda}`);
           return;
         }
       } catch (error) {
@@ -368,7 +365,7 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
 
       const createResponse: any = await this.agendaService.crearAgenda(nuevaAgenda).toPromise();
       this.idAgenda = createResponse?.agenda?.id_agenda;
-      console.log(`✅ Agenda creada: ${this.idAgenda}`);
+     // console.log(`Agenda creada: ${this.idAgenda}`);
 
     } catch (error) {
       console.error('❌ Error al asegurar agenda:', error);
@@ -381,10 +378,10 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       return;
     }
 
-    // ✅ SOLUCIÓN: SIEMPRE asegurar que la agenda corresponde a la fecha de la cita
+    // SOLUCIÓN: SIEMPRE asegurar que la agenda corresponde a la fecha de la cita
     // No importa si this.idAgenda tiene valor, porque podría ser de otra semana
     try {
-      console.log('🔍 Calculando agenda correcta para la fecha de la cita...');
+      //console.log('Calculando agenda correcta para la fecha de la cita...');
       await this.asegurarAgenda();
       
       if (!this.idAgenda || this.idAgenda === 0) {
@@ -392,14 +389,14 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
         return;
       }
       
-      console.log(`✅ Usando agenda: ${this.idAgenda} para la fecha: ${this.crearFecha}`);
+      //console.log(`Usando agenda: ${this.idAgenda} para la fecha: ${this.crearFecha}`);
     } catch (error) {
       console.error('❌ Error al asegurar agenda:', error);
       alert('Error al verificar la agenda. Por favor, intenta nuevamente.');
       return;
     }
 
-    // ✅ VALIDACIÓN: No permitir crear citas en fechas pasadas
+    // VALIDACIÓN: No permitir crear citas en fechas pasadas
     const [year, month, day] = this.crearFecha.split('-').map(Number);
     const fechaSeleccionada = new Date(year, month - 1, day);
     const hoy = new Date();
@@ -410,7 +407,7 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       return;
     }
 
-    // ✅ VALIDACIÓN: Si es hoy, verificar que la hora no haya pasado
+    //VALIDACIÓN: Si es hoy, verificar que la hora no haya pasado
     if (fechaSeleccionada.toDateString() === hoy.toDateString()) {
       const [horaSeleccionada, minutosSeleccionados] = this.crearHora.split(':').map(Number);
       const ahora = new Date();
@@ -424,7 +421,7 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       }
     }
 
-    // ✅ Convertir fecha correctamente sin problemas de zona horaria
+    //Convertir fecha correctamente sin problemas de zona horaria
     const fechaLocal = new Date(year, month - 1, day);
     const fechaISO = fechaLocal.toISOString().split('T')[0];
 
@@ -447,10 +444,10 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
 
     this.agendaService.crearCita(citaData).subscribe({
       next: (response) => {
-        console.log('✅ Cita creada exitosamente:', response);
+       // console.log(' Cita creada exitosamente:', response);
         alert('Cita creada exitosamente');
         
-        // ✅ IMPORTANTE: Recargar la vista para mostrar la cita en la semana correcta
+        //Recargar la vista para mostrar la cita en la semana correcta
         this.cargarAgenda();
         this.cerrarModal('crearModal');
         
@@ -526,7 +523,7 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
   reagendar() {
     if (!this.selecionarEvent || !this.fechaReagendar || !this.horaReagendar) return;
 
-    // ✅ VALIDACIÓN: No permitir reagendar a fechas pasadas
+    //VALIDACIÓN: No permitir reagendar a fechas pasadas
     const [year, month, day] = this.fechaReagendar.split('-').map(Number);
     const fechaSeleccionada = new Date(year, month - 1, day);
     const hoy = new Date();
@@ -537,7 +534,7 @@ private cargandoAgenda = false;  // Flag para evitar llamadas múltiples
       return;
     }
 
-    // ✅ VALIDACIÓN: Si es hoy, verificar hora
+    // VALIDACIÓN: Si es hoy, verificar hora
     if (fechaSeleccionada.toDateString() === hoy.toDateString()) {
       const [horaSeleccionada, minutosSeleccionados] = this.horaReagendar.split(':').map(Number);
       const ahora = new Date();
