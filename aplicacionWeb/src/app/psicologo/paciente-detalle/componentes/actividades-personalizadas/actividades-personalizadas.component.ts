@@ -360,7 +360,7 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     this.mostrarModalCrear = true;
   }
 
-  // ✅ AGREGAR método para manejar el cierre del modal
+  // AGREGAR método para manejar el cierre del modal
   onModalCrearClose(result: any): void {
     // Limpiar el estado del modal
     this.mostrarModalCrear = false;
@@ -377,13 +377,13 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     this.actividadNueva = null;
   }
   
-  // ✅ AGREGAR método para guardar la actividad personalizada
+  // AGREGAR método para guardar la actividad personalizada
   private guardarActividadPersonalizada(actividad: Actividad): void {
     // Datos de la nueva actividad personalizada
     const nuevaActividad = {
       titulo: actividad.titulo,
-      descripcion: actividad.descripcion || '',  // ✅ CORRECCIÓN: Garantizar que sea string
-      tipo: 'personalizada',  // ✅ CORRECCIÓN: Siempre fijo
+      descripcion: actividad.descripcion || '', 
+      tipo: 'personalizada', 
       id_paciente: this.idPaciente,
       prioridad: 'media' as 'baja' | 'media' | 'alta'
     };
@@ -400,7 +400,7 @@ export class ActividadesPersonalizadasComponent implements OnInit {
       }
     });
   }
-  // ✅ AGREGAR método para limpiar backdrops
+  // AGREGAR método para limpiar backdrops
   private limpiarBackdrops(): void {
     // Remover la clase 'modal-open' del body
     document.body.classList.remove('modal-open');
@@ -414,27 +414,6 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     }
   }
 
-  /**
-   * Descargar evidencia
-   */
-  // descargarEvidencia(archivoUrl: string): void {
-  //   // Crear un elemento <a> temporal para forzar la descarga
-  //   const link = document.createElement('a');
-  //   link.href = archivoUrl;
-  //   link.target = '_blank';
-    
-  //   // Extraer el nombre del archivo de la URL
-  //   const nombreArchivo = archivoUrl.split('/').pop() || 'evidencia';
-  //   link.download = nombreArchivo;
-    
-  //   // Forzar click
-  //   document.body.appendChild(link);
-  //   link.click();
-  //   document.body.removeChild(link);
-  // }
-  /**
- * Ver evidencia en modal
- */
   verEvidencia(evidencia: any): void {
     this.evidenciaSeleccionada = evidencia;
     this.mostrarVisorEvidencia = true;
@@ -494,12 +473,12 @@ export class ActividadesPersonalizadasComponent implements OnInit {
     return colores[tipoArchivo] || 'secondary';
   }
 
-  // ⭐ MÉTODO AUXILIAR: Verificar si una actividad tiene evidencias
+  // MÉTODO AUXILIAR: Verificar si una actividad tiene evidencias
   tieneEvidencias(actividad: ActividadAsignada): boolean {
     return !!(actividad.evidencias && Array.isArray(actividad.evidencias) && actividad.evidencias.length > 0);
   }
 
-  // ⭐ MÉTODO AUXILIAR: Obtener cantidad de evidencias
+  // MÉTODO AUXILIAR: Obtener cantidad de evidencias
   cantidadEvidencias(actividad: ActividadAsignada): number {
     return this.tieneEvidencias(actividad) ? (actividad.evidencias?.length || 0) : 0;
   }

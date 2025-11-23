@@ -9,22 +9,22 @@
       }
     </h5>
     <div class="d-flex gap-2">
-      <button 
-        class="btn btn-sm btn-outline-secondary" 
-        (click)="toggleFiltros()"
-        [class.active]="mostrarFiltros">
-        <i class="bi bi-funnel me-1"></i>
-        Filtros
-      </button>
-      <button class="btn btn-sm btn-outline-primary" (click)="asignarActividad()">
-        <i class="bi bi-link-45deg me-1"></i>
-        Asignar Existente
-      </button>
-      <button class="btn btn-sm btn-primary" (click)="crearActividad()">
-        <i class="bi bi-plus-lg me-1"></i>
-        Nueva Actividad
-      </button>
-    </div>
+  <button 
+    class="btn btn-sm btn-outline-light" 
+    (click)="toggleFiltros()"
+    [class.active]="mostrarFiltros">
+    <i class="bi bi-funnel me-1"></i>
+    Filtros
+  </button>
+  <button class="btn btn-sm btn-outline-light" (click)="asignarActividad()">
+    <i class="bi bi-link-45deg me-1"></i>
+    Asignar Existente
+  </button>
+  <button class="btn btn-sm btn-light" (click)="crearActividad()">
+    <i class="bi bi-plus-lg me-1"></i>
+    Nueva Actividad
+  </button>
+</div>
   </div>
 
   <!-- Panel de Estadísticas Rápidas -->
@@ -462,12 +462,7 @@
                       </p>
                     }
                     
-                    <!-- <button 
-                      class="btn btn-sm btn-primary w-100"
-                      (click)="descargarEvidencia(evidencia.archivo_url)">
-                      <i class="bi bi-download me-1"></i>
-                      Descargar
-                    </button> -->
+                    
                     <div class="d-flex gap-2">
                       <button 
                         class="btn btn-sm btn-primary flex-fill"

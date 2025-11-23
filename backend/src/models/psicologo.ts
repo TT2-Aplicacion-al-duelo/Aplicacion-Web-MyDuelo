@@ -17,6 +17,7 @@ export const Psicologo = sequelize.define("psicologo", {
   cedula_validada: { type: DataTypes.BOOLEAN, defaultValue: false },
   rol_admin: { type: DataTypes.BOOLEAN, defaultValue: false },
   codigo_vinculacion: { type: DataTypes.STRING(50), allowNull: true },
+  direccion_consultorio: { type: DataTypes.TEXT, allowNull: true },
   foto_perfil: {  type: DataTypes.STRING(255),  allowNull: true},
   status: {type: DataTypes.ENUM("activo", "inactivo"),    defaultValue: "activo"}
 },

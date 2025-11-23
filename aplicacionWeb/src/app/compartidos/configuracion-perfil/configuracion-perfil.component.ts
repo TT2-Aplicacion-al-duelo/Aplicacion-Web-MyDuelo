@@ -45,11 +45,11 @@ export class ConfiguracionPerfilComponent implements OnInit {
 
   inicializarFormularios(): void {
     // Formulario de Perfil
-    this.perfilForm = this.fb.group({
-      telefono: ['', [Validators.required, CustomValidators.telefonoValido()]],
-      correo: ['', [Validators.required, Validators.email]],
-      direccionConsultorio: ['']
-    });
+     this.perfilForm = this.fb.group({
+    telefono: ['', [CustomValidators.telefonoValido()]],
+    correo: ['', [Validators.email]],
+    direccionConsultorio: ['']
+  });
 
     // Formulario de Contraseña
     this.contrasenaForm = this.fb.group({
@@ -66,13 +66,36 @@ export class ConfiguracionPerfilComponent implements OnInit {
   }
 
   actualizarPerfil(): void {
-    if (this.perfilForm.invalid) {
-      this.perfilForm.markAllAsTouched();
-      this.toastr.error('Por favor completa todos los campos correctamente', 'Error');
-      return;
-    }
+    // Solo validar los campos que tienen valor
+  const formValues = this.perfilForm.value;
+  const camposConValor = Object.keys(formValues).filter(key => formValues[key]);
+  
+  // Validar solo los campos que se van a actualizar
+  if (camposConValor.length === 0) {
+    this.toastr.warning('Debes ingresar al menos un campo para actualizar', 'Advertencia');
+    return;
+  }
 
-    this.loading = true;
+  // Validar que los campos con valor sean válidos
+  let hayErrores = false;
+  camposConValor.forEach(campo => {
+    const control = this.perfilForm.get(campo);
+    if (control && control.invalid) {
+      control.markAsTouched();
+      hayErrores = true;
+    }
+  });
+
+  if (hayErrores) {
+    this.toastr.error('Por favor corrige los errores en los campos ingresados', 'Error');
+    return;
+  }
+
+  // Enviar solo los campos con valor
+  const datosActualizar: any = {};
+  camposConValor.forEach(campo => {
+    datosActualizar[campo] = formValues[campo];
+  });
 
     this.psicologoService.actualizarPerfil(this.perfilForm.value).subscribe({
       next: (response) => {
