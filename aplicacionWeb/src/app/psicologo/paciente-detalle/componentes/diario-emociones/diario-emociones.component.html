@@ -1,0 +1,97 @@
+<!-- aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/diario-emociones/diario-emociones.component.html -->
+<div class="diario-container">
+  <!-- Header con filtros -->
+  <div class="diario-header">
+    <h4 class="diario-titulo">
+      <i class="bi bi-journal-text me-2"></i>
+      Diario Emocional
+    </h4>
+
+    <div class="filtros-container">
+      <div class="row g-2">
+        <div class="col-md-4">
+          <input
+            type="date"
+            class="form-control"
+            [(ngModel)]="filtroFecha"
+            (change)="aplicarFiltros()"
+            placeholder="Filtrar por fecha"
+          />
+        </div>
+        <div class="col-md-4">
+          <select
+            class="form-select"
+            [(ngModel)]="filtroEmocion"
+            (change)="aplicarFiltros()"
+          >
+            <option value="">Todas las emociones</option>
+            <option *ngFor="let emocion of emociones" [value]="emocion">
+              {{ obtenerIconoEmocion(emocion) }} {{ emocion }}
+            </option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <button
+            class="btn btn-outline-secondary w-100"
+            (click)="limpiarFiltros()"
+            [disabled]="!filtroFecha && !filtroEmocion"
+          >
+            <i class="bi bi-x-circle me-1"></i>
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="cargando" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Cargando...</span>
+    </div>
+    <p class="mt-2 text-muted">Cargando diario emocional...</p>
+  </div>
+
+  <!-- Sin entradas -->
+  <div *ngIf="!cargando && entradasFiltradas.length === 0" class="sin-entradas">
+    <i class="bi bi-journal-x"></i>
+    <p>{{ filtroFecha || filtroEmocion ? 'No se encontraron entradas con los filtros seleccionados' : 'El paciente aún no ha compartido entradas de su diario emocional' }}</p>
+  </div>
+
+  <!-- Lista de entradas -->
+  <div *ngIf="!cargando && entradasFiltradas.length > 0" class="entradas-lista">
+    <div
+      *ngFor="let entrada of entradasFiltradas"
+      class="entrada-card"
+      [ngClass]="obtenerColorEmocion(entrada.emocion)"
+    >
+      <!-- Fecha y emoción -->
+      <div class="entrada-header">
+        <div class="entrada-fecha">
+          <i class="bi bi-calendar3 me-2"></i>
+          {{ formatearFecha(entrada.fecha) }}
+        </div>
+        <div class="entrada-emocion">
+          <span class="emocion-icono">{{ obtenerIconoEmocion(entrada.emocion) }}</span>
+          <span class="emocion-texto">{{ entrada.emocion }}</span>
+        </div>
+      </div>
+
+      <!-- Contenido de la nota -->
+      <div class="entrada-contenido">
+        <div class="nota-decoracion">
+          <i class="bi bi-quote"></i>
+        </div>
+        <p class="nota-texto">{{ entrada.nota || 'Sin nota' }}</p>
+      </div>
+
+      <!-- Footer con timestamp -->
+      <div class="entrada-footer">
+        <small class="text-muted">
+          <i class="bi bi-clock me-1"></i>
+          Registrado el {{ entrada.creado_en | date: 'short' }}
+        </small>
+      </div>
+    </div>
+  </div>
+</div>

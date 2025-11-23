@@ -60,6 +60,7 @@ const modulos_1 = __importDefault(require("../routes/modulos"));
 const tests_1 = __importDefault(require("../routes/tests"));
 const notas_1 = __importDefault(require("../routes/notas"));
 const foro_1 = __importDefault(require("../routes/foro"));
+const diario_emociones_1 = __importDefault(require("../routes/diario-emociones"));
 const notificaciones_1 = __importDefault(require("../routes/notificaciones"));
 const notificaciones_2 = require("../controllers/notificaciones");
 const associations_1 = require("./associations");
@@ -138,33 +139,6 @@ class Server {
                 environment: process.env.NODE_ENV || 'development'
             });
         });
-        // Programar tarea cron para recordatorios
-        // cron.schedule('0 9 * * *', async () => {
-        //     console.log('Ejecutando tarea de recordatorios...');
-        //     try {
-        //         const hoy = new Date();
-        //         const tresDias = new Date();
-        //         tresDias.setDate(tresDias.getDate() + 3);
-        //         const citasProximas = await Cita.findAll({
-        //             where: {
-        //                 fecha: {
-        //                     [Op.between]: [hoy, tresDias]
-        //                 }
-        //             }
-        //         });
-        //         for (const cita of citasProximas) {
-        //             await Recordatorio.create({
-        //                 id_cita: (cita as any).id_cita,
-        //                 mensaje: `Recordatorio: Tienes una cita el ${(cita as any).fecha}`,
-        //                 fecha_envio: hoy,
-        //                 tipo: 'email'
-        //             });
-        //         }
-        //         console.log(`✅ ${citasProximas.length} recordatorios generados`);
-        //     } catch (error: unknown) {
-        //         console.error('Error en cron de recordatorios:', error);
-        //     }
-        // });
         // En el método midlewares(), modificar el cron existente:
         node_cron_1.default.schedule('0 9 * * *', () => __awaiter(this, void 0, void 0, function* () {
             console.log('Ejecutando tarea de recordatorios...');
@@ -207,7 +181,7 @@ class Server {
                         enviado: false,
                         fecha_programada: hoy
                     });
-                    // ✅ CREAR NOTIFICACIÓN para el psicólogo
+                    //CREAR NOTIFICACIÓN para el psicólogo
                     const nombrePaciente = `${citaData.paciente.nombre} ${citaData.paciente.apellido_paterno}`;
                     yield (0, notificaciones_2.crearNotificacion)({
                         id_psicologo: citaData.agenda.id_psicologo,
@@ -265,6 +239,7 @@ class Server {
         this.app.use(modulos_1.default);
         this.app.use(tests_1.default);
         this.app.use(notas_1.default);
+        this.app.use(diario_emociones_1.default);
         this.app.use('/api/foros', foro_1.default);
         this.app.use(notificaciones_1.default);
     }

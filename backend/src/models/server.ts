@@ -13,6 +13,7 @@ import modulosRoutes from '../routes/modulos';
 import testRoutes from '../routes/tests';
 import notasRoutes from '../routes/notas';
 import foroRoutes from '../routes/foro';
+import diarioEmocionesRoutes from '../routes/diario-emociones'; 
 import notificacionesRoutes from '../routes/notificaciones';
 import { Notificacion } from './notificacion';
 import { crearNotificacion } from '../controllers/notificaciones';
@@ -105,36 +106,6 @@ class Server {
             });
         });
 
-        // Programar tarea cron para recordatorios
-        // cron.schedule('0 9 * * *', async () => {
-        //     console.log('Ejecutando tarea de recordatorios...');
-        //     try {
-        //         const hoy = new Date();
-        //         const tresDias = new Date();
-        //         tresDias.setDate(tresDias.getDate() + 3);
-
-        //         const citasProximas = await Cita.findAll({
-        //             where: {
-        //                 fecha: {
-        //                     [Op.between]: [hoy, tresDias]
-        //                 }
-        //             }
-        //         });
-
-        //         for (const cita of citasProximas) {
-        //             await Recordatorio.create({
-        //                 id_cita: (cita as any).id_cita,
-        //                 mensaje: `Recordatorio: Tienes una cita el ${(cita as any).fecha}`,
-        //                 fecha_envio: hoy,
-        //                 tipo: 'email'
-        //             });
-        //         }
-
-        //         console.log(`✅ ${citasProximas.length} recordatorios generados`);
-        //     } catch (error: unknown) {
-        //         console.error('Error en cron de recordatorios:', error);
-        //     }
-        // });
 
         // En el método midlewares(), modificar el cron existente:
         cron.schedule('0 9 * * *', async () => {
@@ -182,7 +153,7 @@ class Server {
                 fecha_programada: hoy
             });
 
-            // ✅ CREAR NOTIFICACIÓN para el psicólogo
+            //CREAR NOTIFICACIÓN para el psicólogo
             const nombrePaciente = `${citaData.paciente.nombre} ${citaData.paciente.apellido_paterno}`;
             await crearNotificacion({
                 id_psicologo: citaData.agenda.id_psicologo,
@@ -244,6 +215,7 @@ class Server {
         this.app.use(modulosRoutes);
         this.app.use(testRoutes);
         this.app.use(notasRoutes);
+        this.app.use(diarioEmocionesRoutes);
         this.app.use('/api/foros', foroRoutes);
         this.app.use(notificacionesRoutes);
     }

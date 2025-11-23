@@ -61,7 +61,15 @@
              [class.active]="tabActiva === 'actividades'"
              (click)="cambiarTab('actividades')"
              style="cursor: pointer;">
-            <i class="bi bi-list-task me-1"></i> Actividades
+            <i class="bi bi-list-task me-1"></i> Recursos Personalizados
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link"
+            [class.active]="tabActiva === 'diario'"
+            (click)="cambiarTab('diario')"
+            style="cursor: pointer;">
+            <i class="bi bi-journal-text me-1"></i> Diario Emocional
           </a>
         </li>
       </ul>
@@ -90,6 +98,11 @@
         <!-- Tab Actividades -->
         <div *ngIf="tabActiva === 'actividades'">
           <app-actividades-personalizadas [idPaciente]="idPaciente"></app-actividades-personalizadas>
+        </div>
+
+        <!-- Contenido: Diario Emocional -->
+        <div *ngIf="tabActiva === 'diario'">
+          <app-diario-emociones [idPaciente]="idPaciente"></app-diario-emociones>
         </div>
       </div>
     </div>

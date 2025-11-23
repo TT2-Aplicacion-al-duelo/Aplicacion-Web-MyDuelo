@@ -1,0 +1,188 @@
+/* aplicacionWeb/src/app/psicologo/paciente-detalle/componentes/diario-emociones/diario-emociones.component.css */
+
+.diario-container {
+  padding: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+/* Header */
+.diario-header {
+  margin-bottom: 30px;
+}
+
+.diario-titulo {
+  color: #2c3e50;
+  font-weight: 600;
+  margin-bottom: 20px;
+  font-family: 'Georgia', serif;
+}
+
+.filtros-container {
+  background: #f8f9fa;
+  padding: 15px;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Sin entradas */
+.sin-entradas {
+  text-align: center;
+  padding: 60px 20px;
+  color: #6c757d;
+}
+
+.sin-entradas i {
+  font-size: 4rem;
+  margin-bottom: 15px;
+  opacity: 0.3;
+}
+
+.sin-entradas p {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+/* Lista de entradas */
+.entradas-lista {
+  display: grid;
+  gap: 20px;
+}
+
+/* Tarjeta de entrada - Estilo diario */
+.entrada-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 25px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  border-left: 5px solid;
+  position: relative;
+  transition: transform 0.2s, box-shadow 0.2s;
+  font-family: 'Georgia', serif;
+}
+
+.entrada-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+}
+
+/* Colores de borde según emoción */
+.emocion-feliz {
+  border-left-color: #ffd700;
+  background: linear-gradient(to right, #fffef0, #ffffff);
+}
+
+.emocion-bien {
+  border-left-color: #90ee90;
+  background: linear-gradient(to right, #f0fff4, #ffffff);
+}
+
+.emocion-normal {
+  border-left-color: #87ceeb;
+  background: linear-gradient(to right, #f0f8ff, #ffffff);
+}
+
+.emocion-triste {
+  border-left-color: #4682b4;
+  background: linear-gradient(to right, #f0f8ff, #ffffff);
+}
+
+.emocion-terrible {
+  border-left-color: #9370db;
+  background: linear-gradient(to right, #f8f0ff, #ffffff);
+}
+
+.emocion-enojado {
+  border-left-color: #ff6b6b;
+  background: linear-gradient(to right, #fff0f0, #ffffff);
+}
+
+/* Header de entrada */
+.entrada-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 2px dashed #e9ecef;
+}
+
+.entrada-fecha {
+  font-size: 0.95rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.entrada-emocion {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 8px 15px;
+  border-radius: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.emocion-icono {
+  font-size: 1.8rem;
+}
+
+.emocion-texto {
+  font-weight: 600;
+  color: #2c3e50;
+  font-size: 1rem;
+}
+
+/* Contenido */
+.entrada-contenido {
+  position: relative;
+  padding-left: 30px;
+  margin: 20px 0;
+}
+
+.nota-decoracion {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 2rem;
+  color: #dee2e6;
+  opacity: 0.4;
+}
+
+.nota-texto {
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: #2c3e50;
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: 'Georgia', serif;
+  font-style: italic;
+}
+
+/* Footer */
+.entrada-footer {
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .diario-container {
+    padding: 15px;
+  }
+
+  .entrada-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .entrada-emocion {
+    align-self: flex-end;
+  }
+
+  .nota-texto {
+    font-size: 1rem;
+  }
+}

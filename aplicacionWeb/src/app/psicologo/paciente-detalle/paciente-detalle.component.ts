@@ -9,6 +9,7 @@ import { PacientesService } from '../../services/pacientes.service';
 import { Paciente } from '../../interfaces/paciente';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../environments/environment';
+import { DiarioEmocionesComponent } from './componentes/diario-emociones/diario-emociones.component';
 
 @Component({
   selector: 'app-paciente-detalle',
@@ -16,7 +17,8 @@ import { environment } from '../../../environments/environment';
     PacienteInfoComponent,
     GraficasNotasComponent,
     ModulosDueloComponent,
-    ActividadesPersonalizadasComponent
+    ActividadesPersonalizadasComponent,
+    DiarioEmocionesComponent
   ],
   templateUrl: './paciente-detalle.component.html',
   styleUrl: './paciente-detalle.component.css'
@@ -28,7 +30,7 @@ export class PacienteDetalleComponent implements OnInit {
   imageError: boolean = false;
   
   // Estado de las pestañas
-  tabActiva: 'info' | 'graficas' | 'modulos' | 'actividades' = 'info';
+  tabActiva: 'info' | 'graficas' | 'modulos' | 'actividades' | 'diario' = 'info';
 
   constructor(
     private route: ActivatedRoute,
@@ -64,7 +66,7 @@ export class PacienteDetalleComponent implements OnInit {
     });
   }
 
-  cambiarTab(tab: 'info' | 'graficas' | 'modulos' | 'actividades'): void {
+  cambiarTab(tab: 'info' | 'graficas' | 'modulos' | 'actividades'| 'diario'): void {
     this.tabActiva = tab;
   }
 
