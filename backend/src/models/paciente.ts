@@ -26,3 +26,4 @@ Paciente.belongsTo(Psicologo, {
   foreignKey: 'id_psicologo', 
   targetKey: 'id_psicologo' 
 });
+0

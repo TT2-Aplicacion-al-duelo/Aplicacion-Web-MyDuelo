@@ -3,11 +3,10 @@ export interface Paciente {
     nombre?: string,
     apellido_paterno?: string,    
     apellido_materno?: string,    
-    fecha_nacimiento?: string,    
+    fecha_nacimiento?: string,  
+    foto_perfil?: string,   
     email: string,               
     telefono?: string,            
     id_psicologo?: number,
-    email_verificado: boolean,
-    foto_perfil?: string, 
-        
+    email_verificado: boolean,       
 }

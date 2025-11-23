@@ -28,3 +28,4 @@ exports.Paciente.belongsTo(psicologo_1.Psicologo, {
     foreignKey: 'id_psicologo',
     targetKey: 'id_psicologo'
 });
+0;

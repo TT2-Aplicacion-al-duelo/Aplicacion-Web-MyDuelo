@@ -6,6 +6,11 @@ import { CitaService } from '../../../../services/cita.service';
 import { Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { environment } from '../../../../../environments/environment';
+
+interface PacienteConError extends Paciente {
+  imageError?: boolean;
+}
+
 @Component({
   selector: 'app-paciente-info',
   imports: [CommonModule],
@@ -130,7 +135,7 @@ obtenerFotoUrl(): string {
   // ✅ DEBUG - Ver qué llega
   console.log('🔍 Paciente ID:', this.paciente?.id_paciente);
   console.log('📸 foto_perfil en BD:', fotoPerfil);
-  
+  console.log('📸 foto_perfil en BD:', this.paciente);
   if (!fotoPerfil) {
     console.log('❌ No hay foto_perfil');
     return '';
