@@ -106,13 +106,19 @@ export class DetalleActividadComponent implements OnInit {
    * Descargar evidencia
    */
   descargarEvidencia(evidencia: Evidencia): void {
+    // Validar que existe archivo_url
+    if (!evidencia.archivo_url) {
+      this.toastr.warning('Esta evidencia no tiene archivo para descargar');
+      return;
+    }
+
     // Crear un elemento <a> temporal para forzar la descarga
     const link = document.createElement('a');
     link.href = evidencia.archivo_url;
     link.target = '_blank';
     
     // Extraer el nombre del archivo de la URL
-    const nombreArchivo = evidencia.archivo_url?.split('/').pop() || 'evidencia';
+    const nombreArchivo = evidencia.archivo_url.split('/').pop() || 'evidencia';
     link.download = nombreArchivo;
     
     // Forzar click
@@ -125,6 +131,12 @@ export class DetalleActividadComponent implements OnInit {
    * Abrir evidencia en nueva pestaña
    */
   abrirEnNuevaPestana(evidencia: Evidencia): void {
+    // Validar que existe archivo_url
+    if (!evidencia.archivo_url) {
+      this.toastr.warning('Esta evidencia no tiene archivo para abrir');
+      return;
+    }
+    
     window.open(evidencia.archivo_url, '_blank');
   }
 
