@@ -151,81 +151,153 @@
           </div>
         </div>
 
-        <!-- Tab: Evidencias -->
-        <div *ngIf="tabActiva === 'evidencias'" class="tab-content-evidencias">
-          <div *ngIf="!tieneEvidenciasVisibles()" class="text-center py-5">
-            <i class="bi bi-lock fs-1 text-muted"></i>
-            <h5 class="mt-3 text-muted">Evidencias no disponibles</h5>
-            <p class="text-muted">
-              El paciente no ha permitido visualizar las evidencias de esta actividad
-            </p>
+        <!-- Tab de Evidencias -->
+        <div class="tab-pane fade" 
+            id="evidencias" 
+            role="tabpanel" 
+            aria-labelledby="evidencias-tab">
+          
+          <!-- Si no hay evidencias -->
+          <div class="alert alert-info" 
+              *ngIf="!actividad.evidencias || actividad.evidencias.length === 0">
+            <i class="bi bi-info-circle me-2"></i>
+            El paciente aún no ha subido evidencias para esta actividad.
           </div>
 
-          <div *ngIf="tieneEvidenciasVisibles()" class="evidencias-grid">
-            <div 
-              *ngFor="let evidencia of actividad.evidencias"
-              class="evidencia-card card shadow-sm"
-              (click)="verEvidencia(evidencia)">
-              
-              <div class="card-body">
-                <div class="d-flex justify-content-between align-items-start mb-3">
-                  <div class="tipo-badge">
-                    <i class="{{obtenerIconoTipoArchivo(evidencia.tipo_archivo)}} fs-1 text-{{obtenerColorTipoArchivo(evidencia.tipo_archivo)}}"></i>
-                    <span class="badge bg-{{obtenerColorTipoArchivo(evidencia.tipo_archivo)}} mt-2">
-                      {{ evidencia.tipo_archivo }}
-                    </span>
+          <!-- Si hay evidencias -->
+          <div *ngIf="actividad.evidencias && actividad.evidencias.length > 0" class="evidencias-container">
+            
+            <!-- Contador de evidencias -->
+            <div class="alert alert-success mb-4">
+              <i class="bi bi-check-circle me-2"></i>
+              El paciente ha subido <strong>{{ actividad.evidencias.length }}</strong> evidencia(s).
+              <span *ngIf="actividad.fecha_completada || actividad.fecha_realizacion">
+                <br>
+                <small class="text-muted">
+                  Completada el: {{ (actividad.fecha_completada || actividad.fecha_realizacion) | date:'dd/MM/yyyy HH:mm' }}
+                </small>
+              </span>
+            </div>
+
+            <!-- Lista de evidencias -->
+            <div class="row g-3">
+              <div class="col-12" *ngFor="let evidencia of actividad.evidencias; let i = index">
+                <div class="card evidencia-card">
+                  <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <h6 class="mb-0">
+                        <i class="bi me-2" [ngClass]="{
+                          'bi-card-text text-primary': evidencia.tipo_archivo === 'texto',
+                          'bi-image text-success': evidencia.tipo_archivo === 'imagen',
+                          'bi-stopwatch text-warning': evidencia.tipo_archivo === 'cronometro',
+                          'bi-file-earmark text-secondary': evidencia.tipo_archivo === 'documento',
+                          'bi-camera-video text-info': evidencia.tipo_archivo === 'video',
+                          'bi-music-note text-danger': evidencia.tipo_archivo === 'audio'
+                        }"></i>
+                        Evidencia {{ i + 1 }} - 
+                        <span class="text-capitalize">{{ obtenerNombreTipoEvidencia(evidencia.tipo_archivo) }}</span>
+                      </h6>
+                      <small class="text-muted">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {{ evidencia.fecha_subida | date:'dd/MM/yyyy HH:mm' }}
+                      </small>
+                    </div>
                   </div>
                   
-                  <button 
-                    class="btn btn-sm btn-outline-primary"
-                    (click)="$event.stopPropagation(); descargarEvidencia(evidencia)"
-                    title="Descargar">
-                    <i class="bi bi-download"></i>
-                  </button>
-                </div>
-
-                <div class="evidencia-info">
-                  <small class="text-muted d-block mb-2">
-                    <i class="bi bi-calendar me-1"></i>
-                    {{ evidencia.fecha_subida | date:'dd/MM/yyyy HH:mm' }}
-                  </small>
-
-                  <p class="mb-0 small text-muted" *ngIf="evidencia.comentario">
-                    <i class="bi bi-chat-text me-1"></i>
-                    {{ evidencia.comentario.substring(0, 80) }}
-                    <span *ngIf="evidencia.comentario.length > 80">...</span>
-                  </p>
-
-                  <p class="mb-0 small text-muted fst-italic" *ngIf="!evidencia.comentario">
-                    Sin comentarios
-                  </p>
-                </div>
-
-                <div class="mt-3 d-flex gap-2">
-                  <button 
-                    class="btn btn-sm btn-{{colorModulo}} flex-fill"
-                    (click)="verEvidencia(evidencia)">
-                    <i class="bi bi-eye me-2"></i>
-                    Ver
-                  </button>
-                  <button 
-                    class="btn btn-sm btn-outline-{{colorModulo}}"
-                    (click)="abrirEnNuevaPestana(evidencia)"
-                    title="Abrir en nueva pestaña">
-                    <i class="bi bi-box-arrow-up-right"></i>
-                  </button>
-                  <button 
-                    class="btn btn-sm btn-outline-{{colorModulo}}"
-                    (click)="descargarEvidencia(evidencia)"
-                    title="Descargar">
-                    <i class="bi bi-download"></i>
-                  </button>
+                  <div class="card-body">
+                    
+                    <!-- Evidencia de TEXTO -->
+                    <div *ngIf="evidencia.tipo_archivo === 'texto' && evidencia.contenido" class="evidencia-texto">
+                      <div class="alert alert-light border">
+                        <p class="mb-0" style="white-space: pre-wrap;">{{ evidencia.contenido }}</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Evidencia de IMAGEN -->
+                    <div *ngIf="evidencia.tipo_archivo === 'imagen' && evidencia.archivo_url" class="evidencia-imagen">
+                      <img 
+                        [src]="obtenerUrlCompleta(evidencia.archivo_url)" 
+                        [alt]="'Evidencia ' + (i + 1)"
+                        class="img-fluid rounded"
+                        style="max-height: 500px; width: auto; display: block; margin: 0 auto;"
+                        (error)="onImageError($event)">
+                    </div>
+                    
+                    <!-- Evidencia de CRONÓMETRO -->
+                    <div *ngIf="evidencia.tipo_archivo === 'cronometro' && evidencia.duracion_segundos" 
+                        class="evidencia-cronometro">
+                      <div class="alert alert-warning border text-center">
+                        <i class="bi bi-stopwatch fs-1"></i>
+                        <h4 class="mt-3 mb-0">{{ evidencia.duracion_formato || formatearDuracion(evidencia.duracion_segundos) }}</h4>
+                        <p class="text-muted mb-0">Tiempo de la actividad</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Evidencia de DOCUMENTO -->
+                    <div *ngIf="evidencia.tipo_archivo === 'documento' && evidencia.archivo_url" 
+                        class="evidencia-documento">
+                      <div class="alert alert-secondary border">
+                        <i class="bi bi-file-earmark-pdf fs-2"></i>
+                        <a [href]="obtenerUrlCompleta(evidencia.archivo_url)" 
+                          target="_blank" 
+                          class="btn btn-sm btn-outline-primary ms-3">
+                          <i class="bi bi-download me-1"></i>
+                          Descargar documento
+                        </a>
+                      </div>
+                    </div>
+                    
+                    <!-- Evidencia de VIDEO -->
+                    <div *ngIf="evidencia.tipo_archivo === 'video' && evidencia.archivo_url" 
+                        class="evidencia-video">
+                      <video 
+                        [src]="obtenerUrlCompleta(evidencia.archivo_url)" 
+                        controls
+                        class="w-100 rounded"
+                        style="max-height: 400px;">
+                        Tu navegador no soporta videos.
+                      </video>
+                    </div>
+                    
+                    <!-- Evidencia de AUDIO -->
+                    <div *ngIf="evidencia.tipo_archivo === 'audio' && evidencia.archivo_url" 
+                        class="evidencia-audio">
+                      <audio 
+                        [src]="obtenerUrlCompleta(evidencia.archivo_url)" 
+                        controls
+                        class="w-100">
+                        Tu navegador no soporta audio.
+                      </audio>
+                    </div>
+                    
+                    <!-- Comentario si existe -->
+                    <div *ngIf="evidencia.comentario" class="mt-3">
+                      <div class="alert alert-light border-start border-primary border-3">
+                        <strong class="text-primary">
+                          <i class="bi bi-chat-left-quote me-2"></i>
+                          Comentario del paciente:
+                        </strong>
+                        <p class="mb-0 mt-2">{{ evidencia.comentario }}</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Indicador de origen (opcional, para debugging) -->
+                    <div *ngIf="evidencia.origen" class="mt-2">
+                      <small class="badge bg-info">
+                        Origen: {{ evidencia.origen === 'modulo_paciente' ? 'Módulo de Duelo' : 'Actividad Asignada' }}
+                      </small>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
+
+
+
+
+
 
       <!-- Footer -->
       <div class="modal-footer bg-light">

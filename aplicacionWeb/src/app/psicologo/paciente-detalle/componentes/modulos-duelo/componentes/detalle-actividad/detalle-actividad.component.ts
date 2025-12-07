@@ -7,6 +7,7 @@ import { VisorEvidenciaComponent } from '../visor-evidencia/visor-evidencia.comp
 //import { ActividadModulo, Evidencia } from '../../modulos-duelo.component';
 import { ToastrService } from 'ngx-toastr';
 import { ActividadModulo, Evidencia } from '../../../../../../interfaces/moduloDuelo';
+import { environment } from '../../../../../../../environments/environment';
 
 @Component({
   selector: 'app-detalle-actividad',
@@ -111,7 +112,7 @@ export class DetalleActividadComponent implements OnInit {
     link.target = '_blank';
     
     // Extraer el nombre del archivo de la URL
-    const nombreArchivo = evidencia.archivo_url.split('/').pop() || 'evidencia';
+    const nombreArchivo = evidencia.archivo_url?.split('/').pop() || 'evidencia';
     link.download = nombreArchivo;
     
     // Forzar click
@@ -126,4 +127,109 @@ export class DetalleActividadComponent implements OnInit {
   abrirEnNuevaPestana(evidencia: Evidencia): void {
     window.open(evidencia.archivo_url, '_blank');
   }
+
+  /**
+   * Obtener la URL completa para archivos de evidencia
+   */
+  obtenerUrlCompleta(url: string): string {
+    if (!url) return '';
+    
+    // Si la URL ya es completa (comienza con http), retornarla tal cual
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // Si es una ruta relativa, construir la URL completa
+    const baseUrl = environment.apiUrl.replace('/api', '');
+    return `${baseUrl}/${url}`;
+  }
+
+  /**
+   * Obtener nombre legible del tipo de evidencia
+   */
+  obtenerNombreTipoEvidencia(tipo: string): string {
+    const nombres: { [key: string]: string } = {
+      'texto': 'Texto',
+      'imagen': 'Imagen',
+      'cronometro': 'Cronómetro',
+      'documento': 'Documento',
+      'video': 'Video',
+      'audio': 'Audio',
+      'otro': 'Otro'
+    };
+    
+    return nombres[tipo] || 'Evidencia';
+  }
+
+  /**
+   * Formatear duración en segundos a formato legible
+   */
+  formatearDuracion(segundos: number): string {
+    if (!segundos) return '0s';
+    
+    const minutos = Math.floor(segundos / 60);
+    const segs = segundos % 60;
+    
+    if (minutos > 0) {
+      return `${minutos}m ${segs}s`;
+    }
+    
+    return `${segs}s`;
+  }
+
+  /**
+   * Manejar error al cargar imagen
+   */
+  onImageError(event: any): void {
+    console.error('Error al cargar imagen:', event);
+    event.target.src = 'assets/images/image-error.png'; // Imagen por defecto si hay error
+    // O simplemente ocultar la imagen
+    event.target.style.display = 'none';
+  }
+
+  /**
+   * Verificar si una evidencia tiene contenido para mostrar
+   */
+  tieneContenido(evidencia: any): boolean {
+    return !!(
+      evidencia.contenido || 
+      evidencia.archivo_url || 
+      evidencia.duracion_segundos
+    );
+  }
+
+  /**
+   * Obtener icono según tipo de evidencia
+   */
+  obtenerIconoEvidencia(tipo: string): string {
+    const iconos: { [key: string]: string } = {
+      'texto': 'bi-card-text',
+      'imagen': 'bi-image',
+      'cronometro': 'bi-stopwatch',
+      'documento': 'bi-file-earmark',
+      'video': 'bi-camera-video',
+      'audio': 'bi-music-note',
+      'otro': 'bi-paperclip'
+    };
+    
+    return iconos[tipo] || 'bi-paperclip';
+  }
+
+  /**
+   * Obtener clase de color según tipo de evidencia
+   */
+  obtenerColorEvidencia(tipo: string): string {
+    const colores: { [key: string]: string } = {
+      'texto': 'text-primary',
+      'imagen': 'text-success',
+      'cronometro': 'text-warning',
+      'documento': 'text-secondary',
+      'video': 'text-info',
+      'audio': 'text-danger',
+      'otro': 'text-muted'
+    };
+    
+    return colores[tipo] || 'text-muted';
+  }
+  
 }

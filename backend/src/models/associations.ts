@@ -5,6 +5,7 @@ import { ActividadAsignada } from "./actividad/actividad-asignada";
 import { Evidencia } from "./evidencia";
 import Test from './test';
 import PreguntaTest from './preguntaTest';
+import { ActividadPaciente } from "./actividad/actividad-paciente";
 import AplicacionTest from './aplicacionTest';
 import RespuestaTest from './respuesta-test';
 import ResultadoTest from './resultado_test';
@@ -177,6 +178,33 @@ export function setupAssociations() {
   });
 
   console.log('✅ Asociaciones de Módulos y Actividades configuradas');
+
+    // ==================== ASOCIACIONES DE ACTIVIDAD_PACIENTE ====================
+  console.log('📋 Configurando asociaciones de ActividadPaciente...');
+  
+  // ActividadPaciente <-> Paciente
+  ActividadPaciente.belongsTo(Paciente, {
+    foreignKey: 'id_paciente',
+    as: 'paciente'
+  });
+
+  Paciente.hasMany(ActividadPaciente, {
+    foreignKey: 'id_paciente',
+    as: 'actividades_paciente'
+  });
+
+  // ActividadPaciente <-> Actividad
+  ActividadPaciente.belongsTo(Actividad, {
+    foreignKey: 'id_actividad',
+    as: 'actividad'
+  });
+
+  Actividad.hasMany(ActividadPaciente, {
+    foreignKey: 'id_actividad',
+    as: 'realizaciones_paciente'
+  });
+
+  console.log('✅ Asociaciones de ActividadPaciente configuradas');
 
   // ==================== ASOCIACIONES DE EVIDENCIAS ====================
   console.log('📸 Configurando asociaciones de Evidencias...');
