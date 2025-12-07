@@ -1,9 +1,8 @@
-// sub-componentes/visor-evidencia/visor-evidencia.component.ts
+// visor-evidencia.component.ts - CORREGIDO
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Evidencia } from '../../../../../../interfaces/moduloDuelo';
-//import { Evidencia } from '../../modulos-duelo.component';
 
 @Component({
   selector: 'app-visor-evidencia',
@@ -28,6 +27,12 @@ export class VisorEvidenciaComponent implements OnInit {
   }
 
   determinarTipoVisualizacion(): void {
+    // CORRECCIÓN: Validar que archivo_url existe
+    if (!this.evidencia.archivo_url) {
+      this.tipoVisualizacion = 'enlace';
+      return;
+    }
+
     const url = this.evidencia.archivo_url.toLowerCase();
     const tipo = this.evidencia.tipo_archivo;
 
@@ -70,6 +75,11 @@ export class VisorEvidenciaComponent implements OnInit {
   }
 
   obtenerURLYoutube(): SafeResourceUrl | null {
+    // CORRECCIÓN: Validar que archivo_url existe
+    if (!this.evidencia.archivo_url) {
+      return null;
+    }
+
     const url = this.evidencia.archivo_url;
     let videoId = '';
 
@@ -92,6 +102,11 @@ export class VisorEvidenciaComponent implements OnInit {
   }
 
   obtenerURLVimeo(): SafeResourceUrl | null {
+    // CORRECCIÓN: Validar que archivo_url existe
+    if (!this.evidencia.archivo_url) {
+      return null;
+    }
+
     const url = this.evidencia.archivo_url;
     const match = url.match(/vimeo\.com\/(\d+)/);
     
@@ -112,6 +127,12 @@ export class VisorEvidenciaComponent implements OnInit {
    * Abrir en nueva pestaña
    */
   abrirEnNuevaPestana(): void {
+    // CORRECCIÓN: Validar que archivo_url existe
+    if (!this.evidencia.archivo_url) {
+      console.warn('No hay URL para abrir');
+      return;
+    }
+    
     window.open(this.evidencia.archivo_url, '_blank');
   }
 
@@ -119,6 +140,12 @@ export class VisorEvidenciaComponent implements OnInit {
    * Descargar archivo
    */
   descargarArchivo(): void {
+    // CORRECCIÓN: Validar que archivo_url existe
+    if (!this.evidencia.archivo_url) {
+      console.warn('No hay URL para descargar');
+      return;
+    }
+
     // Usar fetch para forzar descarga
     fetch(this.evidencia.archivo_url)
       .then(response => response.blob())
@@ -144,6 +171,11 @@ export class VisorEvidenciaComponent implements OnInit {
   }
 
   obtenerNombreArchivo(): string {
+    // CORRECCIÓN: Validar que archivo_url existe
+    if (!this.evidencia.archivo_url) {
+      return 'archivo';
+    }
+
     const url = this.evidencia.archivo_url;
     const partes = url.split('/');
     return partes[partes.length - 1] || 'archivo';

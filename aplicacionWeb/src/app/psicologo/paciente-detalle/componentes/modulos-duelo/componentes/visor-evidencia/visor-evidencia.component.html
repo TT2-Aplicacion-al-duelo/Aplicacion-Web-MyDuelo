@@ -68,7 +68,7 @@
         <!-- Visor de Video -->
         <div *ngIf="tipoVisualizacion === 'video'" class="visor-contenido">
           <iframe 
-            *ngIf="evidencia.archivo_url.includes('youtube') || evidencia.archivo_url.includes('youtu.be')"
+            *ngIf="evidencia.archivo_url?.includes('youtube') || evidencia.archivo_url?.includes('youtu.be')"
             [src]="obtenerURLYoutube()"
             class="video-frame"
             frameborder="0"
@@ -77,7 +77,7 @@
           </iframe>
 
           <iframe 
-            *ngIf="evidencia.archivo_url.includes('vimeo')"
+            *ngIf="evidencia.archivo_url?.includes('vimeo')"
             [src]="obtenerURLVimeo()"
             class="video-frame"
             frameborder="0"
@@ -86,9 +86,9 @@
           </iframe>
 
           <video 
-            *ngIf="!evidencia.archivo_url.includes('youtube') && 
-                   !evidencia.archivo_url.includes('youtu.be') && 
-                   !evidencia.archivo_url.includes('vimeo')"
+            *ngIf="!evidencia.archivo_url?.includes('youtube') && 
+                   !evidencia.archivo_url?.includes('youtu.be') && 
+                   !evidencia.archivo_url?.includes('vimeo')"
             [src]="evidencia.archivo_url"
             controls
             class="video-player"
