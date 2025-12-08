@@ -1,0 +1,298 @@
+<p>modal-reporte-general works!</p>
+<!-- Modal Backdrop -->
+<div 
+  *ngIf="mostrar && reporte" 
+  class="modal fade show d-block" 
+  tabindex="-1" 
+  role="dialog"
+  (click)="onBackdropClick($event)"
+>
+  <div class="modal-dialog modal-xl modal-dialog-scrollable" role="document">
+    <div class="modal-content">
+      
+      <!-- HEADER -->
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title">
+          <i class="bi bi-file-earmark-bar-graph me-2"></i>
+          Reporte General de Pacientes
+        </h5>
+        <button 
+          type="button" 
+          class="btn-close btn-close-white" 
+          (click)="cerrarModal()"
+          aria-label="Cerrar"
+        ></button>
+      </div>
+
+      <!-- BODY -->
+      <div class="modal-body">
+        
+        <!-- INFORMACIÓN GENERAL -->
+        <div class="card mb-4 border-primary">
+          <div class="card-header bg-primary bg-opacity-10">
+            <h6 class="mb-0 text-primary">
+              <i class="bi bi-info-circle me-2"></i>
+              Información General
+            </h6>
+          </div>
+          <div class="card-body">
+            <div class="row text-center">
+              <div class="col-md-3 mb-3 mb-md-0">
+                <div class="stat-box">
+                  <i class="bi bi-people-fill text-primary fs-1"></i>
+                  <h3 class="mt-2 mb-0">{{ reporte.total_pacientes }}</h3>
+                  <p class="text-muted mb-0">Total Pacientes</p>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3 mb-md-0">
+                <div class="stat-box">
+                  <i class="bi bi-clipboard-data text-info fs-1"></i>
+                  <h3 class="mt-2 mb-0">{{ reporte.resumen_global.total_tests_aplicados }}</h3>
+                  <p class="text-muted mb-0">Tests Aplicados</p>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3 mb-md-0">
+                <div class="stat-box">
+                  <i class="bi bi-check-circle text-success fs-1"></i>
+                  <h3 class="mt-2 mb-0">{{ reporte.resumen_global.total_actividades_completadas }}</h3>
+                  <p class="text-muted mb-0">Actividades Completadas</p>
+                </div>
+              </div>
+              <div class="col-md-3 mb-3 mb-md-0">
+                <div class="stat-box">
+                  <i class="bi bi-hourglass-split text-warning fs-1"></i>
+                  <h3 class="mt-2 mb-0">{{ reporte.resumen_global.total_actividades_pendientes }}</h3>
+                  <p class="text-muted mb-0">Actividades Pendientes</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="row mt-4">
+              <div class="col-12">
+                <div class="alert alert-info mb-0">
+                  <i class="bi bi-graph-up me-2"></i>
+                  <strong>Progreso Promedio en Módulos:</strong> 
+                  {{ reporte.resumen_global.promedio_progreso_modulos }}%
+                  <div class="progress mt-2" style="height: 25px;">
+                    <div 
+                      class="progress-bar progress-bar-striped progress-bar-animated"
+                      [ngClass]="'bg-' + getColorProgreso(reporte.resumen_global.promedio_progreso_modulos)"
+                      role="progressbar" 
+                      [style.width.%]="reporte.resumen_global.promedio_progreso_modulos"
+                      [attr.aria-valuenow]="reporte.resumen_global.promedio_progreso_modulos" 
+                      aria-valuemin="0" 
+                      aria-valuemax="100"
+                    >
+                      {{ reporte.resumen_global.promedio_progreso_modulos }}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- DETALLES POR PACIENTE -->
+        <div class="card border-secondary">
+          <div class="card-header bg-secondary bg-opacity-10">
+            <h6 class="mb-0 text-secondary">
+              <i class="bi bi-person-lines-fill me-2"></i>
+              Detalles por Paciente
+            </h6>
+          </div>
+          <div class="card-body">
+            
+            <!-- Lista de pacientes -->
+            <div class="accordion" id="accordionPacientes">
+              <div 
+                *ngFor="let paciente of reporte.pacientes; let i = index" 
+                class="accordion-item mb-2"
+              >
+                <h2 class="accordion-header">
+                  <button 
+                    class="accordion-button"
+                    [class.collapsed]="!estaExpandido(paciente.id_paciente)"
+                    type="button" 
+                    (click)="togglePaciente(paciente.id_paciente)"
+                  >
+                    <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                      <div>
+                        <i class="bi bi-person-circle me-2"></i>
+                        <strong>{{ paciente.nombre_completo }}</strong>
+                      </div>
+                      <div class="d-flex gap-2">
+                        <span class="badge bg-info">
+                          {{ paciente.tests.total }} tests
+                        </span>
+                        <span class="badge bg-success">
+                          {{ paciente.actividades.completadas }} completadas
+                        </span>
+                        <span class="badge bg-warning text-dark">
+                          {{ paciente.actividades.pendientes }} pendientes
+                        </span>
+                      </div>
+                    </div>
+                  </button>
+                </h2>
+                <div 
+                  class="accordion-collapse collapse"
+                  [class.show]="estaExpandido(paciente.id_paciente)"
+                >
+                  <div class="accordion-body">
+                    
+                    <!-- Información básica -->
+                    <div class="row mb-3">
+                      <div class="col-md-6">
+                        <p class="mb-1">
+                          <i class="bi bi-envelope me-2 text-primary"></i>
+                          <strong>Email:</strong> {{ paciente.email }}
+                        </p>
+                      </div>
+                      <div class="col-md-6">
+                        <p class="mb-1">
+                          <i class="bi bi-calendar-check me-2 text-primary"></i>
+                          <strong>Fecha de Registro:</strong> 
+                          {{ paciente.fecha_registro | date:'dd/MM/yyyy' }}
+                        </p>
+                      </div>
+                    </div>
+
+                    <!-- Tests realizados -->
+                    <div class="mb-4" *ngIf="paciente.tests.total > 0">
+                      <h6 class="text-primary">
+                        <i class="bi bi-clipboard-data me-2"></i>
+                        Tests Realizados ({{ paciente.tests.total }})
+                      </h6>
+                      <div class="table-responsive">
+                        <table class="table table-sm table-bordered">
+                          <thead class="table-light">
+                            <tr>
+                              <th>Nombre del Test</th>
+                              <th>Fecha</th>
+                              <th>Puntaje</th>
+                              <th>Interpretación</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr *ngFor="let test of paciente.tests.detalles">
+                              <td>{{ test.nombre_test }}</td>
+                              <td>{{ test.fecha | date:'dd/MM/yyyy' }}</td>
+                              <td class="text-center">
+                                {{ test.puntaje !== null ? test.puntaje : 'N/A' }}
+                              </td>
+                              <td>{{ test.interpretacion }}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
+                    <!-- Actividades -->
+                    <div class="mb-4">
+                      <h6 class="text-primary">
+                        <i class="bi bi-list-check me-2"></i>
+                        Resumen de Actividades
+                      </h6>
+                      <div class="row">
+                        <div class="col-md-4">
+                          <div class="card bg-light">
+                            <div class="card-body text-center">
+                              <h5 class="text-secondary">{{ paciente.actividades.total_asignadas }}</h5>
+                              <p class="mb-0 small">Total Asignadas</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="card bg-success bg-opacity-10">
+                            <div class="card-body text-center">
+                              <h5 class="text-success">{{ paciente.actividades.completadas }}</h5>
+                              <p class="mb-0 small">Completadas</p>
+                            </div>
+                          </div>
+                        </div>
+                        <div class="col-md-4">
+                          <div class="card bg-warning bg-opacity-10">
+                            <div class="card-body text-center">
+                              <h5 class="text-warning">{{ paciente.actividades.pendientes }}</h5>
+                              <p class="mb-0 small">Pendientes</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- Progreso en módulos -->
+                    <div>
+                      <h6 class="text-primary">
+                        <i class="bi bi-bar-chart-line me-2"></i>
+                        Progreso en Módulos de Duelo
+                      </h6>
+                      <div class="alert alert-info mb-3">
+                        <strong>Progreso Promedio:</strong> {{ paciente.modulos.progreso_promedio }}%
+                      </div>
+                      <div class="row">
+                        <div 
+                          *ngFor="let modulo of paciente.modulos.detalles" 
+                          class="col-md-6 mb-3"
+                        >
+                          <div class="card">
+                            <div class="card-body">
+                              <h6 class="card-title">{{ modulo.nombre_modulo }}</h6>
+                              <div class="progress mb-2" style="height: 20px;">
+                                <div 
+                                  class="progress-bar"
+                                  [ngClass]="'bg-' + getColorProgreso(modulo.progreso)"
+                                  role="progressbar" 
+                                  [style.width.%]="modulo.progreso"
+                                  [attr.aria-valuenow]="modulo.progreso" 
+                                  aria-valuemin="0" 
+                                  aria-valuemax="100"
+                                >
+                                  {{ modulo.progreso }}%
+                                </div>
+                              </div>
+                              <small class="text-muted">
+                                {{ modulo.actividades_completadas }} de {{ modulo.actividades_totales }} actividades completadas
+                              </small>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- FOOTER -->
+      <div class="modal-footer">
+        <button 
+          type="button" 
+          class="btn btn-success"
+          (click)="descargarPDF()"
+        >
+          <i class="bi bi-file-earmark-pdf me-2"></i>
+          Descargar en PDF
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-secondary" 
+          (click)="cerrarModal()"
+        >
+          <i class="bi bi-x-circle me-2"></i>
+          Cerrar
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Backdrop -->
+<div *ngIf="mostrar" class="modal-backdrop fade show"></div>

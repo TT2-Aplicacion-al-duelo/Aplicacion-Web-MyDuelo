@@ -13,6 +13,7 @@ import modulosRoutes from '../routes/modulos';
 import testRoutes from '../routes/tests';
 import notasRoutes from '../routes/notas';
 import foroRoutes from '../routes/foro';
+import reportePacientesRoutes from '../routes/reporte-pacientes';
 import diarioEmocionesRoutes from '../routes/diario-emociones'; 
 import notificacionesRoutes from '../routes/notificaciones';
 import { Notificacion } from './notificacion';
@@ -218,6 +219,7 @@ class Server {
         this.app.use(diarioEmocionesRoutes);
         this.app.use('/api/foros', foroRoutes);
         this.app.use(notificacionesRoutes);
+        this.app.use(reportePacientesRoutes);
     }
 
     // Método para iniciar el servidor

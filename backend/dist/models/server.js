@@ -60,6 +60,7 @@ const modulos_1 = __importDefault(require("../routes/modulos"));
 const tests_1 = __importDefault(require("../routes/tests"));
 const notas_1 = __importDefault(require("../routes/notas"));
 const foro_1 = __importDefault(require("../routes/foro"));
+const reporte_pacientes_1 = __importDefault(require("../routes/reporte-pacientes"));
 const diario_emociones_1 = __importDefault(require("../routes/diario-emociones"));
 const notificaciones_1 = __importDefault(require("../routes/notificaciones"));
 const notificaciones_2 = require("../controllers/notificaciones");
@@ -242,6 +243,7 @@ class Server {
         this.app.use(diario_emociones_1.default);
         this.app.use('/api/foros', foro_1.default);
         this.app.use(notificaciones_1.default);
+        this.app.use(reporte_pacientes_1.default);
     }
     // Método para iniciar el servidor
     listen() {
