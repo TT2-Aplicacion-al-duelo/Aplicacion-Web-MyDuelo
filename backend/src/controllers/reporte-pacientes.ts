@@ -25,7 +25,7 @@ export const getReporteGeneral = async (req: Request, res: Response) => {
     // Obtener todos los pacientes del psicólogo
     const pacientes = await Paciente.findAll({
       where: { id_psicologo },
-      attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email', 'fecha_registro'],
+      attributes: ['id_paciente', 'nombre', 'apellido_paterno', 'apellido_materno', 'email', 'createdAt'],
       order: [['nombre', 'ASC']]
     });
 
@@ -174,7 +174,7 @@ export const getReporteGeneral = async (req: Request, res: Response) => {
           id_paciente,
           nombre_completo: `${paciente.nombre} ${paciente.apellido_paterno} ${paciente.apellido_materno || ''}`.trim(),
           email: paciente.email,
-          fecha_registro: paciente.fecha_registro,
+          fecha_registro: paciente.paciente.createdAt,
           tests: {
             total: testsDelPaciente.length,
             detalles: testsSummary
