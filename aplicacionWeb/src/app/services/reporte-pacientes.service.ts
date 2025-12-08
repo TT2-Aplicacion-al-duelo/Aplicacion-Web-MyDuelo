@@ -13,7 +13,7 @@ export class ReportePacientesService {
 
   constructor(private http: HttpClient) {
     this.myAppUrl = environment.apiUrl;
-    this.myApiUrl = 'api/psicologo/';
+    this.myApiUrl = '/api/psicologo/';
   }
 
   /**
