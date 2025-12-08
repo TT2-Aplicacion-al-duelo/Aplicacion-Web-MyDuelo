@@ -174,7 +174,10 @@ export class TestsDisponiblesComponent implements OnInit {
   });
 }
   cerrarModal() {
-    throw new Error('Method not implemented.');
+     this.mostrarModalAplicacion = false;
+    this.testSeleccionado = null;
+    this.respuestas.clear();
+    this.aplicandoTest = false;
   }
 
   /**

@@ -14,6 +14,7 @@ import { AplicacionTest } from '../../../../../../interfaces/test';
 
 @Component({
   selector: 'app-notas-psicologo',
+  standalone: true,
   imports: [CommonModule, FormsModule, ModalCrearNotaComponent],
   templateUrl: './notas-psicologo.component.html',
   styleUrls: ['./notas-psicologo.component.css']
@@ -28,7 +29,7 @@ export class NotasPsicologoComponent implements OnInit {
   mostrarModal: boolean = false;
   modoEdicion: boolean = false;
 
-  // ✅ CORREGIDO: Cambiar de null a undefined
+ 
   testsAplicados: AplicacionTest[] = [];
   idAplicacionParaNota?: number; // Usar undefined en lugar de null
 

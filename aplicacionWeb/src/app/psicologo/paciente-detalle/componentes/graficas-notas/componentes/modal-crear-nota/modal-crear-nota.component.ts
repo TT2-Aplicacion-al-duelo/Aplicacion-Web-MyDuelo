@@ -9,6 +9,7 @@ import { AplicacionTest } from '../../../../../../interfaces/test';
 
 @Component({
   selector: 'app-modal-crear-nota',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './modal-crear-nota.component.html',
   styleUrls: ['./modal-crear-nota.component.css']

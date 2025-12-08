@@ -85,7 +85,7 @@ export class ModalReporteGeneralComponent implements OnInit {
     // ==================== RESUMEN GLOBAL ====================
     doc.setFontSize(14);
     doc.setTextColor(0, 102, 204);
-    doc.text('📊 Resumen Global', 14, yPosition);
+    doc.text('Resumen Global', 14, yPosition);
     
     yPosition += 10;
     
@@ -113,7 +113,7 @@ export class ModalReporteGeneralComponent implements OnInit {
     // ==================== DETALLES POR PACIENTE ====================
     doc.setFontSize(14);
     doc.setTextColor(0, 102, 204);
-    doc.text('👥 Detalles por Paciente', 14, yPosition);
+    doc.text('Detalles por Paciente', 14, yPosition);
     
     yPosition += 10;
 

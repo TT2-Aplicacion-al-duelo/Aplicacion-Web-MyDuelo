@@ -336,20 +336,4 @@ export class PdfGeneratorService {
     return 100;
   }
 
-  /**
-   * Obtener recomendaciones ITRD
-   */
-  // private obtenerRecomendacionesITRD(aplicacion: AplicacionTest): string[] {
-  //   const puntaje = aplicacion.resultado?.puntaje_total || 0;
-  //   const nombreTest = aplicacion.test?.nombre || '';
-  //   const esITRDPasado = nombreTest.toLowerCase().includes('pasado');
-    
-  //   if (esITRDPasado) {
-  //     const resultado = ITRDInterpretacionHelper.interpretarITRDPasado(puntaje);
-  //     return resultado.recomendaciones;
-  //   } else {
-  //     const resultado = ITRDInterpretacionHelper.interpretarITRDPresente(puntaje);
-  //     return resultado.recomendaciones;
-  //   }
-  // }
 }
