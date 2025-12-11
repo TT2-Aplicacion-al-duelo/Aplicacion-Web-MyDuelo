@@ -193,28 +193,7 @@ export const getActividadesPaciente = async (req: Request, res: Response) => {
       order: [['fecha_asignacion', 'DESC']]
     });
 
-    //  AGREGAR función auxiliar arriba si no existe
-      // function limpiarUrlEvidencia(url: string): string {
-      //   if (!url) return url;
-        
-      //   if (url.startsWith('http://192.168') || 
-      //       url.startsWith('http://20.') ||
-      //       url.includes(':3000/')) {
-          
-      //     const uploadIndex = url.indexOf('uploads/');
-      //     if (uploadIndex !== -1) {
-      //       const relativePath = url.substring(uploadIndex + 8);
-            
-      //       const baseUrl = process.env.NODE_ENV === 'production' 
-      //         ? 'https://api.midueloapp.com'
-      //         : `http://localhost:${process.env.PORT || '3017'}`;
-            
-      //       return `${baseUrl}/uploads/${relativePath}`;
-      //     }
-      //   }
-        
-      //   return url;
-      // }
+
           //  AGREGAR función auxiliar arriba si no existe
       function limpiarUrlEvidencia(url: string): string {
         if (!url) return url;

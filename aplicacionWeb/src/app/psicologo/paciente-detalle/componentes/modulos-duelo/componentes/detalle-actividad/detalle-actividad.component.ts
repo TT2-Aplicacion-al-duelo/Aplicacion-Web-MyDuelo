@@ -151,9 +151,22 @@ export class DetalleActividadComponent implements OnInit {
       return url;
     }
     
-    // Si es una ruta relativa, construir la URL completa
-    const baseUrl = environment.apiUrl.replace('/api', '');
-    return `${baseUrl}/${url}`;
+    // Limpiar URLs duplicadas (ej: uploads/uploads/)
+    const urlLimpia = url.replace(/^uploads\/uploads\//, 'uploads/');
+    
+    // Construir URL base del servidor
+    let baseUrl = environment.apiUrl || 'http://localhost:3017';
+    
+    // Remover '/api' si existe
+    baseUrl = baseUrl.replace('/api', '');
+    
+    // Remover slash final si existe
+    baseUrl = baseUrl.replace(/\/$/, '');
+    
+    // Si la URL limpia no empieza con slash, agregarlo
+    const path = urlLimpia.startsWith('/') ? urlLimpia : `/${urlLimpia}`;
+    
+    return `${baseUrl}${path}`;
   }
 
   /**

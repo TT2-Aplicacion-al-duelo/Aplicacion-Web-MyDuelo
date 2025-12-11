@@ -57,7 +57,7 @@ function formatearEvidenciaPaciente(actividadPaciente: any, actividad: any) {
   if (actividadPaciente.evidencia_foto) {
     evidencias.push({
       id_evidencia: `foto_${actividadPaciente.id_actividad_paciente}`,
-      archivo_url: limpiarUrlEvidencia(actividadPaciente.evidencia_foto),
+      archivo_url: limpiarUrlEvidencia(actividadPaciente.evidencia_foto), // ✅ Esta función debe existir
       tipo_archivo: 'imagen',
       comentario: null,
       fecha_subida: actividadPaciente.fecha_realizacion,
@@ -85,7 +85,6 @@ function formatearEvidenciaPaciente(actividadPaciente: any, actividad: any) {
   
   return evidencias;
 }
-
 /**
  * GET /api/psicologo/pacientes/:id_paciente/modulos
  * Obtener todos los módulos con su progreso para un paciente
@@ -188,25 +187,14 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
 
         // Mapear actividades con su estado (ACTUALIZADO)
         const actividades = actividadesModulo.map((am: any) => {
-          // Primero buscar TODAS las realizaciones en actividad_paciente para esta actividad
-          const realizacionesPaciente = actividadesPaciente.filter(
+          // Primero buscar en actividad_paciente
+          const realizacionPaciente = actividadesPaciente.find(
             (ap: any) => ap.id_actividad === am.id_actividad
           );
 
-          if (realizacionesPaciente.length > 0) {
-            // Combinar evidencias de TODOS los registros
-            const evidenciasCombinadas: any[] = [];
-            let fechaMasReciente = realizacionesPaciente[0].fecha_realizacion;
-            
-            realizacionesPaciente.forEach((rp: any) => {
-              const evidenciasDelRegistro = formatearEvidenciaPaciente(rp, am.actividad);
-              evidenciasCombinadas.push(...evidenciasDelRegistro);
-              
-              // Actualizar fecha más reciente
-              if (new Date(rp.fecha_realizacion) > new Date(fechaMasReciente)) {
-                fechaMasReciente = rp.fecha_realizacion;
-              }
-            });
+          if (realizacionPaciente) {
+            const rpData = realizacionPaciente as any;
+            const evidencias = formatearEvidenciaPaciente(rpData, am.actividad);
 
             return {
               id_actividad: am.actividad.id_actividad,
@@ -214,9 +202,9 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
               descripcion: am.actividad.descripcion,
               tipo: am.actividad.tipo,
               estado: 'finalizada',
-              fecha_completada: fechaMasReciente,
+              fecha_completada: rpData.fecha_realizacion,
               visible_para_psicologo: true,
-              evidencias: evidenciasCombinadas,
+              evidencias,
               origen: 'modulo_paciente'
             };
           }
@@ -376,44 +364,31 @@ export const getDetalleModulo = async (req: Request, res: Response) => {
       ? Math.round((actividades_completadas / actividades_totales) * 100)
       : 0;
 
-
     // Mapear actividades (ACTUALIZADO)
-const actividades = actividadesModulo.map((am: any) => {
-  // Primero buscar TODAS las realizaciones en actividad_paciente para esta actividad
-  const realizacionesPaciente = actividadesPaciente.filter(
-    (ap: any) => ap.id_actividad === am.id_actividad
-  );
+    const actividades = actividadesModulo.map((am: any) => {
+      // Primero buscar en actividad_paciente
+      const realizacionPaciente = actividadesPaciente.find(
+        (ap: any) => ap.id_actividad === am.id_actividad
+      );
 
-  if (realizacionesPaciente.length > 0) {
-    // Combinar evidencias de TODOS los registros
-    const evidenciasCombinadas: any[] = [];
-    let fechaMasReciente = realizacionesPaciente[0].fecha_realizacion;
-    let estadoFinal = realizacionesPaciente[0].estado;
-    
-    realizacionesPaciente.forEach((rp: any) => {
-      const evidenciasDelRegistro = formatearEvidenciaPaciente(rp, am.actividad);
-      evidenciasCombinadas.push(...evidenciasDelRegistro);
-      
-      // Actualizar fecha más reciente
-      if (new Date(rp.fecha_realizacion) > new Date(fechaMasReciente)) {
-        fechaMasReciente = rp.fecha_realizacion;
-        estadoFinal = rp.estado;
+      if (realizacionPaciente) {
+        const rpData = realizacionPaciente as any;
+        const evidencias = formatearEvidenciaPaciente(rpData, am.actividad);
+
+        return {
+          id_actividad: am.actividad.id_actividad,
+          id_actividad_paciente: rpData.id_actividad_paciente,
+          titulo: am.actividad.titulo,
+          descripcion: am.actividad.descripcion,
+          tipo: am.actividad.tipo,
+          estado: rpData.estado === 'completada' ? 'finalizada' : rpData.estado,
+          fecha_realizacion: rpData.fecha_realizacion,
+          fecha_completada: rpData.estado === 'completada' ? rpData.fecha_realizacion : null,
+          visible_para_psicologo: true,
+          evidencias,
+          origen: 'modulo_paciente'
+        };
       }
-    });
-
-    return {
-      id_actividad: am.actividad.id_actividad,
-      titulo: am.actividad.titulo,
-      descripcion: am.actividad.descripcion,
-      tipo: am.actividad.tipo,
-      estado: estadoFinal === 'completada' ? 'finalizada' : estadoFinal,
-      fecha_realizacion: fechaMasReciente,
-      fecha_completada: estadoFinal === 'completada' ? fechaMasReciente : null,
-      visible_para_psicologo: true,
-      evidencias: evidenciasCombinadas,
-      origen: 'modulo_paciente'
-    };
-  }
 
       // Si no está en actividad_paciente, buscar en actividad_asignada
       const asignacion = actividadesAsignadas.find(
