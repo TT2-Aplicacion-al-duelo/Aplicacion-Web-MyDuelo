@@ -159,9 +159,6 @@ export class DetalleActividadComponent implements OnInit {
   let baseUrl = environment.apiUrl || 'http://localhost:3017';
   console.log('🌐 Base URL desde environment:', baseUrl); // ✅ DEBUG
   
-  // Remover '/api' si existe
-  //baseUrl = baseUrl.replace('/api', '');
-  
   // Remover slash final si existe
   baseUrl = baseUrl.replace(/\/$/, '');
   console.log('🌐 Base URL limpia:', baseUrl); // ✅ DEBUG

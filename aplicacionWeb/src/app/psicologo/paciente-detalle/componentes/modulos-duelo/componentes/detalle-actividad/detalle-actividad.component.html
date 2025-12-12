@@ -152,11 +152,12 @@
         </div>
 
         <!-- Tab de Evidencias -->
-        <div class="tab-pane fade" 
+        <!-- <div class="tab-pane fade" 
             id="evidencias" 
             role="tabpanel" 
-            aria-labelledby="evidencias-tab">
-          
+            aria-labelledby="evidencias-tab"> -->
+          <!-- Tab de Evidencias -->
+        <div *ngIf="tabActiva === 'evidencias'" class="tab-content-evidencias">
           <!-- Si no hay evidencias -->
           <div class="alert alert-info" 
               *ngIf="!actividad.evidencias || actividad.evidencias.length === 0">
@@ -247,6 +248,7 @@
                       </div>
                     </div>
                     
+                    
                     <!-- Evidencia de VIDEO -->
                     <div *ngIf="evidencia.tipo_archivo === 'video' && evidencia.archivo_url" 
                         class="evidencia-video">
@@ -293,11 +295,6 @@
             </div>
           </div>
         </div>
-
-
-
-
-
 
       <!-- Footer -->
       <div class="modal-footer bg-light">
