@@ -33,20 +33,20 @@ export class DetalleActividadComponent implements OnInit {
   //   }
   // }
   ngOnInit(): void {
-  console.log('🔍 DIAGNÓSTICO - Actividad recibida:', this.actividad);
-  console.log('📋 Evidencias:', this.actividad.evidencias);
-  console.log('👁️ Visible para psicólogo:', this.actividad.visible_para_psicologo);
-  console.log('📊 Cantidad de evidencias:', this.actividad.evidencias?.length);
-  console.log('✅ tieneEvidenciasVisibles():', this.tieneEvidenciasVisibles());
-  
-  // Si hay evidencias y está permitido verlas, mostrar tab de evidencias
-  if (this.tieneEvidenciasVisibles()) {
-    this.tabActiva = 'evidencias';
-    console.log('✅ Cambiando a tab de evidencias');
-  } else {
-    console.log('❌ NO hay evidencias visibles');
+    console.log('🔍 DIAGNÓSTICO - Actividad recibida:', this.actividad);
+    console.log('📋 Evidencias:', this.actividad.evidencias);
+    console.log('👁️ Visible para psicólogo:', this.actividad.visible_para_psicologo);
+    console.log('📊 Cantidad de evidencias:', this.actividad.evidencias?.length);
+    console.log('✅ tieneEvidenciasVisibles():', this.tieneEvidenciasVisibles());
+    
+    // Si hay evidencias y está permitido verlas, mostrar tab de evidencias
+    if (this.tieneEvidenciasVisibles()) {
+      this.tabActiva = 'evidencias';
+      console.log('✅ Cambiando a tab de evidencias');
+    } else {
+      console.log('❌ NO hay evidencias visibles');
+    }
   }
-}
 
   cerrarModal(): void {
     this.cerrar.emit();

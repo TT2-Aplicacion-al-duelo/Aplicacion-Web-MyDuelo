@@ -141,6 +141,23 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
             },
             estado: 'completada'
           },
+          // include: [
+          //   {
+          //     model: Actividad,
+          //     as: 'actividad',
+          //     attributes: ['id_actividad', 'titulo', 'descripcion', 'tipo']
+          //   }
+          // ]
+          attributes: [
+            'id_actividad_paciente',
+            'id_paciente',
+            'id_actividad',
+            'estado',
+            'evidencia_texto',      // ✅ AÑADIR
+            'evidencia_foto',       // ✅ AÑADIR
+            'duracion_segundos',    // ✅ AÑADIR
+            'fecha_realizacion'
+          ],
           include: [
             {
               model: Actividad,
@@ -186,15 +203,48 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
           : 0;
 
         // Mapear actividades con su estado (ACTUALIZADO)
-        const actividades = actividadesModulo.map((am: any) => {
-          // Primero buscar en actividad_paciente
-          const realizacionPaciente = actividadesPaciente.find(
-            (ap: any) => ap.id_actividad === am.id_actividad
-          );
+        // const actividades = actividadesModulo.map((am: any) => {
+        //   // Primero buscar en actividad_paciente
+        //   const realizacionPaciente = actividadesPaciente.find(
+        //     (ap: any) => ap.id_actividad === am.id_actividad
+        //   );
 
-          if (realizacionPaciente) {
-            const rpData = realizacionPaciente as any;
-            const evidencias = formatearEvidenciaPaciente(rpData, am.actividad);
+        //   if (realizacionPaciente) {
+        //     const rpData = realizacionPaciente as any;
+        //     const evidencias = formatearEvidenciaPaciente(rpData, am.actividad);
+
+        //     return {
+        //       id_actividad: am.actividad.id_actividad,
+        //       titulo: am.actividad.titulo,
+        //       descripcion: am.actividad.descripcion,
+        //       tipo: am.actividad.tipo,
+        //       estado: 'finalizada',
+        //       fecha_completada: rpData.fecha_realizacion,
+        //       visible_para_psicologo: true,
+        //       evidencias,
+        //       origen: 'modulo_paciente'
+        //     };
+        //   }
+        // Mapear actividades con su estado (ACTUALIZADO)
+        // Mapear actividades con su estado (ACTUALIZADO)
+        const actividades = actividadesModulo.map((am: any) => {
+          // ✅ CAMBIO: Buscar TODAS las realizaciones de esta actividad (no solo la primera)
+          const realizacionesPaciente = actividadesPaciente
+            .filter((ap: any) => ap.id_actividad === am.id_actividad)
+            .map((ap: any) => ap.get({ plain: true })); // ✅ Convertir a objeto plano
+
+          if (realizacionesPaciente.length > 0) {
+            // ✅ CAMBIO: Combinar evidencias de TODAS las realizaciones
+            const todasLasEvidencias = realizacionesPaciente.flatMap((rpData: any) => 
+              formatearEvidenciaPaciente(rpData, am.actividad)
+            );
+            
+            // Usar la fecha de la realización más reciente
+            const realizacionMasReciente = realizacionesPaciente.reduce((latest: any, current: any) => {
+              return new Date(current.fecha_realizacion) > new Date(latest.fecha_realizacion) 
+                ? current 
+                : latest;
+            });
 
             return {
               id_actividad: am.actividad.id_actividad,
@@ -202,10 +252,11 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
               descripcion: am.actividad.descripcion,
               tipo: am.actividad.tipo,
               estado: 'finalizada',
-              fecha_completada: rpData.fecha_realizacion,
+              fecha_completada: realizacionMasReciente.fecha_realizacion,
               visible_para_psicologo: true,
-              evidencias,
-              origen: 'modulo_paciente'
+              evidencias: todasLasEvidencias,
+              origen: 'modulo_paciente',
+              total_realizaciones: realizacionesPaciente.length
             };
           }
 
@@ -313,6 +364,21 @@ export const getDetalleModulo = async (req: Request, res: Response) => {
     });
 
     // Obtener actividades del paciente (NUEVO)
+    // const actividadesPaciente = await ActividadPaciente.findAll({
+    //   where: {
+    //     id_paciente,
+    //     id_actividad: {
+    //       [Op.in]: actividadesModulo.map((am: any) => am.id_actividad)
+    //     }
+    //   },
+    //   include: [
+    //     {
+    //       model: Actividad,
+    //       as: 'actividad'
+    //     }
+    //   ]
+    // });
+    // Obtener actividades del paciente (NUEVO)
     const actividadesPaciente = await ActividadPaciente.findAll({
       where: {
         id_paciente,
@@ -320,6 +386,16 @@ export const getDetalleModulo = async (req: Request, res: Response) => {
           [Op.in]: actividadesModulo.map((am: any) => am.id_actividad)
         }
       },
+      attributes: [
+        'id_actividad_paciente',
+        'id_paciente',
+        'id_actividad',
+        'estado',
+        'evidencia_texto',      // ✅ AÑADIR
+        'evidencia_foto',       // ✅ AÑADIR
+        'duracion_segundos',    // ✅ AÑADIR
+        'fecha_realizacion'
+      ],
       include: [
         {
           model: Actividad,
@@ -365,28 +441,64 @@ export const getDetalleModulo = async (req: Request, res: Response) => {
       : 0;
 
     // Mapear actividades (ACTUALIZADO)
-    const actividades = actividadesModulo.map((am: any) => {
-      // Primero buscar en actividad_paciente
-      const realizacionPaciente = actividadesPaciente.find(
-        (ap: any) => ap.id_actividad === am.id_actividad
-      );
+    // const actividades = actividadesModulo.map((am: any) => {
+    //   // Primero buscar en actividad_paciente
+    //   const realizacionPaciente = actividadesPaciente.find(
+    //     (ap: any) => ap.id_actividad === am.id_actividad
+    //   );
 
-      if (realizacionPaciente) {
-        const rpData = realizacionPaciente as any;
-        const evidencias = formatearEvidenciaPaciente(rpData, am.actividad);
+    //   if (realizacionPaciente) {
+    //     const rpData = realizacionPaciente as any;
+    //     const evidencias = formatearEvidenciaPaciente(rpData, am.actividad);
+
+    //     return {
+    //       id_actividad: am.actividad.id_actividad,
+    //       id_actividad_paciente: rpData.id_actividad_paciente,
+    //       titulo: am.actividad.titulo,
+    //       descripcion: am.actividad.descripcion,
+    //       tipo: am.actividad.tipo,
+    //       estado: rpData.estado === 'completada' ? 'finalizada' : rpData.estado,
+    //       fecha_realizacion: rpData.fecha_realizacion,
+    //       fecha_completada: rpData.estado === 'completada' ? rpData.fecha_realizacion : null,
+    //       visible_para_psicologo: true,
+    //       evidencias,
+    //       origen: 'modulo_paciente'
+    //     };
+    //   }
+    // Mapear actividades (ACTUALIZADO)
+    // Mapear actividades (ACTUALIZADO)
+    const actividades = actividadesModulo.map((am: any) => {
+      // ✅ CAMBIO: Buscar TODAS las realizaciones de esta actividad
+      const realizacionesPaciente = actividadesPaciente
+        .filter((ap: any) => ap.id_actividad === am.id_actividad)
+        .map((ap: any) => ap.get({ plain: true })); // ✅ Convertir a objeto plano
+
+      if (realizacionesPaciente.length > 0) {
+        // ✅ CAMBIO: Combinar evidencias de TODAS las realizaciones
+        const todasLasEvidencias = realizacionesPaciente.flatMap((rpData: any) => 
+          formatearEvidenciaPaciente(rpData, am.actividad)
+        );
+        
+        // Usar la realización más reciente
+        const realizacionMasReciente = realizacionesPaciente.reduce((latest: any, current: any) => {
+          return new Date(current.fecha_realizacion) > new Date(latest.fecha_realizacion) 
+            ? current 
+            : latest;
+        });
 
         return {
           id_actividad: am.actividad.id_actividad,
-          id_actividad_paciente: rpData.id_actividad_paciente,
+          id_actividad_paciente: realizacionMasReciente.id_actividad_paciente,
           titulo: am.actividad.titulo,
           descripcion: am.actividad.descripcion,
           tipo: am.actividad.tipo,
-          estado: rpData.estado === 'completada' ? 'finalizada' : rpData.estado,
-          fecha_realizacion: rpData.fecha_realizacion,
-          fecha_completada: rpData.estado === 'completada' ? rpData.fecha_realizacion : null,
+          estado: realizacionMasReciente.estado === 'completada' ? 'finalizada' : realizacionMasReciente.estado,
+          fecha_realizacion: realizacionMasReciente.fecha_realizacion,
+          fecha_completada: realizacionMasReciente.estado === 'completada' ? realizacionMasReciente.fecha_realizacion : null,
           visible_para_psicologo: true,
-          evidencias,
-          origen: 'modulo_paciente'
+          evidencias: todasLasEvidencias,
+          origen: 'modulo_paciente',
+          total_realizaciones: realizacionesPaciente.length
         };
       }
 
