@@ -1,6 +1,3 @@
-// ============================================
-// detalle-actividad.component.ts
-// ============================================
 import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { VisorEvidenciaComponent } from '../visor-evidencia/visor-evidencia.component';
@@ -29,12 +26,27 @@ export class DetalleActividadComponent implements OnInit {
 
   constructor(private toastr: ToastrService) {}
 
+  // ngOnInit(): void {
+  //   // Si hay evidencias y está permitido verlas, mostrar tab de evidencias
+  //   if (this.tieneEvidenciasVisibles()) {
+  //     this.tabActiva = 'evidencias';
+  //   }
+  // }
   ngOnInit(): void {
-    // Si hay evidencias y está permitido verlas, mostrar tab de evidencias
-    if (this.tieneEvidenciasVisibles()) {
-      this.tabActiva = 'evidencias';
-    }
+  console.log('🔍 DIAGNÓSTICO - Actividad recibida:', this.actividad);
+  console.log('📋 Evidencias:', this.actividad.evidencias);
+  console.log('👁️ Visible para psicólogo:', this.actividad.visible_para_psicologo);
+  console.log('📊 Cantidad de evidencias:', this.actividad.evidencias?.length);
+  console.log('✅ tieneEvidenciasVisibles():', this.tieneEvidenciasVisibles());
+  
+  // Si hay evidencias y está permitido verlas, mostrar tab de evidencias
+  if (this.tieneEvidenciasVisibles()) {
+    this.tabActiva = 'evidencias';
+    console.log('✅ Cambiando a tab de evidencias');
+  } else {
+    console.log('❌ NO hay evidencias visibles');
   }
+}
 
   cerrarModal(): void {
     this.cerrar.emit();
@@ -44,13 +56,31 @@ export class DetalleActividadComponent implements OnInit {
     this.tabActiva = tab;
   }
 
-  tieneEvidenciasVisibles(): boolean {
-    return (
-      this.actividad.evidencias !== undefined &&
-      this.actividad.evidencias.length > 0 &&
-      this.actividad.visible_para_psicologo
-    );
-  }
+  // tieneEvidenciasVisibles(): boolean {
+  //   return (
+  //     this.actividad.evidencias !== undefined &&
+  //     this.actividad.evidencias.length > 0 &&
+  //     this.actividad.visible_para_psicologo
+  //   );
+  // }
+tieneEvidenciasVisibles(): boolean {
+  const tieneEvidencias = this.actividad.evidencias !== undefined;
+  const hayEvidencias = (this.actividad.evidencias?.length ?? 0) > 0; // ✅ Añadir ?? 0
+  const esVisible = this.actividad.visible_para_psicologo;
+  
+  console.log('🔍 tieneEvidenciasVisibles() - Diagnóstico:');
+  console.log('  - evidencias !== undefined:', tieneEvidencias);
+  console.log('  - evidencias.length:', this.actividad.evidencias?.length); // ✅ Cambiado
+  console.log('  - hayEvidencias > 0:', hayEvidencias); // ✅ Cambiado
+  console.log('  - visible_para_psicologo:', esVisible);
+  console.log('  - Resultado final:', tieneEvidencias && hayEvidencias && esVisible);
+  
+  return (
+    tieneEvidencias &&
+    hayEvidencias &&
+    esVisible
+  );
+}
 
   obtenerEstadoBadge(estado: string): string {
     const badges: Record<string, string> = {

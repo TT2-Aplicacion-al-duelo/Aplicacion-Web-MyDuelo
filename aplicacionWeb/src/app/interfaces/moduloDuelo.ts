@@ -1,6 +1,3 @@
-// aplicacionWeb/src/app/interfaces/moduloDuelo.ts
-// VERSIÓN ACTUALIZADA CON SOPORTE PARA ACTIVIDAD_PACIENTE
-
 export interface ModuloDuelo {
   id_modulo: number;
   nombre: string;
