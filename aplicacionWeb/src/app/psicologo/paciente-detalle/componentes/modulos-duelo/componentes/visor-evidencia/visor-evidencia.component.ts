@@ -3,6 +3,7 @@ import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { Evidencia } from '../../../../../../interfaces/moduloDuelo';
+import { environment } from '../../../../../../../environments/environment';
 
 @Component({
   selector: 'app-visor-evidencia',
@@ -133,7 +134,7 @@ export class VisorEvidenciaComponent implements OnInit {
       return;
     }
     
-    window.open(this.evidencia.archivo_url, '_blank');
+    window.open(this.obtenerUrlCompleta(this.evidencia.archivo_url), '_blank'); // ✅ CAMBIO AQUÍ
   }
 
   /**
@@ -146,8 +147,10 @@ export class VisorEvidenciaComponent implements OnInit {
       return;
     }
 
-    // Usar fetch para forzar descarga
-    fetch(this.evidencia.archivo_url)
+    // Usar fetch para forzar descarga con URL completa
+    const urlCompleta = this.obtenerUrlCompleta(this.evidencia.archivo_url); // ✅ CAMBIO AQUÍ
+    
+    fetch(urlCompleta)
       .then(response => response.blob())
       .then(blob => {
         const url = window.URL.createObjectURL(blob);
@@ -179,5 +182,28 @@ export class VisorEvidenciaComponent implements OnInit {
     const url = this.evidencia.archivo_url;
     const partes = url.split('/');
     return partes[partes.length - 1] || 'archivo';
+  }
+
+  /**
+   * Obtener URL completa para archivos de evidencia
+   */
+  obtenerUrlCompleta(url: string | undefined): string {
+    if (!url) return '';
+    
+    // Si la URL ya es completa, retornarla
+    if (url.startsWith('http://') || url.startsWith('https://')) {
+      return url;
+    }
+    
+    // Limpiar URLs duplicadas
+    const urlLimpia = url.replace(/^uploads\/uploads\//, 'uploads/');
+    
+    // Construir URL base
+    let baseUrl = environment.apiUrl || 'http://localhost:3017';
+    baseUrl = baseUrl.replace('/api', '').replace(/\/$/, '');
+    
+    const path = urlLimpia.startsWith('/') ? urlLimpia : `/${urlLimpia}`;
+    
+    return `${baseUrl}${path}`;
   }
 }

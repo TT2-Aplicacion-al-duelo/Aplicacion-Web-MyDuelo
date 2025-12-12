@@ -48,7 +48,7 @@
         <div *ngIf="tipoVisualizacion === 'imagen'" class="visor-contenido">
           <div class="imagen-container">
             <img 
-              [src]="evidencia.archivo_url" 
+              [src]="obtenerUrlCompleta(evidencia.archivo_url)" 
               [alt]="'Evidencia del paciente'"
               class="img-fluid"
               (error)="manejarErrorCarga()"

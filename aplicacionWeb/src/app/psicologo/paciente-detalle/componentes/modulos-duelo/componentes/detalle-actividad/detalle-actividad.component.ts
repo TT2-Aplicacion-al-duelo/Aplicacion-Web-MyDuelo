@@ -102,9 +102,6 @@ export class DetalleActividadComponent implements OnInit {
     return colores[tipo] || 'secondary';
   }
 
-  /**
-   * Descargar evidencia
-   */
   descargarEvidencia(evidencia: Evidencia): void {
     // Validar que existe archivo_url
     if (!evidencia.archivo_url) {
@@ -114,7 +111,7 @@ export class DetalleActividadComponent implements OnInit {
 
     // Crear un elemento <a> temporal para forzar la descarga
     const link = document.createElement('a');
-    link.href = evidencia.archivo_url;
+    link.href = this.obtenerUrlCompleta(evidencia.archivo_url); // ✅ CAMBIO AQUÍ
     link.target = '_blank';
     
     // Extraer el nombre del archivo de la URL
@@ -137,7 +134,7 @@ export class DetalleActividadComponent implements OnInit {
       return;
     }
     
-    window.open(evidencia.archivo_url, '_blank');
+    window.open(this.obtenerUrlCompleta(evidencia.archivo_url), '_blank'); // ✅ CAMBIO AQUÍ
   }
 
   /**
