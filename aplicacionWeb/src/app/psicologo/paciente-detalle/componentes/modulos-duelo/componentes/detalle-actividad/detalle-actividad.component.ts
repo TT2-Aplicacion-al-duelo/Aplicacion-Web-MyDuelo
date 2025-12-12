@@ -26,12 +26,7 @@ export class DetalleActividadComponent implements OnInit {
 
   constructor(private toastr: ToastrService) {}
 
-  // ngOnInit(): void {
-  //   // Si hay evidencias y está permitido verlas, mostrar tab de evidencias
-  //   if (this.tieneEvidenciasVisibles()) {
-  //     this.tabActiva = 'evidencias';
-  //   }
-  // }
+
   ngOnInit(): void {
     console.log('🔍 DIAGNÓSTICO - Actividad recibida:', this.actividad);
     console.log('📋 Evidencias:', this.actividad.evidencias);
@@ -56,13 +51,7 @@ export class DetalleActividadComponent implements OnInit {
     this.tabActiva = tab;
   }
 
-  // tieneEvidenciasVisibles(): boolean {
-  //   return (
-  //     this.actividad.evidencias !== undefined &&
-  //     this.actividad.evidencias.length > 0 &&
-  //     this.actividad.visible_para_psicologo
-  //   );
-  // }
+
 tieneEvidenciasVisibles(): boolean {
   const tieneEvidencias = this.actividad.evidencias !== undefined;
   const hayEvidencias = (this.actividad.evidencias?.length ?? 0) > 0; // ✅ Añadir ?? 0
@@ -164,41 +153,36 @@ tieneEvidenciasVisibles(): boolean {
       return;
     }
     
-    window.open(this.obtenerUrlCompleta(evidencia.archivo_url), '_blank'); // ✅ CAMBIO AQUÍ
+    window.open(this.obtenerUrlCompleta(evidencia.archivo_url), '_blank'); 
   }
 
   /**
    * Obtener la URL completa para archivos de evidencia
    */
  obtenerUrlCompleta(url: string): string {
-  console.log('🔍 obtenerUrlCompleta - URL recibida:', url); // ✅ DEBUG
   
   if (!url) return '';
   
   // Si la URL ya es completa (comienza con http), retornarla tal cual
   if (url.startsWith('http://') || url.startsWith('https://')) {
-    console.log('✅ URL ya es completa:', url); // ✅ DEBUG
+
     return url;
   }
   
   // Limpiar URLs duplicadas (ej: uploads/uploads/)
   const urlLimpia = url.replace(/^uploads\/uploads\//, 'uploads/');
-  console.log('🧹 URL limpia:', urlLimpia); // ✅ DEBUG
   
   // Construir URL base del servidor
   let baseUrl = environment.apiUrl || 'http://localhost:3017';
-  console.log('🌐 Base URL desde environment:', baseUrl); // ✅ DEBUG
-  
+ 
   // Remover slash final si existe
-  baseUrl = baseUrl.replace(/\/$/, '');
-  console.log('🌐 Base URL limpia:', baseUrl); // ✅ DEBUG
+  baseUrl = baseUrl.replace(/\/$/, ''); 
   
   // Si la URL limpia no empieza con slash, agregarlo
   const path = urlLimpia.startsWith('/') ? urlLimpia : `/${urlLimpia}`;
   
   const urlFinal = `${baseUrl}${path}`;
-  console.log('🎯 URL FINAL construida:', urlFinal); // ✅ DEBUG
-  
+ 
   return urlFinal;
 }
 

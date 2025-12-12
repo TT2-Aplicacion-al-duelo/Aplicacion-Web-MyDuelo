@@ -127,10 +127,6 @@ pacientesFiltrados: PacienteConError[] = [];
   obtenerFotoUrl(paciente: Paciente): string {
     const fotoPerfil = paciente.foto_perfil;
     
-    // ✅ DEBUG - Ver qué llega
-    console.log('🔍 Paciente ID:', paciente.id_paciente);
-    console.log('📸 foto_perfil en BD:', fotoPerfil);
-    
     if (!fotoPerfil) {
       console.log('❌ No hay foto_perfil');
       return '';
@@ -138,13 +134,12 @@ pacientesFiltrados: PacienteConError[] = [];
     
     // Si es URL antigua de Azure, ignorarla
     if (fotoPerfil.startsWith('http://192.168') || fotoPerfil.startsWith('http://20.')) {
-      console.log('❌ URL antigua de Azure - ignorando');
-      return '';
+         return '';
     }
     
     // Si ya es URL completa válida
     if (fotoPerfil.startsWith('http')) {
-      console.log('✅ URL completa:', fotoPerfil);
+      //console.log('✅ URL completa:', fotoPerfil);
       return fotoPerfil;
     }
     
