@@ -103,17 +103,39 @@ export const getReporteGeneral = async (req: Request, res: Response) => {
         }));
 
         // Actividades del paciente
+        // const actividadesDelPaciente = actividadesAsignadas.filter(
+        //   (a: any) => a.id_paciente === id_paciente
+        // );
+
+        // const actividades_completadas = actividadesDelPaciente.filter(
+        //   (a: any) => a.estado === 'finalizada'
+        // ).length;
+
+        // const actividades_pendientes = actividadesDelPaciente.filter(
+        //   (a: any) => a.estado === 'en_proceso' || a.estado === 'pendiente'
+        // ).length;
+        // Actividades del paciente (solo de actividad_asignada)
         const actividadesDelPaciente = actividadesAsignadas.filter(
           (a: any) => a.id_paciente === id_paciente
         );
 
-        const actividades_completadas = actividadesDelPaciente.filter(
-          (a: any) => a.estado === 'finalizada'
-        ).length;
+        // ✅ CAMBIO: Contar actividades ÚNICAS completadas
+        const idsActividadesCompletadas = new Set(
+          actividadesDelPaciente
+            .filter((a: any) => a.estado === 'finalizada')
+            .map((a: any) => a.id_actividad)
+        );
 
-        const actividades_pendientes = actividadesDelPaciente.filter(
-          (a: any) => a.estado === 'en_proceso' || a.estado === 'pendiente'
-        ).length;
+        const actividades_completadas = idsActividadesCompletadas.size;
+
+        // ✅ CAMBIO: Contar actividades ÚNICAS pendientes
+        const idsActividadesPendientes = new Set(
+          actividadesDelPaciente
+            .filter((a: any) => a.estado === 'en_proceso' || a.estado === 'pendiente')
+            .map((a: any) => a.id_actividad)
+        );
+
+        const actividades_pendientes = idsActividadesPendientes.size;
 
         // Progreso en módulos
         const progresoModulos = await Promise.all(
@@ -136,12 +158,32 @@ export const getReporteGeneral = async (req: Request, res: Response) => {
             }
 
             // Contar actividades completadas del paciente
+            // const actividadesPacienteModulo = await ActividadPaciente.findAll({
+            //   where: {
+            //     id_paciente,
+            //     id_actividad: { [Op.in]: ids_actividades },
+            //     estado: 'completada'
+            //   }
+            // });
+
+            // const actividadesAsignadasModulo = await ActividadAsignada.findAll({
+            //   where: {
+            //     id_paciente,
+            //     id_actividad: { [Op.in]: ids_actividades },
+            //     estado: 'finalizada'
+            //   }
+            // });
+
+            // const completadas = actividadesPacienteModulo.length + actividadesAsignadasModulo.length;
+            // const progreso = Math.round((completadas / total_actividades) * 100);
+            // Contar actividades completadas del paciente
             const actividadesPacienteModulo = await ActividadPaciente.findAll({
               where: {
                 id_paciente,
                 id_actividad: { [Op.in]: ids_actividades },
                 estado: 'completada'
-              }
+              },
+              attributes: ['id_actividad'] // ✅ Solo necesitamos el id
             });
 
             const actividadesAsignadasModulo = await ActividadAsignada.findAll({
@@ -149,11 +191,20 @@ export const getReporteGeneral = async (req: Request, res: Response) => {
                 id_paciente,
                 id_actividad: { [Op.in]: ids_actividades },
                 estado: 'finalizada'
-              }
+              },
+              attributes: ['id_actividad'] // ✅ Solo necesitamos el id
             });
 
-            const completadas = actividadesPacienteModulo.length + actividadesAsignadasModulo.length;
-            const progreso = Math.round((completadas / total_actividades) * 100);
+            // ✅ CAMBIO: Contar actividades ÚNICAS completadas (no realizaciones múltiples)
+            const idsActividadesCompletadas = new Set([
+              ...actividadesPacienteModulo.map((ap: any) => ap.id_actividad),
+              ...actividadesAsignadasModulo.map((aa: any) => aa.id_actividad)
+            ]);
+
+            const completadas = idsActividadesCompletadas.size;
+
+            // ✅ CAMBIO: Limitar progreso al 100%
+            const progreso = Math.min(100, Math.round((completadas / total_actividades) * 100));
 
             return {
               nombre_modulo: modulo.nombre,
@@ -193,21 +244,50 @@ export const getReporteGeneral = async (req: Request, res: Response) => {
     );
 
     // ==================== RESUMEN GLOBAL ====================
-    const total_tests_aplicados = testsAplicados.length;
-    const total_actividades_asignadas = actividadesAsignadas.length;
-    const total_actividades_completadas = actividadesAsignadas.filter(
-      (a: any) => a.estado === 'finalizada'
-    ).length;
-    const total_actividades_pendientes = actividadesAsignadas.filter(
-      (a: any) => a.estado === 'en_proceso' || a.estado === 'pendiente'
-    ).length;
+    // const total_tests_aplicados = testsAplicados.length;
+    // const total_actividades_asignadas = actividadesAsignadas.length;
+    // const total_actividades_completadas = actividadesAsignadas.filter(
+    //   (a: any) => a.estado === 'finalizada'
+    // ).length;
+    // const total_actividades_pendientes = actividadesAsignadas.filter(
+    //   (a: any) => a.estado === 'en_proceso' || a.estado === 'pendiente'
+    // ).length;
 
+    // const promedio_progreso_modulos = resumenPorPaciente.length > 0
+    //   ? Math.round(
+    //       resumenPorPaciente.reduce((sum, p) => sum + p.modulos.progreso_promedio, 0) /
+    //         resumenPorPaciente.length
+    //     )
+    //   : 0;
+    // ==================== RESUMEN GLOBAL ====================
+    const total_tests_aplicados = testsAplicados.length;
+
+    // ✅ CAMBIO: Contar actividades ÚNICAS asignadas
+    const total_actividades_asignadas = new Set(
+      actividadesAsignadas.map((a: any) => a.id_actividad)
+    ).size;
+
+    // ✅ CAMBIO: Contar actividades ÚNICAS completadas
+    const total_actividades_completadas = new Set(
+      actividadesAsignadas
+        .filter((a: any) => a.estado === 'finalizada')
+        .map((a: any) => a.id_actividad)
+    ).size;
+
+    // ✅ CAMBIO: Contar actividades ÚNICAS pendientes
+    const total_actividades_pendientes = new Set(
+      actividadesAsignadas
+        .filter((a: any) => a.estado === 'en_proceso' || a.estado === 'pendiente')
+        .map((a: any) => a.id_actividad)
+    ).size;
+
+    // ✅ CAMBIO: Limitar progreso promedio al 100%
     const promedio_progreso_modulos = resumenPorPaciente.length > 0
-      ? Math.round(
+      ? Math.min(100, Math.round(
           resumenPorPaciente.reduce((sum, p) => sum + p.modulos.progreso_promedio, 0) /
             resumenPorPaciente.length
-        )
-      : 0;
+        ))
+  : 0;
 
     // ==================== RESPUESTA ====================
     res.json({
