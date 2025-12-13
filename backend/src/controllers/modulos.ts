@@ -190,18 +190,34 @@ export const getModulosPorPaciente = async (req: Request, res: Response) => {
         });
 
         // Calcular actividades completadas (considerando ambas tablas)
-        const actividadesCompletadasPaciente = actividadesPaciente.length;
-        const actividadesCompletadasAsignadas = actividadesAsignadas.filter(
-          (aa: any) => aa.estado === 'finalizada'
-        ).length;
+        // const actividadesCompletadasPaciente = actividadesPaciente.length;
+        // const actividadesCompletadasAsignadas = actividadesAsignadas.filter(
+        //   (aa: any) => aa.estado === 'finalizada'
+        // ).length;
         
-        const actividades_completadas = actividadesCompletadasPaciente + actividadesCompletadasAsignadas;
+        // const actividades_completadas = actividadesCompletadasPaciente + actividadesCompletadasAsignadas;
 
-        // Calcular progreso
+        // // Calcular progreso
+        // const progreso = actividades_totales > 0
+        //   ? Math.round((actividades_completadas / actividades_totales) * 100)
+        //   : 0;
+        // ✅ CAMBIO: Contar actividades ÚNICAS completadas (no realizaciones múltiples)
+        const actividadesUnicasCompletadasPaciente = new Set(
+          actividadesPaciente.map((ap: any) => ap.id_actividad)
+        ).size;
+
+        const actividadesUnicasCompletadasAsignadas = new Set(
+          actividadesAsignadas
+            .filter((aa: any) => aa.estado === 'finalizada')
+            .map((aa: any) => aa.id_actividad)
+        ).size;
+
+        const actividades_completadas = actividadesUnicasCompletadasPaciente + actividadesUnicasCompletadasAsignadas;
+
+        // Calcular progreso (máximo 100%)
         const progreso = actividades_totales > 0
-          ? Math.round((actividades_completadas / actividades_totales) * 100)
+          ? Math.min(100, Math.round((actividades_completadas / actividades_totales) * 100))
           : 0;
-
         // Mapear actividades con su estado (ACTUALIZADO)
         // const actividades = actividadesModulo.map((am: any) => {
         //   // Primero buscar en actividad_paciente
@@ -427,17 +443,36 @@ export const getDetalleModulo = async (req: Request, res: Response) => {
     const actividades_totales = actividadesModulo.length;
     
     // Calcular actividades completadas (considerando ambas tablas)
-    const actividadesCompletadasPaciente = actividadesPaciente.filter(
-      (ap: any) => ap.estado === 'completada'
-    ).length;
-    const actividadesCompletadasAsignadas = actividadesAsignadas.filter(
-      (aa: any) => aa.estado === 'finalizada'
-    ).length;
+    // const actividadesCompletadasPaciente = actividadesPaciente.filter(
+    //   (ap: any) => ap.estado === 'completada'
+    // ).length;
+    // const actividadesCompletadasAsignadas = actividadesAsignadas.filter(
+    //   (aa: any) => aa.estado === 'finalizada'
+    // ).length;
     
-    const actividades_completadas = actividadesCompletadasPaciente + actividadesCompletadasAsignadas;
+    // const actividades_completadas = actividadesCompletadasPaciente + actividadesCompletadasAsignadas;
+
+    // const progreso = actividades_totales > 0
+    //   ? Math.round((actividades_completadas / actividades_totales) * 100)
+    //   : 0;
+
+    // ✅ CAMBIO: Contar actividades ÚNICAS completadas
+    const actividadesUnicasCompletadasPaciente = new Set(
+      actividadesPaciente
+        .filter((ap: any) => ap.estado === 'completada')
+        .map((ap: any) => ap.id_actividad)
+    ).size;
+
+    const actividadesUnicasCompletadasAsignadas = new Set(
+      actividadesAsignadas
+        .filter((aa: any) => aa.estado === 'finalizada')
+        .map((aa: any) => aa.id_actividad)
+    ).size;
+
+    const actividades_completadas = actividadesUnicasCompletadasPaciente + actividadesUnicasCompletadasAsignadas;
 
     const progreso = actividades_totales > 0
-      ? Math.round((actividades_completadas / actividades_totales) * 100)
+      ? Math.min(100, Math.round((actividades_completadas / actividades_totales) * 100))
       : 0;
 
     // Mapear actividades (ACTUALIZADO)
