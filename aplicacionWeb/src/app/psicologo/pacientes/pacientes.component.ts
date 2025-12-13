@@ -599,7 +599,7 @@ private dibujarGraficaBarrasHorizontal(
   startY: number,
   datos: Array<{nombre: string, progreso: number}>
 ): void {
-  const maxBarWidth = 120;
+  const maxBarWidth = 100;
   const barHeight = 10;
   let yPos = startY;
 
